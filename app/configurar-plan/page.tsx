@@ -3,63 +3,125 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, Check, ChevronRight, Info, ServerIcon, Shield, Zap, Plus } from "lucide-react"
+import { ArrowLeft, Check, ChevronRight, ServerIcon, Shield, Zap, Plus } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 
-// Datos de los planes
-const planesData = {
-  basico: {
-    name: "Básico",
-    monthlyPrice: 4.99,
-    annualPrice: 3.99,
+const COMPANY_NAME = "HostingPro"
+
+const PLANS = [
+  {
+    id: "basic",
+    title: "Básico",
+    price: { biannual: 1175.69, annual: 1959.48 },
+    period: "semestre",
+    description: "Ideal para sitios web personales y profesionistas.",
     features: [
       "1 Sitio web",
-      "10 GB SSD",
-      "50 GB Transferencia",
-      "5 Cuentas de correo",
+      "4 GB NVMe",
+      "Transferencia Ilimitada",
+      "1 Cuenta de correo gratis",
       "SSL Gratuito",
+      "SEO Básico",
+      "Google Ads",
       "Soporte 24/7",
     ],
+    differences: ["Dominio gratuito", "0 Herramientas de SEO", "CDN incluido"],
+    buttonText: "Elegir Básico",
+    buttonLink: "/configurar-plan?plan=basic",
+    cheap: true,
   },
-  profesional: {
-    name: "Profesional",
-    monthlyPrice: 9.99,
-    annualPrice: 7.99,
+  {
+    id: "advanced",
+    title: "Avanzado",
+    price: { biannual: 3217.75, annual: 5362.91 },
+    period: "semestre",
+    description: "Idóneo para sitios web de pequeños negocios físicos.",
     features: [
-      "5 Sitios web",
-      "50 GB SSD",
-      "Transferencia ilimitada",
-      "20 Cuentas de correo",
+      "1 Sitio web",
+      "6 GB NVMe",
+      "Transferencia Ilimitada",
+      "1 Cuenta de correo gratis",
+      "Dominio gratuito",
       "SSL Gratuito",
+      "SEO Avanzado",
+      "Google Ads",
       "Soporte 24/7",
-      "Backups diarios",
     ],
+    differences: ["0 Herramientas de SEO", "CDN incluido"],
+    buttonText: "Elegir Avanzado",
+    buttonLink: "/configurar-plan?plan=advanced",
+    popular: true,
   },
-  empresarial: {
-    name: "Empresarial",
-    monthlyPrice: 19.99,
-    annualPrice: 15.99,
+  {
+    id: "professional",
+    title: "Profesional",
+    price: { biannual: 4793.01, annual: 7988.36 },
+    period: "semestre",
+    description: "Perfecto para sitios web profesionales y pequeñas empresas.",
+    features: [
+      "3 Sitios web",
+      "20 GB NVMe",
+      "Transferencia ilimitada",
+      "2 Cuentas de correo gratis",
+      "Dominio gratuito",
+      "SSL Gratuito",
+      "SEO Avanzado",
+      "1 Herramienta de SEO",
+      "Google Ads",
+      "Soporte 24/7",
+    ],
+    differences: ["CDN incluido"],
+    buttonText: "Elegir Profesional",
+    buttonLink: "/configurar-plan?plan=professional",
+    recommended: true,
+  },
+  {
+    id: "enterprise",
+    title: "Empresarial",
+    price: { biannual: 8038.65, annual: 13397.76 },
+    period: "semestre",
+    description: "Para proyectos grandes con alto tráfico y necesidades avanzadas.",
     features: [
       "Sitios web ilimitados",
-      "100 GB SSD",
+      "40 GB NVMe",
       "Transferencia ilimitada",
-      "Correos ilimitados",
+      "3 Cuentas de correo gratis",
+      "Dominio gratuito",
       "SSL Gratuito",
-      "Soporte prioritario 24/7",
-      "Backups diarios",
+      "SEO Avanzado",
+      "3 Herramientas de SEO",
+      "Google Ads",
       "CDN incluido",
+      "Soporte prioritario 24/7",
     ],
+    differences: [],
+    buttonText: "Elegir Empresarial",
+    buttonLink: "/configurar-plan?plan=enterprise",
+    highQuality: true,
   },
-}
+]
+
+// Actualizar el objeto planesData para que coincida con la nueva estructura
+const planesData = PLANS.reduce((acc, plan) => {
+  acc[plan.id] = {
+    name: plan.title,
+    monthlyPrice: plan.price.biannual, // Precio Semestral
+    annualPrice: plan.price.annual, // Precio Anual
+    features: plan.features,
+    description: plan.description,
+  }
+  return acc
+}, {})
 
 // Datos de ejemplo para los extras
 const extrasData = [
@@ -101,7 +163,7 @@ export default function ConfigurarPlan() {
   const planParam = searchParams.get("plan") || "profesional"
   const billingParam = searchParams.get("billing") || "monthly"
 
-  const [planData, setPlanData] = useState(planesData.profesional)
+  const [planData, setPlanData] = useState(planesData.professional)
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
     billingParam === "annual" ? "annual" : "monthly",
   )
@@ -115,7 +177,7 @@ export default function ConfigurarPlan() {
     if (planParam && planesData[planParam as keyof typeof planesData]) {
       setPlanData(planesData[planParam as keyof typeof planesData])
     } else {
-      setPlanData(planesData.profesional)
+      setPlanData(planesData.professional)
     }
   }, [planParam])
 
@@ -179,7 +241,7 @@ export default function ConfigurarPlan() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <ServerIcon className="h-6 w-6 text-indigo-600" />
-            <span className="text-xl font-bold">HostPro</span>
+            <span className="text-xl font-bold">{COMPANY_NAME}</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/">
@@ -217,7 +279,7 @@ export default function ConfigurarPlan() {
             Personaliza tu plan de hosting y añade extras para potenciar tu experiencia.
           </motion.p>
           {/* Selector de planes */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 mb-8">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 mb-8">
             {Object.entries(planesData).map(([planKey, plan]) => (
               <motion.div
                 key={planKey}
@@ -242,10 +304,10 @@ export default function ConfigurarPlan() {
                     </div>
                     <div className="flex items-baseline gap-1 mb-2">
                       <span className="text-2xl font-bold">
-                        {billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice}€
+                        ${billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice}
                       </span>
                       <span className="text-muted-foreground">
-                        /{billingPeriod === "monthly" ? "mes" : "mes (anual)"}
+                        /{billingPeriod === "monthly" ? "Semestral" : "Anual"}
                       </span>
                     </div>
                     <ul className="text-sm space-y-1 mt-4">
@@ -282,7 +344,7 @@ export default function ConfigurarPlan() {
               <Card>
                 <CardHeader>
                   <CardTitle>Período de facturación</CardTitle>
-                  <CardDescription>Elige entre facturación mensual o anual</CardDescription>
+                  <CardDescription>Elige entre facturación Semestral o anual</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs
@@ -291,10 +353,13 @@ export default function ConfigurarPlan() {
                     className="w-full"
                   >
                     <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="monthly">Mensual</TabsTrigger>
+                      <TabsTrigger value="monthly">
+                        Semestral{" "}
+                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">15% descuento</Badge>
+                      </TabsTrigger>
                       <TabsTrigger value="annual">
                         Anual{" "}
-                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">20% descuento</Badge>
+                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">25% descuento</Badge>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="monthly" className="mt-4">
@@ -305,7 +370,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación mensual con renovación automática. Puedes cancelar en cualquier momento.
+                          Facturación Semestral con renovación automática. Facturación con un 15% de descuento.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -317,8 +382,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación anual con un 20% de descuento. Ahorra{" "}
-                          {((planData.monthlyPrice - planData.annualPrice) * 12).toFixed(2)}€ al año.
+                          Facturación Anual con renovación automática. Facturación con un 25% de descuento.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -331,7 +395,7 @@ export default function ConfigurarPlan() {
             <motion.div variants={itemVariants}>
               <Card>
                 <CardHeader>
-                  <CardTitle>Extras opcionales</CardTitle>
+                  <CardTitle>Extras opcionales (Todavía falta checar esto)</CardTitle>
                   <CardDescription>Añade servicios adicionales a tu plan</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -366,8 +430,8 @@ export default function ConfigurarPlan() {
                                 <p className="text-sm text-muted-foreground">{extra.description}</p>
                                 <p className="mt-1 text-sm font-medium text-indigo-600">
                                   {billingPeriod === "monthly"
-                                    ? `${extra.monthlyPrice}€/mes`
-                                    : `${extra.annualPrice}€/mes (facturado anualmente)`}
+                                    ? `$${extra.monthlyPrice}/Semestral`
+                                    : `$${extra.annualPrice}/Anual`}
                                 </p>
                               </div>
                             </div>
@@ -388,7 +452,9 @@ export default function ConfigurarPlan() {
             <motion.div variants={itemVariants}>
               <Card>
                 <CardHeader>
-                  <CardTitle>Configuración de dominio</CardTitle>
+                  <CardTitle>
+                    Configuración de dominio (Falta consultar disponibilidad y hacer al compra de dominios)
+                  </CardTitle>
                   <CardDescription>Configura el dominio para tu sitio web</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -450,7 +516,7 @@ export default function ConfigurarPlan() {
           >
             <Card className="border-2">
               <CardHeader className="pb-3">
-                <CardTitle>Resumen del pedido</CardTitle>
+                <CardTitle>Resumen del pedido (Falta vincular pasarela de pago)</CardTitle>
               </CardHeader>
               <CardContent className="pb-3">
                 <div className="space-y-4">
@@ -464,7 +530,7 @@ export default function ConfigurarPlan() {
                       <h3 className="font-medium">
                         Plan {planData.name}{" "}
                         <Badge className="ml-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
-                          {billingPeriod === "monthly" ? "Mensual" : "Anual"}
+                          {billingPeriod === "monthly" ? "Semestral" : "Anual"}
                         </Badge>
                       </h3>
                       <motion.span
@@ -473,7 +539,9 @@ export default function ConfigurarPlan() {
                         animate={{ opacity: 1, y: 0 }}
                         className="font-medium"
                       >
-                        {billingPeriod === "monthly" ? `${planData.monthlyPrice}€/mes` : `${planData.annualPrice}€/mes`}
+                        {billingPeriod === "monthly"
+                          ? `$${planData.monthlyPrice}/Semestral`
+                          : `$${planData.annualPrice}/Anual`}
                       </motion.span>
                     </div>
                     <AnimatePresence mode="wait">
@@ -523,8 +591,8 @@ export default function ConfigurarPlan() {
                               </div>
                               <span>
                                 {billingPeriod === "monthly"
-                                  ? `${extra.monthlyPrice}€/mes`
-                                  : `${extra.annualPrice}€/mes`}
+                                  ? `$${extra.monthlyPrice}/Semestral`
+                                  : `$${extra.annualPrice}/Semestral`}
                               </span>
                             </motion.li>
                           )
@@ -545,30 +613,12 @@ export default function ConfigurarPlan() {
                     transition={{ duration: 0.3 }}
                     className="font-bold text-lg"
                   >
-                    {totalPrice.toFixed(2)}€
+                    ${totalPrice.toFixed(2)}
                     <span className="text-sm font-normal text-muted-foreground">
-                      /{billingPeriod === "monthly" ? "mes" : "mes (facturado anualmente)"}
+                      /{billingPeriod === "monthly" ? "Semestral" : "Anual"}
                     </span>
                   </motion.div>
                 </div>
-
-                <TooltipProvider>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Info className="h-4 w-4" />
-                    <span>Garantía de devolución de 30 días</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          Si no estás satisfecho con nuestros servicios durante los primeros 30 días, te reembolsaremos
-                          el 100% del costo.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </TooltipProvider>
 
                 <Button className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2">
                   <motion.span
@@ -588,4 +638,3 @@ export default function ConfigurarPlan() {
     </div>
   )
 }
-

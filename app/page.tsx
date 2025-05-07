@@ -14,14 +14,15 @@ import PricingCard from "@/components/pricing-card"
 import FeatureCard from "@/components/feature-card"
 import TestimonialCard from "@/components/testimonial-card"
 import FaqAccordion from "@/components/faq-accordion"
+import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
 
-const COMPANY_NAME = "Kinexting"
+export const COMPANY_NAME = "Kinexting"
 
 export const PLANS = [
   {
     id: "basic",
     title: "Básico",
-    price: { biannual: 665, annual: 1170 },
+    price: { biannual: 1175.69, annual: 1959.48 },
     period: "semestre",
     description: "Ideal para sitios web personales y profesionistas.",
     features: [
@@ -46,7 +47,7 @@ export const PLANS = [
   {
     id: "advanced",
     title: "Avanzado",
-    price: { biannual: 1035, annual: 1825 },
+    price: { biannual: 3217.75, annual: 5362.91 },
     period: "semestre",
     description: "Idóneo para sitios web de pequeños negocios físicos.",
     features: [
@@ -71,7 +72,7 @@ export const PLANS = [
   {
     id: "professional",
     title: "Profesional",
-    price: { biannual: 2375, annual: 4185 },
+    price: { biannual: 4793.01, annual: 7988.36 },
     period: "semestre",
     description: "Perfecto para sitios web profesionales y pequeñas empresas.",
     features: [
@@ -96,7 +97,7 @@ export const PLANS = [
   {
     id: "enterprise",
     title: "Empresarial",
-    price: { biannual: 3260, annual: 5750 },
+    price: { biannual: 8038.65, annual: 13397.76 },
     period: "semestre",
     description: "Para proyectos grandes con alto tráfico y necesidades avanzadas.",
     features: [
@@ -342,9 +343,19 @@ export default function Home() {
         {/* Hero Section */}
         <motion.section
           style={{ y: heroY, opacity: heroOpacity }}
+          //className="relative overflow-hidden py-24 md:py-32"
           className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-24 md:py-32"
         >
-          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
+          {/* Squares Background */}
+          <div className="absolute inset-0">
+            <Squares 
+              speed={0.15} 
+              squareSize={60}
+              direction='diagonal' // up, down, left, right, diagonal
+              borderColor='#fff'
+              hoverFillColor='transparent'
+            />
+          </div>
           <div className="container relative">
             <div className="grid gap-8 md:grid-cols-2 md:gap-12 items-center">
               <div className="space-y-6" ref={heroRef}>
@@ -363,7 +374,9 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
                 >
-                  Hosting profesional para desarrolladores
+                  Acelera tu <span className="text-indigo-400">presencia</span> en línea
+                  <br />
+                  con {COMPANY_NAME}
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 30 }}
@@ -371,8 +384,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="max-w-[600px] text-white/80 md:text-xl"
                 >
-                  Infraestructura optimizada para velocidad, seguridad y escalabilidad. Ideal para proyectos web de
-                  cualquier tamaño.
+                  Infraestructura optimizada para velocidad, seguridad y escalabilidad. Ideal para proyectos web de cualquier tamaño.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
@@ -1157,7 +1169,7 @@ export default function Home() {
                         strokeLinejoin="round"
                         className="h-5 w-5"
                       >
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.1 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.1 4.18 2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.05 12.05 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.05 12.05 0 0 0 2.81.7 2 2 0 0 1 1.72 2z" />
                       </svg>
                     </div>
                     <div>
@@ -1346,7 +1358,7 @@ export default function Home() {
                 <span className="text-xl font-bold">{COMPANY_NAME}</span>
               </div>
               <p className="text-slate-400 mb-4 max-w-xs">
-                Soluciones de hosting profesional para desarrolladores y empresas. Rendimiento, seguridad y soporte
+                Soluciones de hosting profesional para profesionistas, desarrolladores y empresas. Rendimiento, seguridad y soporte
                 técnico 24/7.
               </p>
               <div className="flex gap-4">
@@ -1437,26 +1449,11 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Productos</h3>
+              <h3 className="font-bold mb-4">Servicios</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a href="#" className="text-slate-400 hover:text-white transition-colors">
                     Hosting Web
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Hosting WordPress
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Servidores VPS
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Servidores Dedicados
                   </a>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -1466,7 +1463,7 @@ export default function Home() {
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    SSL
+                    Correos
                   </a>
                 </motion.li>
               </ul>
@@ -1481,22 +1478,7 @@ export default function Home() {
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Blog
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Carreras
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
                     Prensa
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Afiliados
                   </a>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -1516,22 +1498,7 @@ export default function Home() {
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Base de conocimientos
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
                     Estado del sistema
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Documentación API
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Comunidad
                   </a>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
