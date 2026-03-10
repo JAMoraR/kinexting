@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, type ReactNode } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -15,118 +15,47 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { COMPANY_NAME, PLANS, type BillingCycle, type Plan } from "@/lib/plans"
 
-const COMPANY_NAME = "HostingPro"
+type PlanData = {
+  id: Plan["id"]
+  name: string
+  monthlyPrice: number
+  annualPrice: number
+  features: string[]
+  description: string
+}
 
-const PLANS = [
-  {
-    id: "basic",
-    title: "Básico",
-    price: { biannual: 1175.69, annual: 1959.48 },
-    period: "semestre",
-    description: "Ideal para sitios web personales y profesionistas.",
-    features: [
-      "1 Sitio web",
-      "4 GB NVMe",
-      "Transferencia Ilimitada",
-      "1 Cuenta de correo gratis",
-      "SSL Gratuito",
-      "SEO Básico",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: ["Dominio gratuito", "0 Herramientas de SEO", "CDN incluido"],
-    buttonText: "Elegir Básico",
-    buttonLink: "/configurar-plan?plan=basic",
-    cheap: true,
-  },
-  {
-    id: "advanced",
-    title: "Avanzado",
-    price: { biannual: 3217.75, annual: 5362.91 },
-    period: "semestre",
-    description: "Idóneo para sitios web de pequeños negocios físicos.",
-    features: [
-      "1 Sitio web",
-      "6 GB NVMe",
-      "Transferencia Ilimitada",
-      "1 Cuenta de correo gratis",
-      "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: ["0 Herramientas de SEO", "CDN incluido"],
-    buttonText: "Elegir Avanzado",
-    buttonLink: "/configurar-plan?plan=advanced",
-    popular: true,
-  },
-  {
-    id: "professional",
-    title: "Profesional",
-    price: { biannual: 4793.01, annual: 7988.36 },
-    period: "semestre",
-    description: "Perfecto para sitios web profesionales y pequeñas empresas.",
-    features: [
-      "3 Sitios web",
-      "20 GB NVMe",
-      "Transferencia ilimitada",
-      "2 Cuentas de correo gratis",
-      "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "1 Herramienta de SEO",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: ["CDN incluido"],
-    buttonText: "Elegir Profesional",
-    buttonLink: "/configurar-plan?plan=professional",
-    recommended: true,
-  },
-  {
-    id: "enterprise",
-    title: "Empresarial",
-    price: { biannual: 8038.65, annual: 13397.76 },
-    period: "semestre",
-    description: "Para proyectos grandes con alto tráfico y necesidades avanzadas.",
-    features: [
-      "Sitios web ilimitados",
-      "40 GB NVMe",
-      "Transferencia ilimitada",
-      "3 Cuentas de correo gratis",
-      "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "3 Herramientas de SEO",
-      "Google Ads",
-      "CDN incluido",
-      "Soporte prioritario 24/7",
-    ],
-    differences: [],
-    buttonText: "Elegir Empresarial",
-    buttonLink: "/configurar-plan?plan=enterprise",
-    highQuality: true,
-  },
-]
+type ExtraItem = {
+  id: string
+  name: string
+  description: string
+  monthlyPrice: number
+  annualPrice: number
+  icon: ReactNode
+}
 
-// Actualizar el objeto planesData para que coincida con la nueva estructura
+type ExtraSection = {
+  id: string
+  title: string
+  extras: ExtraItem[]
+}
+
 const planesData = PLANS.reduce((acc, plan) => {
   acc[plan.id] = {
+    id: plan.id,
     name: plan.title,
-    monthlyPrice: plan.price.biannual, // Precio Semestral
-    annualPrice: plan.price.annual, // Precio Anual
+    monthlyPrice: plan.price.monthly,
+    annualPrice: plan.price.annual,
     features: plan.features,
     description: plan.description,
   }
   return acc
-}, {})
+}, {} as Record<Plan["id"], PlanData>)
 
-// Datos de ejemplo para los extras
-const extrasData = [
+const webExtras: ExtraItem[] = [
   {
-    id: "extra-1",
+    id: "web-cdn",
     name: "CDN Premium",
     description: "Acelera la entrega de contenido en todo el mundo",
     monthlyPrice: 4.99,
@@ -134,15 +63,37 @@ const extrasData = [
     icon: <Zap className="h-5 w-5" />,
   },
   {
-    id: "extra-2",
+    id: "web-security",
     name: "Seguridad Avanzada",
     description: "Protección contra malware y ataques DDoS",
     monthlyPrice: 5.99,
     annualPrice: 4.99,
     icon: <Shield className="h-5 w-5" />,
   },
+]
+
+const chatbotExtras: ExtraItem[] = [
   {
-    id: "extra-3",
+    id: "chatbot-messages",
+    name: "Mensajes adicionales",
+    description: "+500 mensajes por hora para temporadas de alta demanda",
+    monthlyPrice: 8.99,
+    annualPrice: 7.49,
+    icon: <Plus className="h-5 w-5" />,
+  },
+  {
+    id: "chatbot-ia-credits",
+    name: "Créditos IA extra",
+    description: "+$150 en créditos mensuales para respuestas avanzadas",
+    monthlyPrice: 12.99,
+    annualPrice: 10.99,
+    icon: <Zap className="h-5 w-5" />,
+  },
+]
+
+const comboExtras: ExtraItem[] = [
+  {
+    id: "combo-resources",
     name: "Recursos Adicionales",
     description: "+25GB SSD y +10 bases de datos",
     monthlyPrice: 7.99,
@@ -151,51 +102,108 @@ const extrasData = [
   },
 ]
 
-// Datos de ejemplo para los dominios
 const domainOptions = [
   { id: "domain-1", name: "Usar un dominio que ya poseo" },
   { id: "domain-2", name: "Registrar un nuevo dominio" },
-  { id: "domain-3", name: "No necesito un dominio por ahora" },
 ]
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+
+const getPlanCategory = (planId: Plan["id"]) => {
+  const hasChatbot = planId.includes("chatbot")
+  const hasWeb = planId === "landing" || planId.includes("webapp")
+
+  if (hasChatbot && hasWeb) return "both"
+  if (hasChatbot) return "chatbot"
+  return "web"
+}
+
+const getExtraSectionsByPlan = (planId: Plan["id"]): ExtraSection[] => {
+  const category = getPlanCategory(planId)
+
+  if (category === "both") {
+    return [
+      { id: "web", title: "Extras para Web", extras: webExtras },
+      { id: "chatbot", title: "Extras para Chatbot", extras: chatbotExtras },
+      { id: "combo", title: "Extras combinados", extras: comboExtras },
+    ]
+  }
+
+  if (category === "chatbot") {
+    return [{ id: "chatbot", title: "Extras para Chatbot", extras: chatbotExtras }]
+  }
+
+  return [{ id: "web", title: "Extras para Web", extras: webExtras }]
+}
 
 export default function ConfigurarPlan() {
   const searchParams = useSearchParams()
-  const planParam = searchParams.get("plan") || "profesional"
+  const defaultPlanId = PLANS.find((plan) => plan.popular)?.id ?? PLANS[0].id
+  const planParam = searchParams.get("plan") || defaultPlanId
   const billingParam = searchParams.get("billing") || "monthly"
 
-  const [planData, setPlanData] = useState(planesData.professional)
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
-    billingParam === "annual" ? "annual" : "monthly",
-  )
+  const initialPlanId = (planParam in planesData ? planParam : defaultPlanId) as Plan["id"]
+  const initialPlan = planesData[initialPlanId]
+  const initialBilling: BillingCycle = billingParam === "annual" ? "annual" : "monthly"
+
+  const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(initialPlanId)
+  const [planData, setPlanData] = useState(initialPlan)
+  const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(initialBilling)
   const [selectedExtras, setSelectedExtras] = useState<string[]>([])
-  const [selectedDomain, setSelectedDomain] = useState<string>("domain-3")
+  const [selectedDomain, setSelectedDomain] = useState<string>("")
   const [newDomain, setNewDomain] = useState<string>("")
   const [totalPrice, setTotalPrice] = useState<number>(0)
 
-  // Establecer el plan seleccionado basado en los parámetros de URL
-  useEffect(() => {
-    if (planParam && planesData[planParam as keyof typeof planesData]) {
-      setPlanData(planesData[planParam as keyof typeof planesData])
-    } else {
-      setPlanData(planesData.professional)
-    }
-  }, [planParam])
+  const extraSections = useMemo(() => getExtraSectionsByPlan(selectedPlanId), [selectedPlanId])
+  const availableExtras = useMemo(
+    () => extraSections.flatMap((section) => section.extras),
+    [extraSections],
+  )
+  const extrasMap = useMemo(
+    () => new Map(availableExtras.map((extra) => [extra.id, extra] as const)),
+    [availableExtras],
+  )
+  const isDomainSelectionValid = selectedDomain !== ""
 
-  // Calcular el precio total cuando cambian las selecciones
+  useEffect(() => {
+    if (planParam && planParam in planesData) {
+      const validPlanId = planParam as Plan["id"]
+      setSelectedPlanId(validPlanId)
+      setPlanData(planesData[validPlanId])
+    } else {
+      setSelectedPlanId(defaultPlanId)
+      setPlanData(planesData[defaultPlanId])
+    }
+  }, [planParam, defaultPlanId])
+
+  useEffect(() => {
+    setBillingPeriod(billingParam === "annual" ? "annual" : "monthly")
+  }, [billingParam])
+
+  useEffect(() => {
+    const validExtraIds = new Set(availableExtras.map((extra) => extra.id))
+    setSelectedExtras((prev) => prev.filter((extraId) => validExtraIds.has(extraId)))
+  }, [availableExtras])
+
   useEffect(() => {
     let price = billingPeriod === "monthly" ? planData.monthlyPrice : planData.annualPrice
 
     selectedExtras.forEach((extraId) => {
-      const extra = extrasData.find((e) => e.id === extraId)
+      const extra = extrasMap.get(extraId)
       if (extra) {
         price += billingPeriod === "monthly" ? extra.monthlyPrice : extra.annualPrice
       }
     })
 
     setTotalPrice(price)
-  }, [billingPeriod, selectedExtras, planData])
+  }, [billingPeriod, selectedExtras, planData, extrasMap])
 
-  // Manejar la selección de extras
   const toggleExtra = (extraId: string) => {
     setSelectedExtras((prev) => (prev.includes(extraId) ? prev.filter((id) => id !== extraId) : [...prev, extraId]))
   }
@@ -287,10 +295,11 @@ export default function ConfigurarPlan() {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 onClick={() => {
+                  setSelectedPlanId(planKey as Plan["id"])
                   setPlanData(plan)
-                  // Actualizar la URL sin recargar la página
                   const url = new URL(window.location.href)
                   url.searchParams.set("plan", planKey)
+                  url.searchParams.set("billing", billingPeriod)
                   window.history.pushState({}, "", url)
                 }}
               >
@@ -304,10 +313,10 @@ export default function ConfigurarPlan() {
                     </div>
                     <div className="flex items-baseline gap-1 mb-2">
                       <span className="text-2xl font-bold">
-                        ${billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice}
+                        {formatCurrency(billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice)}
                       </span>
                       <span className="text-muted-foreground">
-                        /{billingPeriod === "monthly" ? "Semestral" : "Anual"}
+                        /{billingPeriod === "monthly" ? "Mensual" : "Anual"}
                       </span>
                     </div>
                     <ul className="text-sm space-y-1 mt-4">
@@ -344,22 +353,21 @@ export default function ConfigurarPlan() {
               <Card>
                 <CardHeader>
                   <CardTitle>Período de facturación</CardTitle>
-                  <CardDescription>Elige entre facturación Semestral o anual</CardDescription>
+                  <CardDescription>Elige entre facturación mensual o anual</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs
-                    defaultValue={billingPeriod}
+                    value={billingPeriod}
                     onValueChange={(value) => setBillingPeriod(value as "monthly" | "annual")}
                     className="w-full"
                   >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="monthly">
-                        Semestral{" "}
-                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">15% descuento</Badge>
+                        Mensual
                       </TabsTrigger>
                       <TabsTrigger value="annual">
                         Anual{" "}
-                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">25% descuento</Badge>
+                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">15% descuento</Badge>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="monthly" className="mt-4">
@@ -370,7 +378,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación Semestral con renovación automática. Facturación con un 15% de descuento.
+                          Facturación Mensual con renovación automática.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -382,7 +390,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación Anual con renovación automática. Facturación con un 25% de descuento.
+                          Facturación Anual con renovación automática. Facturación con un 15% de descuento.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -396,53 +404,64 @@ export default function ConfigurarPlan() {
               <Card>
                 <CardHeader>
                   <CardTitle>Extras opcionales (Todavía falta checar esto)</CardTitle>
-                  <CardDescription>Añade servicios adicionales a tu plan</CardDescription>
+                  <CardDescription>
+                    {getPlanCategory(selectedPlanId) === "both"
+                      ? "Tu plan incluye chatbot y web. Elige extras por lista."
+                      : getPlanCategory(selectedPlanId) === "chatbot"
+                      ? "Tu plan es chatbot. Solo se muestran extras de chatbot."
+                      : "Tu plan es web. Solo se muestran extras de web."}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {extrasData.map((extra) => (
-                    <motion.div
-                      key={extra.id}
-                      initial={{ scale: 1 }}
-                      whileHover={{ scale: 1.01 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <Card
-                        className={`border-2 transition-all duration-300 ${
-                          selectedExtras.includes(extra.id)
-                            ? "border-indigo-600 bg-indigo-50/50"
-                            : "hover:border-indigo-200"
-                        }`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                              <div
-                                className={`rounded-full p-2 ${
-                                  selectedExtras.includes(extra.id)
-                                    ? "bg-indigo-100 text-indigo-600"
-                                    : "bg-slate-100 text-slate-600"
-                                }`}
-                              >
-                                {extra.icon}
+                  {extraSections.map((section) => (
+                    <div key={section.id} className="space-y-3">
+                      <h3 className="text-sm font-semibold text-indigo-700">{section.title}</h3>
+                      {section.extras.map((extra) => (
+                        <motion.div
+                          key={extra.id}
+                          initial={{ scale: 1 }}
+                          whileHover={{ scale: 1.01 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <Card
+                            className={`border-2 transition-all duration-300 ${
+                              selectedExtras.includes(extra.id)
+                                ? "border-indigo-600 bg-indigo-50/50"
+                                : "hover:border-indigo-200"
+                            }`}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={`rounded-full p-2 ${
+                                      selectedExtras.includes(extra.id)
+                                        ? "bg-indigo-100 text-indigo-600"
+                                        : "bg-slate-100 text-slate-600"
+                                    }`}
+                                  >
+                                    {extra.icon}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-medium">{extra.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{extra.description}</p>
+                                    <p className="mt-1 text-sm font-medium text-indigo-600">
+                                      {billingPeriod === "monthly"
+                                        ? `${formatCurrency(extra.monthlyPrice)}/Mensual`
+                                        : `${formatCurrency(extra.annualPrice)}/Anual`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Switch
+                                  checked={selectedExtras.includes(extra.id)}
+                                  onCheckedChange={() => toggleExtra(extra.id)}
+                                />
                               </div>
-                              <div>
-                                <h3 className="font-medium">{extra.name}</h3>
-                                <p className="text-sm text-muted-foreground">{extra.description}</p>
-                                <p className="mt-1 text-sm font-medium text-indigo-600">
-                                  {billingPeriod === "monthly"
-                                    ? `$${extra.monthlyPrice}/Semestral`
-                                    : `$${extra.annualPrice}/Anual`}
-                                </p>
-                              </div>
-                            </div>
-                            <Switch
-                              checked={selectedExtras.includes(extra.id)}
-                              onCheckedChange={() => toggleExtra(extra.id)}
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
                   ))}
                 </CardContent>
               </Card>
@@ -473,6 +492,10 @@ export default function ConfigurarPlan() {
                       </div>
                     ))}
                   </RadioGroup>
+
+                  {!isDomainSelectionValid && (
+                    <p className="mt-3 text-sm text-red-600">Debes seleccionar una opción de dominio para continuar.</p>
+                  )}
 
                   {selectedDomain === "domain-2" && (
                     <motion.div
@@ -530,7 +553,7 @@ export default function ConfigurarPlan() {
                       <h3 className="font-medium">
                         Plan {planData.name}{" "}
                         <Badge className="ml-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
-                          {billingPeriod === "monthly" ? "Semestral" : "Anual"}
+                          {billingPeriod === "monthly" ? "Mensual" : "Anual"}
                         </Badge>
                       </h3>
                       <motion.span
@@ -540,8 +563,8 @@ export default function ConfigurarPlan() {
                         className="font-medium"
                       >
                         {billingPeriod === "monthly"
-                          ? `$${planData.monthlyPrice}/Semestral`
-                          : `$${planData.annualPrice}/Anual`}
+                          ? `${formatCurrency(planData.monthlyPrice)}/Mensual`
+                          : `${formatCurrency(planData.annualPrice)}/Anual`}
                       </motion.span>
                     </div>
                     <AnimatePresence mode="wait">
@@ -574,7 +597,7 @@ export default function ConfigurarPlan() {
                       <h3 className="font-medium mb-2">Extras seleccionados</h3>
                       <ul className="space-y-2">
                         {selectedExtras.map((extraId) => {
-                          const extra = extrasData.find((e) => e.id === extraId)
+                          const extra = extrasMap.get(extraId)
                           if (!extra) return null
                           return (
                             <motion.li
@@ -591,8 +614,8 @@ export default function ConfigurarPlan() {
                               </div>
                               <span>
                                 {billingPeriod === "monthly"
-                                  ? `$${extra.monthlyPrice}/Semestral`
-                                  : `$${extra.annualPrice}/Semestral`}
+                                  ? `${formatCurrency(extra.monthlyPrice)}/Mensual`
+                                  : `${formatCurrency(extra.annualPrice)}/Anual`}
                               </span>
                             </motion.li>
                           )
@@ -613,14 +636,14 @@ export default function ConfigurarPlan() {
                     transition={{ duration: 0.3 }}
                     className="font-bold text-lg"
                   >
-                    ${totalPrice.toFixed(2)}
+                    {formatCurrency(totalPrice)}
                     <span className="text-sm font-normal text-muted-foreground">
-                      /{billingPeriod === "monthly" ? "Semestral" : "Anual"}
+                      /{billingPeriod === "monthly" ? "Mensual" : "Anual"}
                     </span>
                   </motion.div>
                 </div>
 
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2" disabled={!isDomainSelectionValid}>
                   <motion.span
                     initial={{ x: 0 }}
                     whileHover={{ x: 5 }}

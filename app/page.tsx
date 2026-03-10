@@ -15,110 +15,7 @@ import FeatureCard from "@/components/feature-card"
 import TestimonialCard from "@/components/testimonial-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
-
-export const COMPANY_NAME = "Kinexting"
-
-export const PLANS = [
-  {
-    id: "landing",
-    title: "Landing",
-    price: { monthly: 504.99, annual: 5138.99 },
-    period: "mensual",
-    description: "Ideal para quienes buscan una presencia online con un sitio web optimizado.",
-    features: [
-      "Sitio web",
-      "Dominio gratuito",
-      "SSL",
-      "SEO",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: [
-      "Web administrativa",
-      "Base de datos",
-      "Chatbot de IA",
-      "Creditos de IA",
-      "Mensajes por hora",
-    ],
-    buttonText: "Elegir Landing",
-    buttonLink: "/configurar-plan?plan=landing",
-    cheap: true,
-  },
-  {
-    id: "chatbot",
-    title: "Chatbot",
-    price: { monthly: 976.99, annual: 9960.99 },
-    period: "mensual",
-    description: "Perfecto para quienes quieren automatizar su atención al cliente y mejorar la interacción.",
-    features: [
-      "Chatbot de IA",
-      "$300 en creditos de IA",
-      "200 mensajes por hora",
-      "Base de datos",
-      "Soporte 24/7",
-    ],
-    differences: [
-      "Sitio web",
-      "Web administrativa",
-      "Dominio gratuito",
-      "SSL",
-      "SEO",
-      "Google Ads",
-    ],
-    buttonText: "Elegir Chatbot",
-    buttonLink: "/configurar-plan?plan=chatbot",
-    popular: true,
-  },
-  {
-    id: "webapp",
-    title: "Web App",
-    price: { monthly: 1098.99, annual: 11208.99 },
-    period: "mensual",
-    description: "Perfecto para sitios web profesionales y pequeñas empresas.",
-    features: [
-      "Sitio web",
-      "Web administrativa",
-      "Base de datos",
-      "Dominio gratuito",
-      "SSL",
-      "SEO",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: [
-      "Chatbot de IA",
-      "Creditos de IA",
-      "Mensajes por hora",
-    ],
-    buttonText: "Elegir Web App",
-    buttonLink: "/configurar-plan?plan=webapp",
-    recommended: true,
-  },
-  {
-    id: "chatbot-webapp",
-    title: "Chatbot + web app",
-    price: { monthly: 1871.99, annual: 19092.99 },
-    period: "mensual",
-    description: "Ideal para negocios que buscan lo mejor en automatización y presencia online.",
-    features: [
-      "Chatbot de IA",
-      "$300 en creditos de IA",
-      "200 mensajes por hora",
-      "Sitio web",
-      "Web administrativa",
-      "Base de datos",
-      "Dominio gratuito",
-      "SSL",
-      "SEO",
-      "Google Ads",
-      "Soporte prioritario 24/7",
-    ],
-    differences: [],
-    buttonText: "Elegir Chatbot + Web App",
-    buttonLink: "/configurar-plan?plan=chatbot-webapp",
-    highQuality: true,
-  },
-];
+import { COMPANY_NAME, PLANS, buildPlanLink } from "@/lib/plans"
 
 export default function Home() {
   // Referencias para las secciones
@@ -176,7 +73,7 @@ export default function Home() {
   }
 
   // Función para desplazamiento suave
-  const scrollToSection = (elementRef: React.RefObject<HTMLElement>) => {
+  const scrollToSection = (elementRef: React.RefObject<HTMLElement | null>) => {
     if (elementRef.current) {
       window.scrollTo({
         top: elementRef.current.offsetTop - 80, // Ajuste para el header fijo
@@ -677,7 +574,7 @@ export default function Home() {
                           features={plan.features}
                           differences={plan.differences}
                           buttonText={plan.buttonText}
-                          buttonLink={plan.buttonLink}
+                          buttonLink={buildPlanLink(plan.id, billingCycle)}
                           cheap={plan.cheap}
                           popular={plan.popular}
                           recommended={plan.recommended}
@@ -791,7 +688,7 @@ export default function Home() {
                     <td className="py-4 px-4 font-medium">Soporte</td>
                     {PLANS.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.id === "enterprise"
+                        {plan.id === "chatbot-webapp"
                           ? "Prioritario"
                           : plan.features.includes("Soporte 24/7")
                           ? "24/7"
@@ -1231,7 +1128,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-bold">Soporte</h3>
-                      <p className="text-muted-foreground">soporte@Kinexting.com</p>
+                      <p className="text-muted-foreground">soporte@kinexting.com</p>
                     </div>
                   </motion.div>
                   <motion.div
@@ -1260,7 +1157,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-bold">Contacto</h3>
-                      <p className="text-muted-foreground">contacto@Kinexting.com</p>
+                      <p className="text-muted-foreground">contacto@kinexting.com</p>
                     </div>
                   </motion.div>
                 </div>
