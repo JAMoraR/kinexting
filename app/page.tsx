@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
-import { motion, useScroll, useTransform, useInView } from "framer-motion"
-import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon } from "lucide-react"
+import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
+import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon, FlashlightIcon, FastForwardIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,102 +20,102 @@ export const COMPANY_NAME = "Kinexting"
 
 export const PLANS = [
   {
-    id: "basic",
-    title: "Básico",
-    price: { biannual: 1175.69, annual: 1959.48 },
-    period: "semestre",
-    description: "Ideal para sitios web personales y profesionistas.",
+    id: "landing",
+    title: "Landing",
+    price: { monthly: 504.99, annual: 5138.99 },
+    period: "mensual",
+    description: "Ideal para quienes buscan una presencia online con un sitio web optimizado.",
     features: [
-      "1 Sitio web",
-      "4 GB NVMe",
-      "Transferencia Ilimitada",
-      "1 Cuenta de correo gratis",
-      "SSL Gratuito",
-      "SEO Básico",
+      "Sitio web",
+      "Dominio gratuito",
+      "SSL",
+      "SEO",
       "Google Ads",
       "Soporte 24/7",
     ],
     differences: [
-      "Dominio gratuito",
-      "0 Herramientas de SEO",
-      "CDN incluido",
+      "Web administrativa",
+      "Base de datos",
+      "Chatbot de IA",
+      "Creditos de IA",
+      "Mensajes por hora",
     ],
-    buttonText: "Elegir Básico",
-    buttonLink: "/configurar-plan?plan=basico",
+    buttonText: "Elegir Landing",
+    buttonLink: "/configurar-plan?plan=landing",
     cheap: true,
   },
   {
-    id: "advanced",
-    title: "Avanzado",
-    price: { biannual: 3217.75, annual: 5362.91 },
-    period: "semestre",
-    description: "Idóneo para sitios web de pequeños negocios físicos.",
+    id: "chatbot",
+    title: "Chatbot",
+    price: { monthly: 976.99, annual: 9960.99 },
+    period: "mensual",
+    description: "Perfecto para quienes quieren automatizar su atención al cliente y mejorar la interacción.",
     features: [
-      "1 Sitio web",
-      "6 GB NVMe",
-      "Transferencia Ilimitada",
-      "1 Cuenta de correo gratis",
-      "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "Google Ads",
+      "Chatbot de IA",
+      "$300 en creditos de IA",
+      "200 mensajes por hora",
+      "Base de datos",
       "Soporte 24/7",
     ],
     differences: [
-      "0 Herramientas de SEO",
-      "CDN incluido",
+      "Sitio web",
+      "Web administrativa",
+      "Dominio gratuito",
+      "SSL",
+      "SEO",
+      "Google Ads",
     ],
-    buttonText: "Elegir Avanzado",
-    buttonLink: "/configurar-plan?plan=avanzado",
+    buttonText: "Elegir Chatbot",
+    buttonLink: "/configurar-plan?plan=chatbot",
     popular: true,
   },
   {
-    id: "professional",
-    title: "Profesional",
-    price: { biannual: 4793.01, annual: 7988.36 },
-    period: "semestre",
+    id: "webapp",
+    title: "Web App",
+    price: { monthly: 1098.99, annual: 11208.99 },
+    period: "mensual",
     description: "Perfecto para sitios web profesionales y pequeñas empresas.",
     features: [
-      "3 Sitios web",
-      "20 GB NVMe",
-      "Transferencia ilimitada",
-      "2 Cuentas de correo gratis",
+      "Sitio web",
+      "Web administrativa",
+      "Base de datos",
       "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "1 Herramienta de SEO",
+      "SSL",
+      "SEO",
       "Google Ads",
       "Soporte 24/7",
     ],
     differences: [
-      "CDN incluido",
+      "Chatbot de IA",
+      "Creditos de IA",
+      "Mensajes por hora",
     ],
-    buttonText: "Elegir Profesional",
-    buttonLink: "/configurar-plan?plan=profesional",
+    buttonText: "Elegir Web App",
+    buttonLink: "/configurar-plan?plan=webapp",
     recommended: true,
   },
   {
-    id: "enterprise",
-    title: "Empresarial",
-    price: { biannual: 8038.65, annual: 13397.76 },
-    period: "semestre",
-    description: "Para proyectos grandes con alto tráfico y necesidades avanzadas.",
+    id: "chatbot-webapp",
+    title: "Chatbot + web app",
+    price: { monthly: 1871.99, annual: 19092.99 },
+    period: "mensual",
+    description: "Ideal para negocios que buscan lo mejor en automatización y presencia online.",
     features: [
-      "Sitios web ilimitados",
-      "40 GB NVMe",
-      "Transferencia ilimitada",
-      "3 Cuentas de correo gratis",
+      "Chatbot de IA",
+      "$300 en creditos de IA",
+      "200 mensajes por hora",
+      "Sitio web",
+      "Web administrativa",
+      "Base de datos",
       "Dominio gratuito",
-      "SSL Gratuito",
-      "SEO Avanzado",
-      "3 Herramientas de SEO",
+      "SSL",
+      "SEO",
       "Google Ads",
-      "CDN incluido",
       "Soporte prioritario 24/7",
     ],
     differences: [],
-    buttonText: "Elegir Empresarial",
-    buttonLink: "/configurar-plan?plan=empresarial",
+    buttonText: "Elegir Chatbot + Web App",
+    buttonLink: "/configurar-plan?plan=chatbot-webapp",
     highQuality: true,
   },
 ];
@@ -158,6 +158,22 @@ export default function Home() {
   const { scrollY } = useScroll()
   const heroY = useTransform(scrollY, [0, 500], [0, 150])
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.5])
+
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
+  const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
+
+  const filteredPlans = PLANS.filter((plan) => {
+    if (planType === "all") return true
+    if (planType === "chatbot") return plan.id.includes("chatbot")
+    return plan.id.includes("web") || plan.id === "landing"
+  })
+
+  const getPricingCardOffsetClass = (index: number) => {
+    if (filteredPlans.length === 3 && index === 0) return "lg:col-start-2"
+    if (filteredPlans.length === 2 && index === 0) return "lg:col-start-4"
+    if (filteredPlans.length === 1 && index === 0) return "lg:col-start-5"
+    return ""
+  }
 
   // Función para desplazamiento suave
   const scrollToSection = (elementRef: React.RefObject<HTMLElement>) => {
@@ -374,7 +390,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
                 >
-                  Acelera tu <span className="text-indigo-400">presencia</span> en línea
+                  Acelera tu <span className="text-indigo-500">presencia</span> en línea
                   <br />
                   con {COMPANY_NAME}
                 </motion.h1>
@@ -384,7 +400,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="max-w-[600px] text-white/80 md:text-xl"
                 >
-                  Infraestructura optimizada para velocidad, seguridad y escalabilidad. Ideal para proyectos web de cualquier tamaño.
+                  Infraestructura optimizada para velocidad, seguridad y automatización. Ideal para negocios de cualquier tamaño.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
@@ -540,8 +556,7 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
                 className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
               >
-                Nuestras soluciones de hosting están diseñadas para aquellos que buscan rendimiento, seguridad y
-                facilidad de uso.
+                Nuestras soluciones están diseñadas para aquellos que buscan rendimiento, seguridad, facilidad de uso y agilizar procesos.
               </motion.p>
             </div>
             <motion.div
@@ -587,9 +602,9 @@ export default function Home() {
               </motion.div>
               <motion.div variants={itemVariants}>
                 <FeatureCard
-                  icon={<CheckIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Panel de Control Intuitivo"
-                  description="Gestiona tus sitios, dominios, bases de datos y más desde una interfaz fácil de usar."
+                  icon={<ClockIcon className="h-10 w-10 text-indigo-600" />}
+                  title="Alta Eficiencia"
+                  description="Los chatbots de IA pueden manejar múltiples consultas simultáneamente, son capaces de agendar citas y más."
                 />
               </motion.div>
             </motion.div>
@@ -599,51 +614,64 @@ export default function Home() {
         {/* Pricing Section */}
         <section id="pricing" ref={pricingRef} className="py-16 md:py-24 bg-slate-50">
           <div className="container">
-            <div className="text-center mb-12" ref={pricingHeaderRef}>
+            <div className="text-center mb-4" ref={pricingHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isPricingHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
               >
-                Planes de <span className="text-indigo-600">Hosting</span>
+                Nuestros <span className="text-indigo-600">Planes</span>
               </motion.h2>
-              <motion.p
-                variants={fadeInUpVariants}
-                initial="hidden"
-                animate={isPricingHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
-              >
-                Elige el plan que mejor se adapte a tus necesidades. Todos incluyen soporte técnico 24/7 y garantía de
-                devolución de 30 días.
-              </motion.p>
             </div>
-            <Tabs defaultValue="biannual" className="w-full max-w-6xl mx-auto">
+            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "monthly" | "annual")} className="w-full max-w-6xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="flex justify-center mb-8"
+                className="flex justify-center"
               >
                 <TabsList>
-                  <TabsTrigger value="biannual">Semestral (15% descuento)</TabsTrigger>
-                  <TabsTrigger value="annual">Anual (25% descuento)</TabsTrigger>
+                  <TabsTrigger value="monthly">Mensual</TabsTrigger>
+                  <TabsTrigger value="annual">Anual (15% descuento)</TabsTrigger>
                 </TabsList>
               </motion.div>
-              {["biannual", "annual"].map((billingCycle) => (
-                <TabsContent key={billingCycle} value={billingCycle} className="space-y-4">
-                  <motion.div
-                    variants={staggerContainerVariants}
-                    initial="hidden"
-                    animate={isPricingHeaderInView ? "visible" : "hidden"}
-                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-                  >
-                    {PLANS.map((plan) => (
-                      <motion.div key={plan.id} variants={itemVariants}>
+              <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "web" | "all")} className="w-full max-w-6xl mx-auto">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="flex justify-center mb-8"
+                >
+                  <TabsList>
+                    <TabsTrigger value="chatbot">Chatbot</TabsTrigger>
+                    <TabsTrigger value="web">Web</TabsTrigger>
+                    <TabsTrigger value="all">Todo</TabsTrigger>
+                  </TabsList>
+                </motion.div>
+              </Tabs>
+              <TabsContent value={billingCycle} className="space-y-4">
+                <motion.div
+                  variants={staggerContainerVariants}
+                  initial="hidden"
+                  animate={isPricingHeaderInView ? "visible" : "hidden"}
+                  className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 mx-auto w-full max-w-6xl"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filteredPlans.map((plan, index) => (
+                      <motion.div
+                        key={plan.id}
+                        layout
+                        variants={itemVariants}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`lg:col-span-3 ${getPricingCardOffsetClass(index)}`}
+                      >
                         <PricingCard
                           title={plan.title}
-                          price={plan.price[billingCycle]}
+                          price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
                           period={plan.period}
                           description={plan.description}
                           features={plan.features}
@@ -657,9 +685,9 @@ export default function Home() {
                         />
                       </motion.div>
                     ))}
-                  </motion.div>
-                </TabsContent>
-              ))}
+                  </AnimatePresence>
+                </motion.div>
+              </TabsContent>
             </Tabs>
           </div>
         </section>

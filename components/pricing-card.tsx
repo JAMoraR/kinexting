@@ -9,7 +9,7 @@ import Link from "next/link"
 
 interface PricingCardProps {
   title: string
-  price: string
+  price: number
   period?: string
   description: string
   features: string[]
@@ -36,6 +36,11 @@ export default function PricingCard({
   recommended = false,
   highQuality = false,
 }: PricingCardProps) {
+  const formattedPrice = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price)
+
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
       <Card className={`flex flex-col 
@@ -47,11 +52,11 @@ export default function PricingCard({
           {popular && <Badge className="w-fit mb-2 bg-red-600">Más vendido</Badge>}
           {cheap && <Badge className="w-fit mb-2 bg-yellow-600">Mejor precio</Badge>}
           {recommended && <Badge className="w-fit mb-2 bg-indigo-600">Recomendado</Badge>}
-          {highQuality && <Badge className="w-fit mb-2 bg-green-600">Mayor calidad</Badge>}
+          {highQuality && <Badge className="w-fit mb-2 bg-green-600">Más ventajas</Badge>}
           <CardTitle>{title}</CardTitle>
           <div className="flex items-baseline gap-1">
             <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold">
-              ${price}
+              ${formattedPrice}
             </motion.span>
             <span className="text-muted-foreground">/{period}</span>
           </div>
