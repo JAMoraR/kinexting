@@ -569,7 +569,7 @@ export default function Home() {
                         <PricingCard
                           title={plan.title}
                           price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
-                          period={plan.period}
+                          period={billingCycle === "monthly" ? "mensual" : "anual"}
                           description={plan.description}
                           features={plan.features}
                           differences={plan.differences}

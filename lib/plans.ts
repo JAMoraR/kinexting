@@ -35,7 +35,7 @@ export const PLANS: Plan[] = [
     price: { monthly: 976.99, annual: 9960.99 },
     period: "mensual",
     description: "Perfecto para quienes quieren automatizar su atención al cliente y mejorar la interacción.",
-    features: ["Chatbot de IA", "$300 en creditos de IA", "200 mensajes por hora", "Base de datos", "Soporte 24/7"],
+    features: ["Chatbot de IA", "$300 en creditos de IA por mes", "200 mensajes por hora", "Base de datos", "Soporte 24/7"],
     differences: ["Sitio web", "Web administrativa", "Dominio gratuito", "SSL", "SEO", "Google Ads"],
     buttonText: "Elegir Chatbot",
     popular: true,
@@ -68,7 +68,7 @@ export const PLANS: Plan[] = [
     description: "Ideal para negocios que buscan lo mejor en automatización y presencia online.",
     features: [
       "Chatbot de IA",
-      "$300 en creditos de IA",
+      "$300 en creditos de IA por mes",
       "200 mensajes por hora",
       "Sitio web",
       "Web administrativa",

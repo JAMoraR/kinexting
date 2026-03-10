@@ -169,7 +169,8 @@ export default function ConfigurarPlan() {
     () => new Map(availableExtras.map((extra) => [extra.id, extra] as const)),
     [availableExtras],
   )
-  const isDomainSelectionValid = selectedDomain !== ""
+  const requiresDomain = getPlanCategory(selectedPlanId) !== "chatbot"
+  const isDomainSelectionValid = !requiresDomain || selectedDomain !== ""
 
   useEffect(() => {
     if (planParam && planParam in planesData) {
@@ -468,66 +469,68 @@ export default function ConfigurarPlan() {
             </motion.div>
 
             {/* Dominio */}
-            <motion.div variants={itemVariants}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    Configuración de dominio (Falta consultar disponibilidad y hacer al compra de dominios)
-                  </CardTitle>
-                  <CardDescription>Configura el dominio para tu sitio web</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup value={selectedDomain} onValueChange={setSelectedDomain} className="space-y-4">
-                    {domainOptions.map((option) => (
-                      <div
-                        key={option.id}
-                        className={`flex items-center space-x-2 rounded-lg border p-4 transition-all duration-200 ${
-                          selectedDomain === option.id ? "border-indigo-600 bg-indigo-50/50" : ""
-                        }`}
-                      >
-                        <RadioGroupItem value={option.id} id={option.id} />
-                        <Label htmlFor={option.id} className="flex-1 cursor-pointer">
-                          {option.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  {!isDomainSelectionValid && (
-                    <p className="mt-3 text-sm text-red-600">Debes seleccionar una opción de dominio para continuar.</p>
-                  )}
-
-                  {selectedDomain === "domain-2" && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4"
-                    >
-                      <div className="space-y-2">
-                        <Label htmlFor="domain-name">Nombre de dominio</Label>
-                        <div className="flex gap-2">
-                          <input
-                            id="domain-name"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            placeholder="midominio"
-                            value={newDomain}
-                            onChange={(e) => setNewDomain(e.target.value)}
-                          />
-                          <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                            <option value=".com">.com</option>
-                            <option value=".es">.es</option>
-                            <option value=".net">.net</option>
-                            <option value=".org">.org</option>
-                          </select>
+            {requiresDomain && (
+              <motion.div variants={itemVariants}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Configuración de dominio (Falta consultar disponibilidad y hacer al compra de dominios)
+                    </CardTitle>
+                    <CardDescription>Configura el dominio para tu sitio web</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <RadioGroup value={selectedDomain} onValueChange={setSelectedDomain} className="space-y-4">
+                      {domainOptions.map((option) => (
+                        <div
+                          key={option.id}
+                          className={`flex items-center space-x-2 rounded-lg border p-4 transition-all duration-200 ${
+                            selectedDomain === option.id ? "border-indigo-600 bg-indigo-50/50" : ""
+                          }`}
+                        >
+                          <RadioGroupItem value={option.id} id={option.id} />
+                          <Label htmlFor={option.id} className="flex-1 cursor-pointer">
+                            {option.name}
+                          </Label>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                      ))}
+                    </RadioGroup>
+
+                    {!isDomainSelectionValid && (
+                      <p className="mt-3 text-sm text-red-600">Debes seleccionar una opción de dominio para continuar.</p>
+                    )}
+
+                    {selectedDomain === "domain-2" && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="mt-4"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="domain-name">Nombre de dominio</Label>
+                          <div className="flex gap-2">
+                            <input
+                              id="domain-name"
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              placeholder="midominio"
+                              value={newDomain}
+                              onChange={(e) => setNewDomain(e.target.value)}
+                            />
+                            <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                              <option value=".com">.com</option>
+                              <option value=".es">.es</option>
+                              <option value=".net">.net</option>
+                              <option value=".org">.org</option>
+                            </select>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Resumen del pedido */}
