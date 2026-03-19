@@ -20,7 +20,13 @@ export const metadata: Metadata = {
     siteName: 'Kinexting',
     images: [
       {
-        url: 'https://kinexting.com/og.png',
+        url: 'https://kinexting.com/og-social.png',
+        width: 1200,
+        height: 630,
+        alt: 'Kinexting',
+      },
+      {
+        url: 'https://kinexting.com/og-social.jpg',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
@@ -36,7 +42,13 @@ export const metadata: Metadata = {
     description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento.',
     images: [
       {
-        url: 'https://kinexting.com/og.png',
+        url: 'https://kinexting.com/og-social.png',
+        width: 1200,
+        height: 630,
+        alt: 'Kinexting',
+      },
+      {
+        url: 'https://kinexting.com/og-social.jpg',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
