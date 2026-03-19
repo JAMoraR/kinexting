@@ -13,14 +13,14 @@ export const metadata: Metadata = {
   creator: 'Kinexting',
   publisher: 'Kinexting',
   // Open Graph
-  /*openGraph: {
+  openGraph: {
     title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
     description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento.',
     url: 'https://kinexting.com',
     siteName: 'Kinexting',
     images: [
       {
-        url: 'https://kinexting.com/images/og-image.png',
+        url: 'https://kinexting.com/og.png',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
@@ -28,15 +28,15 @@ export const metadata: Metadata = {
     ],
     locale: 'es-ES',
     type: 'website',
-  },*/
+  },
   // Twitter Card
-  /*twitter: {
+  twitter: {
     card: 'summary_large_image',
     title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
     description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento.',
     images: [
       {
-        url: 'https://kinexting.com/images/og-image.png',
+        url: 'https://kinexting.com/og.png',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     ],
     creator: '@kinexting',
     site: '@kinexting',
-  },*/
+  },
   /*icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
