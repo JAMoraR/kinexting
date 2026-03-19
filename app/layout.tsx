@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   ],
   creator: 'Kinexting',
   publisher: 'Kinexting',
+  other: {
+    'fb:app_id': '894860623358242',
+  },
   // Open Graph
   openGraph: {
     title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
