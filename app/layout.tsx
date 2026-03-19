@@ -2,7 +2,11 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kinexting.com'),
   title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
+  alternates: {
+    canonical: '/',
+  },
   keywords: 'Kinexting, digitalización, negocio, crecimiento',
   authors: [
     {
@@ -12,6 +16,17 @@ export const metadata: Metadata = {
   ],
   creator: 'Kinexting',
   publisher: 'Kinexting',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   other: {
     'fb:app_id': '894860623358242',
   },
