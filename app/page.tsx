@@ -2,20 +2,21 @@
 
 import type React from "react"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
 import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon, FlashlightIcon, FastForwardIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PricingCard from "@/components/pricing-card"
 import FeatureCard from "@/components/feature-card"
 import TestimonialCard from "@/components/testimonial-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
-import { COMPANY_NAME, PLANS, buildPlanLink } from "@/lib/plans"
+import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, type Plan, type PricingCatalogResponse } from "@/lib/plans"
 
 export default function Home() {
   // Referencias para las secciones
@@ -58,18 +59,61 @@ export default function Home() {
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
   const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [isPricingLoading, setIsPricingLoading] = useState(true)
 
-  const filteredPlans = PLANS.filter((plan) => {
+  useEffect(() => {
+    let isMounted = true
+
+    const loadPlans = async () => {
+      try {
+        const response = await fetch("/api/prices", { cache: "no-store" })
+        if (!response.ok) {
+          if (isMounted) {
+            setPlans([])
+          }
+          return
+        }
+
+        const payload = (await response.json()) as PricingCatalogResponse
+        if (!isMounted) {
+          return
+        }
+
+        setPlans(mapCatalogPlansToPlans(payload.plans))
+      } catch {
+        if (isMounted) {
+          setPlans([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsPricingLoading(false)
+        }
+      }
+    }
+
+    loadPlans()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const filteredPlans = plans.filter((plan) => {
     if (planType === "all") return true
     if (planType === "chatbot") return plan.id.includes("chatbot")
     return plan.id.includes("web") || plan.id === "landing"
+  }).sort((a, b) => {
+    const currentPriceA = billingCycle === "monthly" ? a.price.monthly : a.price.annual
+    const currentPriceB = billingCycle === "monthly" ? b.price.monthly : b.price.annual
+    return currentPriceA - currentPriceB
   })
 
-  const getPricingCardOffsetClass = (index: number) => {
-    if (filteredPlans.length === 3 && index === 0) return "lg:col-start-2"
-    if (filteredPlans.length === 2 && index === 0) return "lg:col-start-4"
-    if (filteredPlans.length === 1 && index === 0) return "lg:col-start-5"
-    return ""
+  const getPricingGridClass = (count: number) => {
+    if (count <= 1) return "grid-cols-1 max-w-md"
+    if (count === 2) return "grid-cols-1 sm:grid-cols-2 max-w-4xl"
+    if (count === 3) return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl"
+    return "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 max-w-7xl"
   }
 
   // Función para desplazamiento suave
@@ -90,7 +134,7 @@ export default function Home() {
       y: 0,
       transition: {
         duration: 0.6,
-        ease: "easeOut",
+        ease: "easeOut" as const,
       },
     },
   }
@@ -528,9 +572,9 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="flex justify-center"
               >
-                <TabsList>
-                  <TabsTrigger value="monthly">Mensual</TabsTrigger>
-                  <TabsTrigger value="annual">Anual (15% descuento)</TabsTrigger>
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="monthly" className="text-xs sm:text-sm">Mensual</TabsTrigger>
+                  <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual (15% descuento)</TabsTrigger>
                 </TabsList>
               </motion.div>
               <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "web" | "all")} className="w-full max-w-6xl mx-auto">
@@ -540,50 +584,70 @@ export default function Home() {
                   transition={{ delay: 0.3, duration: 0.5 }}
                   className="flex justify-center mb-8"
                 >
-                  <TabsList>
-                    <TabsTrigger value="chatbot">Chatbot</TabsTrigger>
-                    <TabsTrigger value="web">Web</TabsTrigger>
-                    <TabsTrigger value="all">Todo</TabsTrigger>
+                  <TabsList className="grid w-full max-w-md grid-cols-3">
+                    <TabsTrigger value="chatbot" className="text-xs sm:text-sm">Chatbot</TabsTrigger>
+                    <TabsTrigger value="web" className="text-xs sm:text-sm">Web</TabsTrigger>
+                    <TabsTrigger value="all" className="text-xs sm:text-sm">Todo</TabsTrigger>
                   </TabsList>
                 </motion.div>
               </Tabs>
               <TabsContent value={billingCycle} className="space-y-4">
-                <motion.div
-                  variants={staggerContainerVariants}
-                  initial="hidden"
-                  animate={isPricingHeaderInView ? "visible" : "hidden"}
-                  className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 mx-auto w-full max-w-6xl"
-                >
-                  <AnimatePresence mode="popLayout">
-                    {filteredPlans.map((plan, index) => (
-                      <motion.div
-                        key={plan.id}
-                        layout
-                        variants={itemVariants}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3 }}
-                        className={`lg:col-span-3 ${getPricingCardOffsetClass(index)}`}
-                      >
-                        <PricingCard
-                          title={plan.title}
-                          price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
-                          period={billingCycle === "monthly" ? "mensual" : "anual"}
-                          description={plan.description}
-                          features={plan.features}
-                          differences={plan.differences}
-                          buttonText={plan.buttonText}
-                          buttonLink={buildPlanLink(plan.id, billingCycle)}
-                          cheap={plan.cheap}
-                          popular={plan.popular}
-                          recommended={plan.recommended}
-                          highQuality={plan.highQuality}
-                        />
-                      </motion.div>
+                {isPricingLoading ? (
+                  <div className={`grid gap-6 mx-auto w-full ${getPricingGridClass(4)}`}>
+                    {[0, 1, 2, 3].map((index) => (
+                      <Card key={index} className="h-full">
+                        <CardHeader className="space-y-3">
+                          <Skeleton className="h-6 w-24" />
+                          <Skeleton className="h-9 w-28" />
+                          <Skeleton className="h-4 w-full" />
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-5/6" />
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-10 w-full mt-6" />
+                        </CardContent>
+                      </Card>
                     ))}
-                  </AnimatePresence>
-                </motion.div>
+                  </div>
+                ) : (
+                  <motion.div
+                    variants={staggerContainerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className={`grid gap-6 mx-auto w-full ${getPricingGridClass(filteredPlans.length)}`}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {filteredPlans.map((plan) => (
+                        <motion.div
+                          key={plan.id}
+                          layout
+                          variants={itemVariants}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{ duration: 0.3 }}
+                          className="h-full"
+                        >
+                          <PricingCard
+                            title={plan.title}
+                            price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
+                            period={billingCycle === "monthly" ? "mensual" : "anual"}
+                            description={plan.description}
+                            features={plan.features}
+                            differences={plan.differences}
+                            buttonText={plan.buttonText}
+                            buttonLink={buildPlanLink(plan.id, billingCycle)}
+                            cheap={plan.cheap}
+                            popular={plan.popular}
+                            recommended={plan.recommended}
+                            highQuality={plan.highQuality}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -621,7 +685,7 @@ export default function Home() {
                 <thead>
                   <tr className="border-b">
                     <th className="py-4 px-4 text-left">Características</th>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <th key={plan.id} className="py-4 px-4 text-center">
                         {plan.title}
                       </th>
@@ -632,7 +696,7 @@ export default function Home() {
                   {/* Sitios web */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">Sitios web</td>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
                         {plan.features.find((feature) => feature.toLowerCase().includes("sitio web") || feature.toLowerCase().includes("sitios web")) || "-"}
                       </td>
@@ -642,7 +706,7 @@ export default function Home() {
                   {/* Almacenamiento */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">Almacenamiento</td>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
                         {plan.features.find((feature) => feature.includes("GB NVMe")) || "-"}
                       </td>
@@ -652,7 +716,7 @@ export default function Home() {
                   {/* Google Ads */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">Google Ads</td>
-                    {PLANS.map(() => (
+                    {plans.map(() => (
                       <td key={Math.random()} className="py-4 px-4 text-center">
                         Personalizado
                       </td>
@@ -662,7 +726,7 @@ export default function Home() {
                   {/* Herramientas de SEO */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">Herramientas de SEO</td>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
                         {plan.features.find((feature) => feature.includes("Herramienta de SEO") || feature.includes("Herramientas de SEO")) || "0"}
                       </td>
@@ -672,7 +736,7 @@ export default function Home() {
                   {/* SSL */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">SSL</td>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
                         {plan.features.includes("SSL Gratuito") ? (
                           <CheckIcon className="h-5 w-5 text-green-500 mx-auto" />
@@ -686,7 +750,7 @@ export default function Home() {
                   {/* Soporte */}
                   <tr className="border-b">
                     <td className="py-4 px-4 font-medium">Soporte</td>
-                    {PLANS.map((plan) => (
+                    {plans.map((plan) => (
                       <td key={plan.id} className="py-4 px-4 text-center">
                         {plan.id === "chatbot-webapp"
                           ? "Prioritario"

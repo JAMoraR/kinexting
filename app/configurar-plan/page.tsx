@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, type ReactNode } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -10,12 +10,20 @@ import { ArrowLeft, Check, ChevronRight, ServerIcon, Shield, Zap, Plus } from "l
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { COMPANY_NAME, PLANS, type BillingCycle, type Plan } from "@/lib/plans"
+import {
+  COMPANY_NAME,
+  mapCatalogPlansToPlans,
+  type BillingCycle,
+  type CatalogExtra,
+  type Plan,
+  type PricingCatalogResponse,
+} from "@/lib/plans"
 
 type PlanData = {
   id: Plan["id"]
@@ -41,17 +49,18 @@ type ExtraSection = {
   extras: ExtraItem[]
 }
 
-const planesData = PLANS.reduce((acc, plan) => {
-  acc[plan.id] = {
-    id: plan.id,
-    name: plan.title,
-    monthlyPrice: plan.price.monthly,
-    annualPrice: plan.price.annual,
-    features: plan.features,
-    description: plan.description,
-  }
-  return acc
-}, {} as Record<Plan["id"], PlanData>)
+const toPlanesData = (plans: Plan[]) =>
+  plans.reduce((acc, plan) => {
+    acc[plan.id] = {
+      id: plan.id,
+      name: plan.title,
+      monthlyPrice: plan.price.monthly,
+      annualPrice: plan.price.annual,
+      features: plan.features,
+      description: plan.description,
+    }
+    return acc
+  }, {} as Record<Plan["id"], PlanData>)
 
 const webExtras: ExtraItem[] = [
   {
@@ -107,10 +116,15 @@ const domainOptions = [
   { id: "domain-2", name: "Registrar un nuevo dominio" },
 ]
 
+const PLAN_IDS: Plan["id"][] = ["landing", "chatbot", "webapp", "chatbot-webapp"]
+
+const isPlanId = (value: string | null): value is Plan["id"] =>
+  Boolean(value && PLAN_IDS.includes(value as Plan["id"]))
+
 const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("en-US", {
+  new Intl.NumberFormat("es-MX", {
     style: "currency",
-    currency: "USD",
+    currency: "MXN",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
@@ -124,43 +138,101 @@ const getPlanCategory = (planId: Plan["id"]) => {
   return "web"
 }
 
-const getExtraSectionsByPlan = (planId: Plan["id"]): ExtraSection[] => {
+const mergeExtrasWithCatalog = (baseExtras: ExtraItem[], catalogExtras: CatalogExtra[]) => {
+  const catalogMap = new Map(catalogExtras.map((extra) => [extra.id, extra]))
+
+  return baseExtras.map((extra) => {
+    const catalog = catalogMap.get(extra.id)
+    if (!catalog) {
+      return extra
+    }
+
+    return {
+      ...extra,
+      name: catalog.name || extra.name,
+      description: catalog.description || extra.description,
+      monthlyPrice: catalog.prices?.monthly?.amount ?? extra.monthlyPrice,
+      annualPrice: catalog.prices?.annual?.amount ?? extra.annualPrice,
+    }
+  })
+}
+
+const getExtraSectionsByPlan = (
+  planId: Plan["id"],
+  mergedWebExtras: ExtraItem[],
+  mergedChatbotExtras: ExtraItem[],
+  mergedComboExtras: ExtraItem[],
+): ExtraSection[] => {
   const category = getPlanCategory(planId)
 
   if (category === "both") {
     return [
-      { id: "web", title: "Extras para Web", extras: webExtras },
-      { id: "chatbot", title: "Extras para Chatbot", extras: chatbotExtras },
-      { id: "combo", title: "Extras combinados", extras: comboExtras },
+      { id: "web", title: "Extras para Web", extras: mergedWebExtras },
+      { id: "chatbot", title: "Extras para Chatbot", extras: mergedChatbotExtras },
+      { id: "combo", title: "Extras combinados", extras: mergedComboExtras },
     ]
   }
 
   if (category === "chatbot") {
-    return [{ id: "chatbot", title: "Extras para Chatbot", extras: chatbotExtras }]
+    return [{ id: "chatbot", title: "Extras para Chatbot", extras: mergedChatbotExtras }]
   }
 
-  return [{ id: "web", title: "Extras para Web", extras: webExtras }]
+  return [{ id: "web", title: "Extras para Web", extras: mergedWebExtras }]
 }
 
 export default function ConfigurarPlan() {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const defaultPlanId = PLANS.find((plan) => plan.popular)?.id ?? PLANS[0].id
-  const planParam = searchParams.get("plan") || defaultPlanId
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [catalogExtras, setCatalogExtras] = useState<CatalogExtra[]>([])
+  const [isCatalogLoading, setIsCatalogLoading] = useState(true)
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
+  const [trialError, setTrialError] = useState("")
+  const [checkoutError, setCheckoutError] = useState("")
+
+  const planesData = useMemo(() => toPlanesData(plans), [plans])
+  const defaultPlanId = plans.find((plan) => plan.popular)?.id ?? plans[0]?.id ?? "landing"
+  const planParam = searchParams.get("plan")
   const billingParam = searchParams.get("billing") || "monthly"
 
-  const initialPlanId = (planParam in planesData ? planParam : defaultPlanId) as Plan["id"]
-  const initialPlan = planesData[initialPlanId]
+  const initialPlanId = isPlanId(planParam) ? planParam : defaultPlanId
+  const initialPlan = planesData[initialPlanId] ?? null
   const initialBilling: BillingCycle = billingParam === "annual" ? "annual" : "monthly"
 
   const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(initialPlanId)
-  const [planData, setPlanData] = useState(initialPlan)
+  const [planData, setPlanData] = useState<PlanData | null>(initialPlan)
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(initialBilling)
   const [selectedExtras, setSelectedExtras] = useState<string[]>([])
   const [selectedDomain, setSelectedDomain] = useState<string>("")
   const [newDomain, setNewDomain] = useState<string>("")
   const [totalPrice, setTotalPrice] = useState<number>(0)
 
-  const extraSections = useMemo(() => getExtraSectionsByPlan(selectedPlanId), [selectedPlanId])
+  const mergedWebExtras = useMemo(
+    () => mergeExtrasWithCatalog(webExtras, catalogExtras.filter((extra) => extra.category === "web")),
+    [catalogExtras],
+  )
+  const mergedChatbotExtras = useMemo(
+    () => mergeExtrasWithCatalog(chatbotExtras, catalogExtras.filter((extra) => extra.category === "chatbot")),
+    [catalogExtras],
+  )
+  const mergedComboExtras = useMemo(
+    () => mergeExtrasWithCatalog(comboExtras, catalogExtras.filter((extra) => extra.category === "combo")),
+    [catalogExtras],
+  )
+
+  const extraSections = useMemo(
+    () => getExtraSectionsByPlan(selectedPlanId, mergedWebExtras, mergedChatbotExtras, mergedComboExtras),
+    [selectedPlanId, mergedWebExtras, mergedChatbotExtras, mergedComboExtras],
+  )
+  const sortedPlanCards = useMemo(
+    () =>
+      Object.values(planesData).sort((a, b) => {
+        const priceA = billingPeriod === "monthly" ? a.monthlyPrice : a.annualPrice
+        const priceB = billingPeriod === "monthly" ? b.monthlyPrice : b.annualPrice
+        return priceA - priceB
+      }),
+    [planesData, billingPeriod],
+  )
   const availableExtras = useMemo(
     () => extraSections.flatMap((section) => section.extras),
     [extraSections],
@@ -171,17 +243,72 @@ export default function ConfigurarPlan() {
   )
   const requiresDomain = getPlanCategory(selectedPlanId) !== "chatbot"
   const isDomainSelectionValid = !requiresDomain || selectedDomain !== ""
+  const shouldShowPlanSkeleton = isCatalogLoading && sortedPlanCards.length === 0
+  const activePlanData = planData
 
   useEffect(() => {
+    let isMounted = true
+
+    const loadCatalog = async () => {
+      try {
+        const response = await fetch("/api/prices", { cache: "no-store" })
+        if (!response.ok) {
+          if (isMounted) {
+            setPlans([])
+          }
+          return
+        }
+
+        const payload = (await response.json()) as PricingCatalogResponse
+        if (!isMounted) {
+          return
+        }
+
+        setPlans(mapCatalogPlansToPlans(payload.plans))
+        setCatalogExtras(Array.isArray(payload.extras) ? payload.extras : [])
+      } catch {
+        if (isMounted) {
+          setPlans([])
+          setCatalogExtras([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsCatalogLoading(false)
+        }
+      }
+    }
+
+    loadCatalog()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const fallbackPlan = Object.values(planesData)[0] ?? null
+
     if (planParam && planParam in planesData) {
       const validPlanId = planParam as Plan["id"]
       setSelectedPlanId(validPlanId)
       setPlanData(planesData[validPlanId])
-    } else {
+      return
+    }
+
+    if (planesData[defaultPlanId]) {
       setSelectedPlanId(defaultPlanId)
       setPlanData(planesData[defaultPlanId])
+      return
     }
-  }, [planParam, defaultPlanId])
+
+    if (fallbackPlan) {
+      setSelectedPlanId(fallbackPlan.id)
+      setPlanData(fallbackPlan)
+      return
+    }
+
+    setPlanData(null)
+  }, [planParam, defaultPlanId, planesData])
 
   useEffect(() => {
     setBillingPeriod(billingParam === "annual" ? "annual" : "monthly")
@@ -193,7 +320,22 @@ export default function ConfigurarPlan() {
   }, [availableExtras])
 
   useEffect(() => {
-    let price = billingPeriod === "monthly" ? planData.monthlyPrice : planData.annualPrice
+    if (!requiresDomain) {
+      setSelectedDomain("")
+      setNewDomain("")
+      return
+    }
+
+    setSelectedDomain((prev) => prev || domainOptions[0].id)
+  }, [requiresDomain, selectedPlanId])
+
+  useEffect(() => {
+    if (!activePlanData) {
+      setTotalPrice(0)
+      return
+    }
+
+    let price = billingPeriod === "monthly" ? activePlanData.monthlyPrice : activePlanData.annualPrice
 
     selectedExtras.forEach((extraId) => {
       const extra = extrasMap.get(extraId)
@@ -203,10 +345,76 @@ export default function ConfigurarPlan() {
     })
 
     setTotalPrice(price)
-  }, [billingPeriod, selectedExtras, planData, extrasMap])
+  }, [billingPeriod, selectedExtras, activePlanData, extrasMap])
 
   const toggleExtra = (extraId: string) => {
     setSelectedExtras((prev) => (prev.includes(extraId) ? prev.filter((id) => id !== extraId) : [...prev, extraId]))
+  }
+
+  const handleCheckout = async () => {
+    if (!activePlanData || isCheckoutLoading) {
+      return
+    }
+
+    if (!isDomainSelectionValid) {
+      setCheckoutError("Selecciona una opción de dominio para continuar.")
+      return
+    }
+
+    try {
+      setCheckoutError("")
+      setIsCheckoutLoading(true)
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planId: selectedPlanId,
+          billing: billingPeriod,
+          extraIds: selectedExtras,
+          selectedDomain,
+          newDomain,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || !payload?.url) {
+        throw new Error(payload?.error || "No se pudo iniciar el checkout")
+      }
+
+      window.location.href = payload.url
+    } catch {
+      setCheckoutError("No fue posible iniciar el pago. Intenta de nuevo en unos segundos.")
+    } finally {
+      setIsCheckoutLoading(false)
+    }
+  }
+
+  const handleTrialPayment = async () => {
+    if (!activePlanData) {
+      return
+    }
+
+    if (!isDomainSelectionValid) {
+      setTrialError("Selecciona una opción de dominio para continuar.")
+      return
+    }
+
+    setTrialError("")
+    const params = new URLSearchParams({
+      plan: selectedPlanId,
+      billing: billingPeriod,
+      selectedDomain,
+      newDomain,
+    })
+
+    if (selectedExtras.length > 0) {
+      params.set("extras", selectedExtras.join(","))
+    }
+
+    router.push(`/checkout?${params.toString()}`)
   }
 
   // Animaciones para los contenedores
@@ -281,36 +489,48 @@ export default function ConfigurarPlan() {
               transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
               className="text-indigo-600"
             >
-              {planData.name}
+              {activePlanData?.name || ""}
             </motion.span>
           </motion.h1>
           <motion.p variants={itemVariants} className="text-muted-foreground">
             Personaliza tu plan de hosting y añade extras para potenciar tu experiencia.
           </motion.p>
           {/* Selector de planes */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 mb-8">
-            {Object.entries(planesData).map(([planKey, plan]) => (
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mt-6 mb-8">
+            {shouldShowPlanSkeleton
+              ? [0, 1, 2, 3].map((index) => (
+                  <Card key={index} className="h-full">
+                    <CardContent className="p-6 space-y-3">
+                      <Skeleton className="h-6 w-20" />
+                      <Skeleton className="h-8 w-28" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-4/5" />
+                      <Skeleton className="h-4 w-3/5" />
+                    </CardContent>
+                  </Card>
+                ))
+              : sortedPlanCards.map((plan) => (
               <motion.div
-                key={planKey}
+                key={plan.id}
                 whileHover={{ y: -5 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 onClick={() => {
-                  setSelectedPlanId(planKey as Plan["id"])
+                  setSelectedPlanId(plan.id)
                   setPlanData(plan)
                   const url = new URL(window.location.href)
-                  url.searchParams.set("plan", planKey)
+                  url.searchParams.set("plan", plan.id)
                   url.searchParams.set("billing", billingPeriod)
                   window.history.pushState({}, "", url)
                 }}
               >
                 <Card
-                  className={`cursor-pointer transition-all ${planData.name === plan.name ? "border-2 border-indigo-600 bg-indigo-50/30" : "hover:border-indigo-300"}`}
+                  className={`h-full cursor-pointer transition-all ${activePlanData?.name === plan.name ? "border-2 border-indigo-600 bg-indigo-50/30" : "hover:border-indigo-300"}`}
                 >
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-bold text-lg">{plan.name}</h3>
-                      {planData.name === plan.name && <Badge className="bg-indigo-600">Seleccionado</Badge>}
+                      {activePlanData?.name === plan.name && <Badge className="bg-indigo-600">Seleccionado</Badge>}
                     </div>
                     <div className="flex items-baseline gap-1 mb-2">
                       <span className="text-2xl font-bold">
@@ -341,13 +561,13 @@ export default function ConfigurarPlan() {
           </motion.div>
         </motion.div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-8 xl:grid-cols-3">
           {/* Columna principal de configuración */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="lg:col-span-2 space-y-8"
+            className="xl:col-span-2 space-y-8"
           >
             {/* Período de facturación */}
             <motion.div variants={itemVariants}>
@@ -538,47 +758,55 @@ export default function ConfigurarPlan() {
             initial="hidden"
             animate="visible"
             variants={fadeInVariants}
-            className="lg:sticky lg:top-24 lg:h-fit"
+            className="xl:sticky xl:top-24 xl:h-fit"
           >
             <Card className="border-2">
               <CardHeader className="pb-3">
-                <CardTitle>Resumen del pedido (Falta vincular pasarela de pago)</CardTitle>
+                <CardTitle>Resumen del pedido</CardTitle>
               </CardHeader>
               <CardContent className="pb-3">
+                {shouldShowPlanSkeleton || !activePlanData ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   <motion.div
-                    key={planData.name}
+                    key={activePlanData?.name || "loading"}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">
-                        Plan {planData.name}{" "}
+                        Plan {activePlanData?.name || ""}{" "}
                         <Badge className="ml-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
                           {billingPeriod === "monthly" ? "Mensual" : "Anual"}
                         </Badge>
                       </h3>
                       <motion.span
-                        key={`${planData.name}-${billingPeriod}`}
+                        key={`${activePlanData?.name || "loading"}-${billingPeriod}`}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="font-medium"
                       >
                         {billingPeriod === "monthly"
-                          ? `${formatCurrency(planData.monthlyPrice)}/Mensual`
-                          : `${formatCurrency(planData.annualPrice)}/Anual`}
+                          ? `${formatCurrency(activePlanData?.monthlyPrice ?? 0)}/Mensual`
+                          : `${formatCurrency(activePlanData?.annualPrice ?? 0)}/Anual`}
                       </motion.span>
                     </div>
                     <AnimatePresence mode="wait">
                       <motion.ul
-                        key={`features-${planData.name}`}
+                        key={`features-${activePlanData?.name || "loading"}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="mt-2 space-y-1 text-sm text-muted-foreground"
                       >
-                        {planData.features.map((feature, index) => (
+                        {(activePlanData?.features ?? []).map((feature, index) => (
                           <motion.li
                             key={index}
                             initial={{ opacity: 0, x: -10 }}
@@ -627,6 +855,7 @@ export default function ConfigurarPlan() {
                     </div>
                   )}
                 </div>
+                )}
               </CardContent>
               <Separator />
               <CardFooter className="pt-4 flex flex-col gap-4">
@@ -646,16 +875,34 @@ export default function ConfigurarPlan() {
                   </motion.div>
                 </div>
 
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2" disabled={!isDomainSelectionValid}>
+                {checkoutError && <p className="w-full text-sm text-red-600">{checkoutError}</p>}
+
+                <Button
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2"
+                  onClick={handleCheckout}
+                  disabled={!activePlanData || isCheckoutLoading}
+                >
                   <motion.span
                     initial={{ x: 0 }}
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 300 }}
                     className="flex items-center"
                   >
-                    Continuar al pago <ChevronRight className="ml-1 h-4 w-4" />
+                    {isCheckoutLoading ? "Redirigiendo..." : "Continuar al pago"}
+                    <ChevronRight className="ml-1 h-4 w-4" />
                   </motion.span>
                 </Button>
+
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={handleTrialPayment}
+                  disabled={!activePlanData}
+                >
+                  Prueba
+                </Button>
+
+                {trialError && <p className="w-full text-sm text-red-600">{trialError}</p>}
               </CardFooter>
             </Card>
           </motion.div>

@@ -42,13 +42,14 @@ export default function PricingCard({
   }).format(price)
 
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+    <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
       <Card className={`flex flex-col 
+        h-full
         ${popular ? "border-red-600 shadow-lg" : ""}
         ${cheap ? "border-yellow-600 shadow-lg" : ""}
         ${recommended ? "border-indigo-600 shadow-lg" : ""}
         ${highQuality ? "border-green-600 shadow-lg" : ""}`}>
-        <CardHeader>
+        <CardHeader className="space-y-3">
           {popular && <Badge className="w-fit mb-2 bg-red-600">Más vendido</Badge>}
           {cheap && <Badge className="w-fit mb-2 bg-yellow-600">Mejor precio</Badge>}
           {recommended && <Badge className="w-fit mb-2 bg-indigo-600">Recomendado</Badge>}
@@ -89,7 +90,7 @@ export default function PricingCard({
             ))}
           </ul>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="mt-auto">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
             <Link href={buttonLink} className="w-full">
               <Button

@@ -17,73 +17,116 @@ export type Plan = {
   highQuality?: boolean
 }
 
-export const PLANS: Plan[] = [
-  {
-    id: "landing",
-    title: "Landing",
-    price: { monthly: 700, annual:  7140},
-    period: "mensual",
+type CatalogPrice = {
+  id: string
+  amount: number
+  currency: string
+}
+
+export type CatalogPlan = {
+  id: Plan["id"]
+  title?: string
+  description?: string
+  features?: string[]
+  differences?: string[]
+  buttonText?: string
+  flags?: {
+    cheap?: boolean
+    popular?: boolean
+    recommended?: boolean
+    highQuality?: boolean
+  }
+  prices?: {
+    monthly?: CatalogPrice | null
+    annual?: CatalogPrice | null
+  }
+}
+
+export type CatalogExtra = {
+  id: string
+  category?: string
+  name?: string
+  description?: string
+  prices?: {
+    monthly?: CatalogPrice | null
+    annual?: CatalogPrice | null
+  }
+}
+
+export type PricingCatalogResponse = {
+  plans?: CatalogPlan[]
+  extras?: CatalogExtra[]
+}
+
+const PLAN_COPY: Record<Plan["id"], { description: string; differences: string[] }> = {
+  landing: {
     description: "Ideal para quienes buscan una presencia online con un sitio web optimizado.",
-    features: ["Sitio web", "Dominio .com", "SSL", "SEO", "Google Ads", "Soporte 24/7"],
-    differences: ["Web administrativa", "Base de datos", "Chatbot de IA", "Creditos de IA", "Mensajes por hora"],
-    buttonText: "Elegir Landing",
-    cheap: true,
+    differences: ["Web administrativa", "Base de datos", "Chatbot de IA", "Creditos de IA"],
   },
-  {
-    id: "chatbot",
-    title: "Chatbot",
-    price: { monthly: 1555, annual: 15860 },
-    period: "mensual",
+  chatbot: {
     description: "Perfecto para quienes quieren automatizar su atención al cliente y mejorar la interacción.",
-    features: ["Chatbot de IA", "Creditos de IA mensuales", "200 mensajes por hora", "Base de datos", "Soporte 24/7"],
-    differences: ["Sitio web", "Web administrativa", "Dominio .com", "SSL", "SEO", "Google Ads"],
-    buttonText: "Elegir Chatbot",
-    popular: true,
+    differences: ["Sitio web", "Web administrativa", "Dominio .com", "SSL", "SEO"],
   },
-  {
-    id: "webapp",
-    title: "Web App",
-    price: { monthly: 1875, annual: 19125 },
-    period: "mensual",
+  webapp: {
     description: "Perfecto para sitios web profesionales y pequeñas empresas.",
-    features: [
-      "Sitio web",
-      "Web administrativa",
-      "Base de datos",
-      "Dominio .com",
-      "SSL",
-      "SEO",
-      "Google Ads",
-      "Soporte 24/7",
-    ],
-    differences: ["Chatbot de IA", "Creditos de IA", "Mensajes por hora"],
-    buttonText: "Elegir Web App",
-    recommended: true,
+    differences: ["Chatbot de IA", "Creditos de IA"],
   },
-  {
-    id: "chatbot-webapp",
-    title: "Chatbot + web app",
-    price: { monthly: 3005, annual: 30650 },
-    period: "mensual",
+  "chatbot-webapp": {
     description: "Ideal para negocios que buscan lo mejor en automatización y presencia online.",
-    features: [
-      "Chatbot de IA",
-      "Creditos de IA mensuales",
-      "200 mensajes por hora",
-      "Sitio web",
-      "Web administrativa",
-      "Base de datos",
-      "Dominio .com",
-      "SSL",
-      "SEO",
-      "Google Ads",
-      "Soporte prioritario 24/7",
-    ],
     differences: [],
-    buttonText: "Elegir Chatbot + Web App",
-    highQuality: true,
   },
-]
+}
 
 export const buildPlanLink = (planId: Plan["id"], billing: BillingCycle) =>
   `/configurar-plan?plan=${planId}&billing=${billing}`
+
+export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
+  const monthlyPrice = catalogPlan.prices?.monthly?.amount
+  const annualPrice = catalogPlan.prices?.annual?.amount
+  const staticCopy = PLAN_COPY[catalogPlan.id]
+
+  if (typeof monthlyPrice !== "number" || typeof annualPrice !== "number") {
+    return null
+  }
+
+  return {
+    id: catalogPlan.id,
+    title: catalogPlan.title || catalogPlan.id,
+    price: {
+      monthly: monthlyPrice,
+      annual: annualPrice,
+    },
+    period: "mensual",
+    description: staticCopy?.description || catalogPlan.description || "",
+    features: Array.isArray(catalogPlan.features) ? catalogPlan.features : [],
+    differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
+    buttonText: catalogPlan.buttonText || `Elegir ${catalogPlan.title || catalogPlan.id}`,
+    cheap: Boolean(catalogPlan.flags?.cheap),
+    popular: Boolean(catalogPlan.flags?.popular),
+    recommended: Boolean(catalogPlan.flags?.recommended),
+    highQuality: Boolean(catalogPlan.flags?.highQuality),
+  }
+}
+
+export const mapCatalogPlansToPlans = (catalogPlans: CatalogPlan[] | undefined): Plan[] => {
+  const sortByPrice = (items: Plan[]) =>
+    [...items].sort((a, b) => {
+      const monthlyDiff = a.price.monthly - b.price.monthly
+      if (monthlyDiff !== 0) return monthlyDiff
+
+      const annualDiff = a.price.annual - b.price.annual
+      if (annualDiff !== 0) return annualDiff
+
+      return a.title.localeCompare(b.title)
+    })
+
+  if (!Array.isArray(catalogPlans) || catalogPlans.length === 0) {
+    return []
+  }
+
+  const mapped = catalogPlans
+    .map(mapCatalogPlanToPlan)
+    .filter((plan): plan is Plan => plan !== null)
+
+  return mapped.length > 0 ? sortByPrice(mapped) : []
+}
