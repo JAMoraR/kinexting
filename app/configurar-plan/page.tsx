@@ -479,7 +479,7 @@ export default function ConfigurarPlan() {
           variants={containerVariants}
           className="flex flex-col gap-2 mb-8"
         >
-          <Link href="/" className="flex items-center text-sm text-muted-foreground hover:text-indigo-600 mb-2">
+          <Link href="/" className="mb-2 inline-flex w-fit items-center text-sm text-muted-foreground hover:text-indigo-600">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Volver a planes
           </Link>
@@ -879,31 +879,15 @@ export default function ConfigurarPlan() {
                   </motion.div>
                 </div>
 
-                {checkoutError && <p className="w-full text-sm text-red-600">{checkoutError}</p>}
-
                 <Button
-                  className="mt-2 w-full bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
-                  onClick={handleCheckout}
-                  disabled={!activePlanData || isCheckoutLoading}
-                >
-                  <motion.span
-                    initial={{ x: 0 }}
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="flex items-center"
-                  >
-                    {isCheckoutLoading ? "Redirigiendo..." : "Continuar al pago"}
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </motion.span>
-                </Button>
-
-                <Button
-                  className="w-full"
-                  variant="outline"
+                  className="group mt-2 w-full bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
                   onClick={handleTrialPayment}
                   disabled={!activePlanData}
                 >
-                  Prueba
+                  <span className="flex items-center transition-transform duration-200 ease-out group-hover:translate-x-1">
+                    Continuar al pago
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </span>
                 </Button>
 
                 {trialError && <p className="w-full text-sm text-red-600">{trialError}</p>}
