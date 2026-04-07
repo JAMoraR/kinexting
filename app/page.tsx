@@ -863,7 +863,7 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
                 className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
               >
-                Respuestas a las preguntas más comunes sobre nuestros servicios de hosting.
+                Dudas comunes de barberias, salones, spas, consultorios y consultoras antes de empezar.
               </motion.p>
             </div>
             <motion.div
@@ -875,34 +875,34 @@ export default function Home() {
               <FaqAccordion
                 items={[
                   {
-                    question: "¿Qué tipo de hosting es mejor para mi sitio web?",
+                    question: "¿Esto tambien funciona para mi tipo de negocio?",
                     answer:
-                      "La elección del hosting depende de tus necesidades específicas. Para sitios personales o pequeños blogs, el plan Básico es suficiente. Para sitios profesionales o de pequeñas empresas, recomendamos el plan Profesional. Si tienes un sitio con mucho tráfico o necesidades avanzadas, el plan Empresarial es la mejor opción.",
+                      "Si atiendes clientes por cita o mensaje, si. Esta solucion esta pensada para barberias, salones, spas, consultorios y consultoras que necesitan mas visibilidad, mas contacto y mejor seguimiento.",
                   },
                   {
-                    question: `¿Puedo migrar mi sitio web existente a ${COMPANY_NAME}?`,
+                    question: "¿En cuanto tiempo puedo empezar a recibir clientes?",
                     answer:
-                      "¡Sí! Ofrecemos migración gratuita para todos los planes. Nuestro equipo técnico se encargará de migrar tu sitio web, bases de datos y correos electrónicos sin costo adicional y con tiempo de inactividad mínimo.",
+                      "En la mayoria de los casos puedes salir rapido con una version inicial y luego optimizar. El objetivo es que empieces a captar contactos cuanto antes.",
                   },
                   {
-                    question: "¿Cuál es la política de reembolso?",
+                    question: "¿Me ayudan con WhatsApp, formularios y seguimiento?",
                     answer:
-                      "Ofrecemos una garantía de devolución de dinero de 30 días. Si no estás satisfecho con nuestros servicios durante los primeros 30 días, te reembolsaremos el 100% del costo del hosting.",
+                      "Si. Se puede conectar todo para que los mensajes lleguen de forma clara y no se pierdan oportunidades. La idea es que cada uno de tus clientes tenga una ruta sencilla para agendar o pedir informacion.",
                   },
                   {
-                    question: "¿Qué métodos de pago aceptan?",
+                    question: "¿Puedo usar mi dominio actual o mis redes actuales?",
                     answer:
-                      "Aceptamos tarjetas de crédito/débito (Visa, MasterCard, American Express), PayPal, transferencia bancaria y criptomonedas (Bitcoin, Ethereum).",
+                      "Claro. Si ya tienes dominio o presencia en redes, se integra. No necesitas empezar desde cero para mejorar tu presencia digital.",
                   },
                   {
-                    question: "¿Ofrecen soporte técnico?",
+                    question: "¿Que pasa si no tengo fotos, textos o estructura?",
                     answer:
-                      "Sí, nuestro equipo de soporte técnico está disponible 24/7 en español e inglés a través de chat en vivo, tickets de soporte y correo electrónico.",
+                      "No hay problema. Te guiamos con una estructura clara para mostrar servicios, precios, ubicacion y formas de contacto. Avanzas aunque no tengas todo listo desde el dia uno.",
                   },
                   {
-                    question: "¿Puedo actualizar mi plan en el futuro?",
+                    question: "¿Hay contratos forzosos o permanencia?",
                     answer:
-                      "Absolutamente. Puedes actualizar tu plan en cualquier momento desde tu panel de control. La actualización se aplica inmediatamente y solo pagarás la diferencia prorrateada.",
+                      "No necesitas atarte a largo plazo para probar. Puedes escalar conforme tu negocio crece y adaptar el plan segun tus resultados.",
                   },
                 ]}
               />
