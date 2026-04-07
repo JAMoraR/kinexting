@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { loadStripe } from "@stripe/stripe-js"
@@ -18,6 +18,22 @@ import {
   type Plan,
   type PricingCatalogResponse,
 } from "@/lib/plans"
+import { filterCountries, getCountryPhoneData, type CountryPhoneData } from "@/lib/country-phone-codes"
+
+const flagComponents: Record<string, React.ComponentType<{ className?: string; title?: string }>> = {}
+
+const loadFlags = async () => {
+  try {
+    const allFlags = await import("country-flag-icons/react/3x2")
+    const validEntries = Object.entries(allFlags).filter(([key, value]) => {
+      return /^[A-Z]{2}$/.test(key) && typeof value === "function"
+    })
+
+    Object.assign(flagComponents, Object.fromEntries(validEntries))
+  } catch (error) {
+    console.error("Error loading flag components", error)
+  }
+}
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -73,6 +89,10 @@ const PLAN_LABELS = {
 const PLAN_IDS: Plan["id"][] = ["landing", "chatbot", "webapp", "chatbot-webapp"]
 const STEP_KEYS: CheckoutStep[] = ["config", "info", "payment", "complete"]
 const CHECKOUT_STEPS = ["Configuracion", "Informacion", "Pago", "Completar"]
+const PHONE_REGEX = /^\+?[0-9][0-9\s-]{7,19}$/
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const RFC_REGEX = /^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/i
+const DOMAIN_REGEX = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,}$/i
 
 const DOMAIN_OPTIONS = [
   { id: "domain-1", label: "Usar un dominio que ya poseo" },
@@ -106,6 +126,29 @@ const formatAmount = (amount: number, currency = "mxn") => {
     currency: currency.toUpperCase(),
     maximumFractionDigits: 0,
   }).format(amount / 100)
+}
+
+const normalizeDomain = (value: string) => value.trim().toLowerCase().replace(/^https?:\/\//, "")
+
+const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
+
+const isValidPhone = (value: string) => PHONE_REGEX.test(value.trim())
+
+const isValidDomain = (value: string) => DOMAIN_REGEX.test(normalizeDomain(value))
+
+const isValidRfc = (value: string) => RFC_REGEX.test(value.trim().toUpperCase())
+
+const buildIdempotencyKey = (input: unknown) => {
+  const raw = JSON.stringify(input)
+  let hash = 2166136261
+
+  for (let index = 0; index < raw.length; index += 1) {
+    hash ^= raw.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+
+  const normalized = (hash >>> 0).toString(16)
+  return `intent_${normalized.padStart(8, "0")}`
 }
 
 const isPlanId = (value: string | null): value is Plan["id"] => Boolean(value && PLAN_IDS.includes(value as Plan["id"]))
@@ -199,7 +242,7 @@ function PaymentForm({ onSuccess, billingName, payerPhone }: PaymentFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <PaymentElement />
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <Button type="submit" className="w-full" disabled={!stripe || isSubmitting}>
+      <Button type="submit" className="w-full" disabled={!stripe || isSubmitting || !billingName.trim() || !payerPhone.trim()}>
         {isSubmitting ? "Procesando..." : "Pagar ahora"}
       </Button>
     </form>
@@ -208,6 +251,10 @@ function PaymentForm({ onSuccess, billingName, payerPhone }: PaymentFormProps) {
 
 export default function CheckoutPage() {
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    loadFlags()
+  }, [])
 
   const planParam = searchParams.get("plan")
   const billingParam = searchParams.get("billing")
@@ -243,8 +290,14 @@ export default function CheckoutPage() {
   const [summary, setSummary] = useState<PaymentSummary | null>(null)
 
   const [preferredMethod, setPreferredMethod] = useState<PreferredMethod>("all")
+  const allCountries = useMemo(() => getCountryPhoneData(), [])
   const [payerName, setPayerName] = useState("")
+  const [selectedCountryIso, setSelectedCountryIso] = useState("")
   const [payerPhone, setPayerPhone] = useState("")
+  const [phoneSearchQuery, setPhoneSearchQuery] = useState("")
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+  const [filteredCountries, setFilteredCountries] = useState<CountryPhoneData[]>([])
+  const countrySelectorRef = useRef<HTMLDivElement>(null)
   const [cardholderName, setCardholderName] = useState("")
   const [businessInfo, setBusinessInfo] = useState<BusinessInfoFormData>({
     businessName: "",
@@ -296,6 +349,56 @@ export default function CheckoutPage() {
     }
   }, [planParam])
 
+  useEffect(() => {
+    setFilteredCountries(filterCountries(phoneSearchQuery))
+  }, [phoneSearchQuery])
+
+  useEffect(() => {
+    if (selectedCountryIso || allCountries.length === 0) {
+      return
+    }
+
+    const region = new Intl.Locale(navigator.language).region?.toUpperCase() || ""
+    const fallback = allCountries[0]
+    const initialCountry = allCountries.find((country) => country.iso === region) || fallback
+
+    if (initialCountry) {
+      setSelectedCountryIso(initialCountry.iso)
+    }
+  }, [allCountries, selectedCountryIso])
+
+  useEffect(() => {
+    const onDocumentMouseDown = (event: MouseEvent) => {
+      if (!countrySelectorRef.current?.contains(event.target as Node)) {
+        setShowCountryDropdown(false)
+      }
+    }
+
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowCountryDropdown(false)
+      }
+    }
+
+    document.addEventListener("mousedown", onDocumentMouseDown)
+    document.addEventListener("keydown", onDocumentKeyDown)
+
+    return () => {
+      document.removeEventListener("mousedown", onDocumentMouseDown)
+      document.removeEventListener("keydown", onDocumentKeyDown)
+    }
+  }, [])
+
+  const selectedCountry = useMemo(() => {
+    if (allCountries.length === 0) {
+      return null
+    }
+
+    return allCountries.find((country) => country.iso === selectedCountryIso) || allCountries[0]
+  }, [allCountries, selectedCountryIso])
+
+  const countryCode = selectedCountry?.code || ""
+
   const selectedPlan = useMemo(() => plans.find((plan) => plan.id === selectedPlanId) ?? null, [plans, selectedPlanId])
   const relevantExtras = useMemo(
     () => catalogExtras.filter((extra) => extraMatchesPlan(extra, selectedPlanId)),
@@ -328,12 +431,14 @@ export default function CheckoutPage() {
       extraIds: selectedExtras,
       preferredMethod,
       customerName: payerName,
-      customerPhone: payerPhone,
+      customerPhone: `${countryCode}${payerPhone}`.replace(/\s+/g, ""),
       businessInfo,
       invoice,
     }),
-    [selectedPlanId, billingPeriod, selectedDomain, newDomain, selectedExtras, preferredMethod, payerName, payerPhone, businessInfo, invoice]
+    [selectedPlanId, billingPeriod, selectedDomain, newDomain, selectedExtras, preferredMethod, payerName, payerPhone, countryCode, businessInfo, invoice]
   )
+
+  const idempotencyKey = useMemo(() => buildIdempotencyKey(payload), [payload])
 
   const planLabel = PLAN_LABELS[selectedPlanId as keyof typeof PLAN_LABELS] || selectedPlanId || "Plan"
   const billingLabel = billingPeriod === "annual" ? "Anual" : "Mensual"
@@ -348,7 +453,8 @@ export default function CheckoutPage() {
   }, [newDomain, selectedDomain])
 
   const requiresDomain = selectedPlan ? getPlanCategory(selectedPlan.id) !== "chatbot" : false
-  const isDomainSelectionValid = !requiresDomain || Boolean(selectedDomain && (selectedDomain !== "domain-2" || newDomain.trim()))
+  const isDomainSelectionValid =
+    !requiresDomain || Boolean(selectedDomain && (selectedDomain !== "domain-2" || isValidDomain(newDomain)))
 
   const localSubtotal = selectedPlan ? getPlanPriceCents(selectedPlan, billingPeriod) : 0
   const localExtras = useMemo(
@@ -359,6 +465,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     let isMounted = true
+    const abortController = new AbortController()
 
     const initIntent = async () => {
       try {
@@ -372,13 +479,17 @@ export default function CheckoutPage() {
 
         setIsLoading(true)
         setError("")
+        setClientSecret("")
+        setSummary(null)
 
         const response = await fetch("/api/payments/intent", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Idempotency-Key": idempotencyKey,
           },
           body: JSON.stringify(payload),
+          signal: abortController.signal,
         })
 
         const data = await response.json()
@@ -394,6 +505,10 @@ export default function CheckoutPage() {
         setClientSecret(data.clientSecret)
         setSummary(data.summary || null)
       } catch (initError) {
+        if (initError instanceof Error && initError.name === "AbortError") {
+          return
+        }
+
         if (!isMounted) {
           return
         }
@@ -411,8 +526,9 @@ export default function CheckoutPage() {
 
     return () => {
       isMounted = false
+      abortController.abort()
     }
-  }, [payload, step])
+  }, [idempotencyKey, payload, step])
 
   const goToInfo = () => {
     if (!selectedPlan) {
@@ -421,7 +537,7 @@ export default function CheckoutPage() {
     }
 
     if (!isDomainSelectionValid) {
-      setConfigError("Completa la opcion de dominio para continuar.")
+      setConfigError("Completa una opcion de dominio valida para continuar.")
       return
     }
 
@@ -431,20 +547,56 @@ export default function CheckoutPage() {
   }
 
   const goToPayment = () => {
-    if (!payerName.trim() || !payerPhone.trim()) {
-      setInfoError("Completa nombre del titular y telefono.")
+    if (!payerName.trim()) {
+      setInfoError("Completa tu nombre completo para continuar.")
       return
     }
 
-    if (
-      !businessInfo.businessName.trim() ||
-      !businessInfo.businessType ||
-      !businessInfo.email.trim() ||
-      !businessInfo.country.trim() ||
-      !businessInfo.city.trim()
-    ) {
-      setInfoError("Completa los datos del negocio para continuar.")
+    if (payerName.trim().split(/\s+/).length < 2) {
+      setInfoError("Ingresa tu nombre completo (nombre y apellido).")
       return
+    }
+
+    if (!payerPhone.trim()) {
+      setInfoError("Completa tu telefono para continuar.")
+      return
+    }
+
+    if (!isValidPhone(payerPhone)) {
+      setInfoError("Ingresa un telefono valido para continuar.")
+      return
+    }
+
+    if (!businessInfo.businessName.trim()) {
+      setInfoError("Completa el nombre de tu negocio para continuar.")
+      return
+    }
+
+    if (!businessInfo.businessType) {
+      setInfoError("Selecciona el tipo de negocio para continuar.")
+      return
+    }
+
+    if (businessInfo.email.trim() && !isValidEmail(businessInfo.email)) {
+      setInfoError("El correo del negocio no es valido.")
+      return
+    }
+
+    if (invoice.enabled) {
+      if (!isValidRfc(invoice.rfc)) {
+        setInfoError("RFC invalido para facturacion.")
+        return
+      }
+
+      if (!invoice.businessName.trim()) {
+        setInfoError("Completa la razon social para facturacion.")
+        return
+      }
+
+      if (!isValidEmail(invoice.email)) {
+        setInfoError("Ingresa un correo de facturacion valido.")
+        return
+      }
     }
 
     setInfoError("")
@@ -480,6 +632,8 @@ export default function CheckoutPage() {
 
   const cardMethodEnabled = preferredMethod === "all" || preferredMethod === "card"
   const effectiveBillingName = cardMethodEnabled ? cardholderName : payerName
+  const fullPhoneNumber = `${countryCode}${payerPhone}`.replace(/\s+/g, "")
+  const shouldShowDomainLabel = requiresDomain && domainLabel !== "Sin dominio"
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-6 md:py-10">
@@ -664,27 +818,96 @@ export default function CheckoutPage() {
                   <>
                     <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
                       <p className="text-base font-medium text-slate-900">Contacto</p>
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-3">
                         <input
                           type="text"
                           value={payerName}
                           onChange={(event) => setPayerName(event.target.value)}
-                          placeholder="Nombre del titular"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          placeholder="Nombre completo"
+                          className="h-11 w-full rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
                         />
-                        <input
-                          type="tel"
-                          value={payerPhone}
-                          onChange={(event) => setPayerPhone(event.target.value)}
-                          placeholder="Telefono (WhatsApp)"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                        />
+                        <div className="flex gap-2 sm:gap-3 relative">
+                          <div ref={countrySelectorRef} className="relative flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setShowCountryDropdown((current) => !current)}
+                              className="h-11 min-w-24 rounded-xl border border-slate-300 bg-white px-2 text-sm outline-none transition hover:border-sky-300 focus:border-sky-500 sm:min-w-28"
+                            >
+                              <span className="flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  {selectedCountry && flagComponents[selectedCountry.iso] ? (
+                                    (() => {
+                                      const FlagComponent = flagComponents[selectedCountry.iso]
+                                      return <FlagComponent title={selectedCountry.name} className="h-4 w-6 rounded-sm" />
+                                    })()
+                                  ) : (
+                                    <span className="h-4 w-6 rounded-sm bg-slate-200" />
+                                  )}
+                                  <span className="font-medium text-slate-700">{countryCode || "--"}</span>
+                                </span>
+                                <span className="text-xs text-slate-500">▾</span>
+                              </span>
+                            </button>
+
+                            {showCountryDropdown && (
+                              <div className="absolute top-12 left-0 z-50 w-80 rounded-xl border border-slate-300 bg-white shadow-lg">
+                                <div className="border-b border-slate-200 p-2">
+                                  <input
+                                    type="text"
+                                    value={phoneSearchQuery}
+                                    onChange={(event) => setPhoneSearchQuery(event.target.value)}
+                                    placeholder="Buscar por +52, MX o Mexico"
+                                    className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                                  />
+                                </div>
+
+                                <div className="max-h-48 overflow-y-auto">
+                                  {filteredCountries.length > 0 ? (
+                                    filteredCountries.map((country) => {
+                                      const FlagComponent = flagComponents[country.iso]
+                                      return (
+                                        <button
+                                          key={country.iso}
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedCountryIso(country.iso)
+                                            setPhoneSearchQuery("")
+                                            setShowCountryDropdown(false)
+                                          }}
+                                          className="flex w-full items-center gap-2 border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
+                                        >
+                                          {FlagComponent ? (
+                                            <FlagComponent className="h-4 w-6 flex-shrink-0 rounded-sm" />
+                                          ) : (
+                                            <span className="h-4 w-6 flex-shrink-0 rounded-sm bg-slate-200" />
+                                          )}
+                                          <span className="font-medium">{country.code}</span>
+                                          <span className="text-slate-500">{country.iso}</span>
+                                          <span className="ml-auto text-slate-600">{country.name}</span>
+                                        </button>
+                                      )
+                                    })
+                                  ) : (
+                                    <div className="px-3 py-2 text-sm text-slate-500">No se encontraron paises</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            type="tel"
+                            value={payerPhone}
+                            onChange={(event) => setPayerPhone(event.target.value.replace(/\D/g, ""))}
+                            placeholder="Numero de WhatsApp"
+                            className="h-11 flex-1 rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          />
+                        </div>
                       </div>
                     </section>
 
                     <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
                       <p className="text-base font-medium text-slate-900">Datos del negocio</p>
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-3">
                         <input
                           type="text"
                           value={businessInfo.businessName}
@@ -695,61 +918,63 @@ export default function CheckoutPage() {
                             }))
                           }
                           placeholder="Nombre del negocio"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          className="h-11 w-full rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
                         />
-                        <select
-                          value={businessInfo.businessType}
-                          onChange={(event) =>
-                            setBusinessInfo((current) => ({
-                              ...current,
-                              businessType: event.target.value,
-                            }))
-                          }
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                        >
-                          <option value="">Tipo de negocio</option>
-                          {BUSINESS_TYPES.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="email"
-                          value={businessInfo.email}
-                          onChange={(event) =>
-                            setBusinessInfo((current) => ({
-                              ...current,
-                              email: event.target.value,
-                            }))
-                          }
-                          placeholder="Correo del negocio"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                        />
-                        <input
-                          type="text"
-                          value={businessInfo.country}
-                          onChange={(event) =>
-                            setBusinessInfo((current) => ({
-                              ...current,
-                              country: event.target.value,
-                            }))
-                          }
-                          placeholder="Pais"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                        />
-                        <input
-                          type="text"
-                          value={businessInfo.city}
-                          onChange={(event) =>
-                            setBusinessInfo((current) => ({
-                              ...current,
-                              city: event.target.value,
-                            }))
-                          }
-                          placeholder="Ciudad"
-                          className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500 sm:col-span-2"
-                        />
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <select
+                            value={businessInfo.businessType}
+                            onChange={(event) =>
+                              setBusinessInfo((current) => ({
+                                ...current,
+                                businessType: event.target.value,
+                              }))
+                            }
+                            className="h-11 rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm text-slate-500 outline-none transition focus:border-sky-500"
+                          >
+                            <option value="">Tipo de negocio</option>
+                            {BUSINESS_TYPES.map((type) => (
+                              <option key={type} value={type} className="text-slate-900">
+                                {type}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="email"
+                            value={businessInfo.email}
+                            onChange={(event) =>
+                              setBusinessInfo((current) => ({
+                                ...current,
+                                email: event.target.value,
+                              }))
+                            }
+                            placeholder="Correo (opcional)"
+                            className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          />
+                          <input
+                            type="text"
+                            value={businessInfo.country}
+                            onChange={(event) =>
+                              setBusinessInfo((current) => ({
+                                ...current,
+                                country: event.target.value,
+                              }))
+                            }
+                            placeholder="Pais (opcional)"
+                            className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          />
+                          <input
+                            type="text"
+                            value={businessInfo.city}
+                            onChange={(event) =>
+                              setBusinessInfo((current) => ({
+                                ...current,
+                                city: event.target.value,
+                              }))
+                            }
+                            placeholder="Ciudad (opcional)"
+                            className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          />
+                        </div>
                       </div>
                     </section>
 
@@ -914,7 +1139,7 @@ export default function CheckoutPage() {
                   <div className="mb-1 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{summary?.plan?.label || planLabel}</p>
-                      <p className="mt-1 text-xs text-slate-500">{billingLabel} • {domainLabel}</p>
+                      <p className="mt-1 text-xs text-slate-500">{billingLabel}{shouldShowDomainLabel ? ` • ${domainLabel}` : ""}</p>
                     </div>
                     <p className="text-sm font-semibold text-slate-900">{formatAmount(subtotal || total, currency)}</p>
                   </div>
