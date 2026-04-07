@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PricingCard from "@/components/pricing-card"
 import FeatureCard from "@/components/feature-card"
-import TestimonialCard from "@/components/testimonial-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
 import ThemeToggle from "@/components/theme-toggle"
@@ -43,9 +42,6 @@ export default function Home() {
 
   const servicesHeaderRef = useRef<HTMLDivElement>(null)
   const isServicesHeaderInView = useInView(servicesHeaderRef, { once: true, margin: "-100px" })
-
-  const testimonialsHeaderRef = useRef<HTMLDivElement>(null)
-  const isTestimonialsHeaderInView = useInView(testimonialsHeaderRef, { once: true, margin: "-100px" })
 
   const faqHeaderRef = useRef<HTMLDivElement>(null)
   const isFaqHeaderInView = useInView(faqHeaderRef, { once: true, margin: "-100px" })
@@ -898,62 +894,6 @@ export default function Home() {
                     </motion.div>
                   </CardFooter>
                 </Card>
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="py-16 md:py-24">
-          <div className="container">
-            <div className="text-center mb-12" ref={testimonialsHeaderRef}>
-              <motion.h2
-                variants={fadeInUpVariants}
-                initial="hidden"
-                animate={isTestimonialsHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
-              >
-                Lo que dicen nuestros <span className="text-indigo-600">Clientes</span>
-              </motion.h2>
-              <motion.p
-                variants={fadeInUpVariants}
-                initial="hidden"
-                animate={isTestimonialsHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
-              >
-                Miles de desarrolladores y empresas confían en nosotros para sus proyectos web.
-              </motion.p>
-            </div>
-            <motion.div
-              variants={staggerContainerVariants}
-              initial="hidden"
-              animate={isTestimonialsHeaderInView ? "visible" : "hidden"}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              <motion.div variants={itemVariants}>
-                <TestimonialCard
-                  content={`Desde que migré a ${COMPANY_NAME}, la velocidad de mi sitio web ha mejorado significativamente. El soporte técnico es excelente y siempre están dispuestos a ayudar.`}
-                  author="María Rodríguez"
-                  role="Diseñadora Web"
-                  avatarSrc="/placeholder.svg?height=80&width=80"
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <TestimonialCard
-                  content={`Como agencia de desarrollo, necesitamos un hosting confiable y escalable. ${COMPANY_NAME} ha superado nuestras expectativas en todos los aspectos.`}
-                  author="Carlos Méndez"
-                  role="CEO de WebDev Agency"
-                  avatarSrc="/placeholder.svg?height=80&width=80"
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <TestimonialCard
-                  content={`La facilidad de uso del panel de control y la rapidez de los servidores hacen que ${COMPANY_NAME} sea mi elección número uno para todos mis proyectos."`}
-                  author="Laura Sánchez"
-                  role="Desarrolladora Frontend"
-                  avatarSrc="/placeholder.svg?height=80&width=80"
-                />
               </motion.div>
             </motion.div>
           </div>
