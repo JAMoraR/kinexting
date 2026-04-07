@@ -5,9 +5,9 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon, FlashlightIcon, FastForwardIcon } from "lucide-react"
+import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -764,136 +764,80 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Additional Services Section */}
+        {/* Business Benefits Section */}
         <section
           id="services"
           ref={servicesRef}
           className="py-16 md:py-24 bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 text-white"
         >
           <div className="container">
-            <div className="text-center mb-12" ref={servicesHeaderRef}>
+            <div className="mb-12 text-center" ref={servicesHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
               >
-                Servicios <span className="text-indigo-300">Adicionales</span>
+                Beneficios para negocios de <span className="text-indigo-300">servicios</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
                 transition={{ delay: 0.2 }}
-                  className="mx-auto mt-4 max-w-[700px] text-white/90"
+                className="mx-auto mt-4 max-w-[700px] text-white/90"
               >
-                Complementa tu plan de hosting con servicios adicionales para potenciar tu presencia online.
+                Pensado para barberias, salones, spas, consultorios y consultoras que quieren mas clientes y mejor atencion.
               </motion.p>
             </div>
+
             <motion.div
               variants={staggerContainerVariants}
               initial="hidden"
               animate={isServicesHeaderInView ? "visible" : "hidden"}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-6 lg:grid-cols-[1.1fr_1fr]"
             >
               <motion.div variants={itemVariants}>
-                <Card className="bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/15 transition-colors">
+                <Card className="h-full rounded-3xl border border-white/15 bg-white/[0.09] backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.22)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.28)]">
                   <CardHeader>
-                    <CardTitle className="text-white">Dominios</CardTitle>
-                    <CardDescription className="text-white/70">Registra o transfiere tu dominio</CardDescription>
+                    <CardTitle className="text-white">Resultados que se sienten en el dia a dia</CardTitle>
+                    <CardDescription className="text-white/80">
+                      Mas citas, mejor seguimiento y una imagen profesional en cada contacto.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Más de 300 extensiones disponibles</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Protección de privacidad WHOIS</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Renovación automática</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Panel de gestión fácil de usar</span>
-                      </li>
-                    </ul>
+                  <CardContent className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
+                      <p className="text-xs uppercase tracking-wide text-cyan-200">Agenda</p>
+                      <p className="mt-2 text-2xl font-bold text-white">+Citas</p>
+                      <p className="mt-1 text-xs text-white/80">Mas reservas desde web y WhatsApp</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
+                      <p className="text-xs uppercase tracking-wide text-cyan-200">Atencion</p>
+                      <p className="mt-2 text-2xl font-bold text-white">+Rapida</p>
+                      <p className="mt-1 text-xs text-white/80">Respuestas claras sin perder clientes</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
+                      <p className="text-xs uppercase tracking-wide text-cyan-200">Reputacion</p>
+                      <p className="mt-2 text-2xl font-bold text-white">+Confianza</p>
+                      <p className="mt-1 text-xs text-white/80">Tu marca se ve seria y profesional</p>
+                    </div>
                   </CardContent>
-                  <CardFooter>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver precios</Button>
-                    </motion.div>
-                  </CardFooter>
                 </Card>
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <Card className="bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/15 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-white">Correo Empresarial</CardTitle>
-                    <CardDescription className="text-white/70">Correo profesional para tu negocio</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Correo con tu dominio</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>50 GB de almacenamiento</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Protección antispam y antivirus</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Acceso desde cualquier dispositivo</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver planes</Button>
-                    </motion.div>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <Card className="bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/15 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-white">SSL Premium</CardTitle>
-                    <CardDescription className="text-white/70">Mayor seguridad para tu sitio</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Validación extendida (EV)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Garantía de hasta $1.5M</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Sello de sitio seguro</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-5 w-5 text-green-400" />
-                        <span>Soporte prioritario</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver opciones</Button>
-                    </motion.div>
-                  </CardFooter>
-                </Card>
+
+              <motion.div variants={itemVariants} className="space-y-3">
+                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
+                  <p className="text-sm font-semibold text-white">1. Te encuentran y te escriben mas</p>
+                  <p className="mt-1 text-sm text-white/80">Tu negocio aparece claro, confiable y con llamada a la accion directa.</p>
+                </div>
+                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
+                  <p className="text-sm font-semibold text-white">2. Atiendes mejor sin saturarte</p>
+                  <p className="mt-1 text-sm text-white/80">Menos tiempo en tareas repetidas y mas foco en tus clientes.</p>
+                </div>
+                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
+                  <p className="text-sm font-semibold text-white">3. Te recomiendan con mas facilidad</p>
+                  <p className="mt-1 text-sm text-white/80">Una experiencia profesional mejora opiniones y retorno de clientes.</p>
+                </div>
               </motion.div>
             </motion.div>
           </div>
@@ -1274,7 +1218,8 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white">
+      <footer className="relative mt-16 border-t border-slate-800 bg-slate-900 text-white dark:border-cyan-900/40 dark:bg-gradient-to-b dark:from-[#050b17] dark:via-[#071128] dark:to-[#030712] dark:text-white dark:shadow-[0_-20px_50px_rgba(2,6,23,0.7)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/45 to-transparent dark:via-cyan-300/55" />
         <div className="container py-12 md:py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
