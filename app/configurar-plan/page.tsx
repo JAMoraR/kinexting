@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import ThemeToggle from "@/components/theme-toggle"
 import {
   COMPANY_NAME,
   mapCatalogPlansToPlans,
@@ -454,13 +455,14 @@ export default function ConfigurarPlan() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <ServerIcon className="h-6 w-6 text-indigo-600" />
             <span className="text-xl font-bold">{COMPANY_NAME}</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link href="/">
               <Button variant="ghost" size="sm">
                 Cancelar
@@ -525,7 +527,7 @@ export default function ConfigurarPlan() {
                 }}
               >
                 <Card
-                  className={`h-full cursor-pointer transition-all ${activePlanData?.name === plan.name ? "border-2 border-indigo-600 bg-indigo-50/30" : "hover:border-indigo-300"}`}
+                  className={`h-full cursor-pointer transition-all ${activePlanData?.name === plan.name ? "border-2 border-indigo-600 bg-indigo-50/30 shadow-[0_10px_28px_rgba(79,70,229,0.28)] dark:shadow-[0_10px_30px_rgba(56,189,248,0.22)]" : "hover:border-indigo-300 hover:shadow-[0_8px_22px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_30px_rgba(2,6,23,0.55)]"}`}
                 >
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-2">
@@ -647,8 +649,8 @@ export default function ConfigurarPlan() {
                           <Card
                             className={`border-2 transition-all duration-300 ${
                               selectedExtras.includes(extra.id)
-                                ? "border-indigo-600 bg-indigo-50/50"
-                                : "hover:border-indigo-200"
+                                ? "border-indigo-600 bg-indigo-50/50 shadow-[0_8px_22px_rgba(79,70,229,0.22)] dark:shadow-[0_10px_28px_rgba(56,189,248,0.2)]"
+                                : "hover:border-indigo-200 hover:shadow-[0_8px_22px_rgba(15,23,42,0.12)] dark:hover:shadow-[0_10px_28px_rgba(2,6,23,0.5)]"
                             }`}
                           >
                             <CardContent className="p-4">
@@ -704,7 +706,9 @@ export default function ConfigurarPlan() {
                         <div
                           key={option.id}
                           className={`flex items-center space-x-2 rounded-lg border p-4 transition-all duration-200 ${
-                            selectedDomain === option.id ? "border-indigo-600 bg-indigo-50/50" : ""
+                            selectedDomain === option.id
+                              ? "border-indigo-600 bg-indigo-50/50 shadow-[0_8px_22px_rgba(79,70,229,0.2)] dark:shadow-[0_10px_26px_rgba(56,189,248,0.18)]"
+                              : "hover:shadow-[0_6px_16px_rgba(15,23,42,0.1)] dark:hover:shadow-[0_8px_22px_rgba(2,6,23,0.45)]"
                           }`}
                         >
                           <RadioGroupItem value={option.id} id={option.id} />
@@ -760,7 +764,7 @@ export default function ConfigurarPlan() {
             variants={fadeInVariants}
             className="xl:sticky xl:top-24 xl:h-fit"
           >
-            <Card className="border-2">
+            <Card className="border-2 shadow-[0_10px_30px_rgba(15,23,42,0.14)] dark:shadow-[0_14px_36px_rgba(2,6,23,0.6)]">
               <CardHeader className="pb-3">
                 <CardTitle>Resumen del pedido</CardTitle>
               </CardHeader>
@@ -860,16 +864,16 @@ export default function ConfigurarPlan() {
               <Separator />
               <CardFooter className="pt-4 flex flex-col gap-4">
                 <div className="flex items-center justify-between w-full">
-                  <div className="font-medium text-lg">Total</div>
+                  <div className="font-medium text-lg text-slate-900 dark:text-slate-100">Total</div>
                   <motion.div
                     key={totalPrice}
-                    initial={{ scale: 1.1, color: "#4f46e5" }}
-                    animate={{ scale: 1, color: "#000000" }}
+                    initial={{ scale: 1.08 }}
+                    animate={{ scale: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="font-bold text-lg"
+                    className="font-bold text-lg text-slate-900 dark:text-slate-100"
                   >
                     {formatCurrency(totalPrice)}
-                    <span className="text-sm font-normal text-muted-foreground">
+                    <span className="text-sm font-normal text-slate-600 dark:text-slate-300">
                       /{billingPeriod === "monthly" ? "Mensual" : "Anual"}
                     </span>
                   </motion.div>
@@ -878,7 +882,7 @@ export default function ConfigurarPlan() {
                 {checkoutError && <p className="w-full text-sm text-red-600">{checkoutError}</p>}
 
                 <Button
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2"
+                  className="mt-2 w-full bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
                   onClick={handleCheckout}
                   disabled={!activePlanData || isCheckoutLoading}
                 >

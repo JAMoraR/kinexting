@@ -16,6 +16,7 @@ import FeatureCard from "@/components/feature-card"
 import TestimonialCard from "@/components/testimonial-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
+import ThemeToggle from "@/components/theme-toggle"
 import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, type Plan, type PricingCatalogResponse } from "@/lib/plans"
 
 export default function Home() {
@@ -163,9 +164,9 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <motion.div
               initial={{ rotate: 0 }}
               animate={{ rotate: 360 }}
@@ -181,7 +182,7 @@ export default function Home() {
             >
               {COMPANY_NAME}
             </motion.span>
-          </div>
+          </Link>
           <nav className="hidden md:flex gap-6">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -265,6 +266,7 @@ export default function Home() {
             </motion.div>
           </nav>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -301,7 +303,7 @@ export default function Home() {
         <motion.section
           style={{ y: heroY, opacity: heroOpacity }}
           //className="relative overflow-hidden py-24 md:py-32"
-          className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-24 md:py-32"
+          className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-24 md:py-32 dark:from-slate-950 dark:via-slate-900 dark:to-[#0b1222]"
         >
           {/* Squares Background */}
           <div className="absolute inset-0">
@@ -339,7 +341,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="max-w-[600px] text-white/80 md:text-xl"
+                  className="max-w-[600px] text-white/90 md:text-xl"
                 >
                   Infraestructura optimizada para velocidad, seguridad y automatización. Ideal para negocios de cualquier tamaño.
                 </motion.p>
@@ -357,13 +359,13 @@ export default function Home() {
                         scrollToSection(pricingRef)
                       }}
                     >
-                      <Button size="lg" className="bg-white text-indigo-900 hover:bg-white/90">
+                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
                         Ver planes
                       </Button>
                     </Link>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button size="lg" className="border-white text-white hover:bg-white/10">
+                    <Button size="lg" className="bg-sky-400 text-slate-950 hover:bg-sky-300 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-semibold">
                       Prueba gratuita
                     </Button>
                   </motion.div>
@@ -412,7 +414,7 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="relative mx-auto max-w-[500px]"
               >
-                <div className="relative rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                <div className="relative rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur elev-3">
                   <div className="flex items-center gap-2 border-b border-white/10 pb-2">
                     <div className="flex gap-1">
                       <div className="h-3 w-3 rounded-full bg-red-500" />
@@ -679,7 +681,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={isComparisonHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="overflow-x-auto"
+              className="overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 p-2 elev-2 dark:border-slate-700 dark:bg-slate-900/70"
             >
               <table className="w-full border-collapse">
                 <thead>
@@ -787,7 +789,7 @@ export default function Home() {
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
                 transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-white/80"
+                  className="mx-auto mt-4 max-w-[700px] text-white/90"
               >
                 Complementa tu plan de hosting con servicios adicionales para potenciar tu presencia online.
               </motion.p>
@@ -826,7 +828,7 @@ export default function Home() {
                   </CardContent>
                   <CardFooter>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-white text-indigo-900 hover:bg-white/90">Ver precios</Button>
+                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver precios</Button>
                     </motion.div>
                   </CardFooter>
                 </Card>
@@ -859,7 +861,7 @@ export default function Home() {
                   </CardContent>
                   <CardFooter>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-white text-indigo-900 hover:bg-white/90">Ver planes</Button>
+                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver planes</Button>
                     </motion.div>
                   </CardFooter>
                 </Card>
@@ -892,7 +894,7 @@ export default function Home() {
                   </CardContent>
                   <CardFooter>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
-                      <Button className="w-full bg-white text-indigo-900 hover:bg-white/90">Ver opciones</Button>
+                      <Button className="w-full bg-sky-300 text-slate-950 hover:bg-sky-200 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 font-semibold">Ver opciones</Button>
                     </motion.div>
                   </CardFooter>
                 </Card>
@@ -1031,7 +1033,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={isCtaInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.6 }}
-              className="rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-8 md:p-12 lg:p-16 relative overflow-hidden"
+              className="rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-8 md:p-12 lg:p-16 relative overflow-hidden elev-3"
             >
               <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
               <motion.div
@@ -1071,7 +1073,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="mt-4 text-white/80 md:text-xl"
+                  className="mt-4 text-white/90 md:text-xl"
                 >
                   Únete a miles de desarrolladores y empresas que confían en nosotros para sus proyectos web.
                 </motion.p>
@@ -1089,7 +1091,7 @@ export default function Home() {
                         scrollToSection(pricingRef)
                       }}
                     >
-                      <Button size="lg" className="bg-white text-indigo-900 hover:bg-white/90">
+                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
                         Ver planes
                       </Button>
                     </Link>
@@ -1102,7 +1104,7 @@ export default function Home() {
                         scrollToSection(contactRef)
                       }}
                     >
-                      <Button size="lg"  className="border-white text-white hover:bg-white/10">
+                      <Button size="lg"  className="bg-sky-400 text-slate-950 hover:bg-sky-300 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-semibold">
                         Contactar con ventas
                       </Button>
                     </Link>
@@ -1112,7 +1114,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={isCtaInView ? { opacity: 1 } : { opacity: 0 }}
                   transition={{ duration: 0.6, delay: 0.5 }}
-                  className="mt-6 text-sm text-white/60"
+                  className="mt-6 text-sm text-white/80"
                 >
                   Sin contratos a largo plazo. Cancela cuando quieras.
                 </motion.p>
@@ -1231,7 +1233,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 viewport={{ once: true, margin: "-100px" }}
-                className="rounded-xl border bg-card p-6 shadow-sm"
+                className="rounded-xl border bg-card p-6 elev-2"
               >
                 <h3 className="text-xl font-bold">Envíanos un mensaje</h3>
                 <form className="mt-6 space-y-4">
@@ -1251,7 +1253,7 @@ export default function Home() {
                       </label>
                       <input
                         id="name"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                         placeholder="Tu nombre"
                       />
                     </motion.div>
@@ -1271,7 +1273,7 @@ export default function Home() {
                       <input
                         id="email"
                         type="email"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                         placeholder="tu@email.com"
                       />
                     </motion.div>
@@ -1291,7 +1293,7 @@ export default function Home() {
                     </label>
                     <input
                       id="subject"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                       placeholder="Asunto de tu mensaje"
                     />
                   </motion.div>
@@ -1310,7 +1312,7 @@ export default function Home() {
                     </label>
                     <textarea
                       id="message"
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                       placeholder="Tu mensaje"
                     />
                   </motion.div>

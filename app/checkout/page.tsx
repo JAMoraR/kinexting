@@ -6,10 +6,12 @@ import Link from "next/link"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import { AnimatePresence, motion } from "framer-motion"
+import { useTheme } from "next-themes"
 
 import { ArrowLeft, Banknote, Building2, CheckCircle2, CreditCard, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import ThemeToggle from "@/components/theme-toggle"
 import {
   mapCatalogPlansToPlans,
   type BillingCycle,
@@ -349,6 +351,7 @@ function PaymentForm({
 
 export default function CheckoutPage() {
   const searchParams = useSearchParams()
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     loadFlags()
@@ -751,11 +754,41 @@ export default function CheckoutPage() {
 
   const getRequiredFieldClass = (isValid: boolean) =>
     `h-12 rounded-xl border border-l-4 border-slate-300 bg-white px-4 text-sm outline-none transition focus:border-sky-500 ${
-      isValid ? "border-l-sky-500" : "border-l-red-500"
+      isValid ? "!border-l-sky-500" : "!border-l-red-500"
     }`
 
+  const stripeElementsOptions = useMemo(() => {
+    if (!clientSecret) {
+      return null
+    }
+
+    if (resolvedTheme === "dark") {
+      return {
+        clientSecret,
+        appearance: {
+          theme: "night" as const,
+          variables: {
+            colorPrimary: "#22d3ee",
+            colorBackground: "#0f172a",
+            colorText: "#e2e8f0",
+            colorDanger: "#f87171",
+            colorTextSecondary: "#94a3b8",
+            borderRadius: "10px",
+          },
+        },
+      }
+    }
+
+    return {
+      clientSecret,
+      appearance: {
+        theme: "stripe" as const,
+      },
+    }
+  }, [clientSecret, resolvedTheme])
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-8 md:py-12">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-8 md:py-12 dark:bg-[radial-gradient(circle_at_10%_10%,#1f2937,transparent_36%),radial-gradient(circle_at_90%_0%,#111827,transparent_34%),#020617]">
       <div className="container mx-auto max-w-6xl px-4">
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           <Link
@@ -766,13 +799,16 @@ export default function CheckoutPage() {
             Regresar a configuracion
           </Link>
 
-          <section className="overflow-visible rounded-3xl border border-[#dbe4f0] bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)] backdrop-blur">
-            <header className="border-b border-[#e6edf5] px-6 py-6 md:px-10">
+          <section className="overflow-visible rounded-3xl border border-[#dbe4f0] bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)] backdrop-blur elev-2 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-[0_24px_60px_-36px_rgba(2,6,23,0.8)]">
+            <header className="border-b border-[#e6edf5] px-6 py-6 md:px-10 dark:border-slate-700">
               <div className="mb-6 flex items-center justify-between">
-                <span className="text-sm text-slate-500">Checkout</span>
-                <Button asChild variant="outline" size="sm" className="h-9 px-4">
-                  <Link href="/configurar-plan?status=cancel">Cancelar</Link>
-                </Button>
+                <span className="text-sm text-slate-500 dark:text-slate-300">Checkout</span>
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  <Button asChild variant="outline" size="sm" className="h-9 px-4 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
+                    <Link href="/configurar-plan?status=cancel">Cancelar</Link>
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-4 gap-3 md:gap-6">
@@ -787,11 +823,11 @@ export default function CheckoutPage() {
                         disabled={disabled}
                         className={`mx-auto inline-flex min-w-[126px] items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${
                           index <= visualStep
-                            ? "border-sky-200 bg-sky-100 text-sky-800"
-                            : "border-slate-200 bg-white text-slate-500"
+                            ? "border-sky-200 bg-sky-100 text-sky-800 dark:border-cyan-500/40 dark:bg-cyan-500/15 dark:text-cyan-200"
+                            : "border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                         } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
                       >
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/70 text-[11px]">{index + 1}</span>
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-[11px] font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-100">{index + 1}</span>
                         {stepLabel}
                       </button>
                     </div>
@@ -812,7 +848,7 @@ export default function CheckoutPage() {
                     exit="exit"
                     className="space-y-5 md:space-y-6"
                   >
-                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Plan</p>
                       {isCatalogLoading ? (
                         <p className="text-sm text-slate-500">Cargando planes...</p>
@@ -829,13 +865,13 @@ export default function CheckoutPage() {
                                 onClick={() => setSelectedPlanId(plan.id)}
                                 className={`rounded-xl border p-4 text-left transition ${
                                   active
-                                    ? "border-sky-300 bg-sky-50"
-                                    : "border-slate-200 bg-white hover:border-sky-200"
+                                    ? "border-sky-300 bg-sky-50 dark:border-cyan-500/40 dark:bg-cyan-500/10"
+                                    : "border-slate-200 bg-white hover:border-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-500/50"
                                 }`}
                               >
-                                <p className="text-sm font-semibold text-slate-900">{plan.title}</p>
-                                <p className="mt-1 text-xs text-slate-500">{billingPeriod === "annual" ? "Anual" : "Mensual"}</p>
-                                <p className="mt-2 text-base font-semibold text-slate-800">{formatAmount(planPrice)}</p>
+                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{plan.title}</p>
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{billingPeriod === "annual" ? "Anual" : "Mensual"}</p>
+                                <p className="mt-2 text-base font-semibold text-slate-800 dark:text-cyan-200">{formatAmount(planPrice)}</p>
                               </button>
                             )
                           })}
@@ -868,7 +904,7 @@ export default function CheckoutPage() {
                       </div>
                     </section>
 
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Extras</p>
                       {relevantExtras.length === 0 ? (
                         <p className="text-sm text-slate-500">No hay extras disponibles para este plan.</p>
@@ -906,7 +942,7 @@ export default function CheckoutPage() {
                     </section>
 
                     {requiresDomain && (
-                      <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                      <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                         <p className="text-base font-medium text-slate-900">Dominio</p>
                         <div className="space-y-2">
                           {DOMAIN_OPTIONS.map((option) => (
@@ -952,7 +988,7 @@ export default function CheckoutPage() {
                     exit="exit"
                     className="space-y-5 md:space-y-6"
                   >
-                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Contacto</p>
                       <div className="space-y-3">
                         <input
@@ -1022,16 +1058,16 @@ export default function CheckoutPage() {
                                               setPhoneSearchQuery("")
                                               setShowCountryDropdown(false)
                                             }}
-                                            className="flex w-full items-center gap-2 border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
+                                            className="flex w-full items-center gap-2 border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 dark:border-slate-700 dark:hover:bg-slate-700 last:border-b-0"
                                           >
                                             {FlagComponent ? (
                                               <FlagComponent className="h-4 w-6 flex-shrink-0 rounded-sm" />
                                             ) : (
                                               <span className="h-4 w-6 flex-shrink-0 rounded-sm bg-slate-200" />
                                             )}
-                                            <span className="font-medium">{country.code}</span>
-                                            <span className="text-slate-500">{country.iso}</span>
-                                            <span className="ml-auto text-slate-600">{country.name}</span>
+                                            <span className="font-medium text-slate-800 dark:text-slate-100">{country.code}</span>
+                                            <span className="text-slate-500 dark:text-slate-300">{country.iso}</span>
+                                            <span className="ml-auto text-slate-600 dark:text-slate-200">{country.name}</span>
                                           </motion.button>
                                         )
                                       })
@@ -1054,7 +1090,7 @@ export default function CheckoutPage() {
                       </div>
                     </section>
 
-                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Datos del negocio</p>
                       <div className="space-y-3">
                         <input
@@ -1108,9 +1144,9 @@ export default function CheckoutPage() {
                                           }))
                                           setShowBusinessTypeDropdown(false)
                                         }}
-                                        className="flex w-full items-center justify-between border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
+                                        className="flex w-full items-center justify-between border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 dark:border-slate-700 dark:hover:bg-slate-700 last:border-b-0"
                                       >
-                                        <span className="font-medium text-slate-700">{type}</span>
+                                        <span className="font-medium text-slate-700 dark:text-slate-100">{type}</span>
                                         {businessInfo.businessType === type && (
                                           <span className="text-xs font-semibold text-sky-600">Seleccionado</span>
                                         )}
@@ -1210,7 +1246,7 @@ export default function CheckoutPage() {
 
                     </div>
 
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Facturacion</p>
                       <label className="flex items-center gap-2 text-sm text-slate-700">
                         <input
@@ -1260,7 +1296,7 @@ export default function CheckoutPage() {
                       </AnimatePresence>
                     </section>
 
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f7fafd] p-5 md:p-6">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f7fafd] p-5 md:p-6 elev-1">
                       <div className="flex items-center gap-2 text-slate-700">
                         <Lock className="h-4 w-4" />
                         <p className="text-sm font-medium">Procesar pago</p>
@@ -1277,10 +1313,10 @@ export default function CheckoutPage() {
                         </div>
                       ) : error ? (
                         <p className="text-sm text-red-600">{error}</p>
-                      ) : !clientSecret || !stripePromise ? (
+                      ) : !stripeElementsOptions || !stripePromise ? (
                         <p className="text-sm text-red-600">No se pudo crear el formulario de pago.</p>
                       ) : (
-                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                        <Elements stripe={stripePromise} options={stripeElementsOptions}>
                           <PaymentForm
                             billingName={effectiveBillingName}
                             payerPhone={payerPhone}
@@ -1329,8 +1365,8 @@ export default function CheckoutPage() {
                 </AnimatePresence>
               </div>
 
-              <aside className="border-t border-[#e2e8f0] bg-[#f3f8fd] px-6 py-8 md:border-l md:border-t-0 md:px-8 md:py-10">
-                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <aside className="border-t border-[#e2e8f0] bg-[#f3f8fd] px-6 py-8 md:border-l md:border-t-0 md:px-8 md:py-10 dark:border-slate-700 dark:bg-slate-900">
+                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elev-2 dark:border-slate-700 dark:bg-slate-800/80">
                   <div className="mb-1 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{summary?.plan?.label || planLabel}</p>

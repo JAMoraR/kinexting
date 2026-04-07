@@ -13,7 +13,7 @@ interface FeatureCardProps {
 export default function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
-      <Card className="border-2 hover:border-indigo-600/50 transition-colors h-full">
+      <Card className="border-2 hover:border-indigo-600/50 transition-colors h-full elev-interactive">
         <CardHeader className="pb-2">
           <motion.div
             initial={{ scale: 1 }}

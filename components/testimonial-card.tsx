@@ -10,7 +10,7 @@ interface TestimonialCardProps {
 
 export default function TestimonialCard({ content, author, role, avatarSrc }: TestimonialCardProps) {
   return (
-    <Card className="border-2 hover:border-indigo-600/50 transition-colors">
+    <Card className="border-2 hover:border-indigo-600/50 transition-colors elev-interactive">
       <CardContent className="pt-6">
         <div className="mb-4 text-indigo-600">
           <svg

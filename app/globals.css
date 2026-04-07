@@ -36,33 +36,33 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 222 52% 7%;
+    --foreground: 213 50% 93%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 39% 11%;
+    --card-foreground: 213 50% 93%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 39% 11%;
+    --popover-foreground: 213 50% 93%;
 
-    --primary: 246 80% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 195 92% 60%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 219 27% 17%;
+    --secondary-foreground: 213 50% 93%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 219 27% 17%;
+    --muted-foreground: 215 26% 72%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 219 27% 17%;
+    --accent-foreground: 213 50% 93%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 35%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217 28% 24%;
+    --input: 217 28% 24%;
+    --ring: 195 92% 60%;
   }
 }
 
@@ -72,6 +72,123 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer base {
+  .dark body {
+    background-color: #060c18;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.2), transparent 26%),
+      radial-gradient(circle at 86% 2%, rgba(14, 165, 233, 0.14), transparent 24%),
+      radial-gradient(circle at 50% 120%, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 1));
+  }
+
+  .dark * {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  header.sticky {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 10px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  .dark header.sticky {
+    box-shadow: 0 1px 2px rgba(2, 6, 23, 0.65), 0 14px 34px rgba(2, 6, 23, 0.5);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .dark select,
+  .dark textarea {
+    box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08), 0 1px 2px rgba(2, 6, 23, 0.6), 0 12px 26px rgba(2, 6, 23, 0.45);
+  }
+}
+
+@layer utilities {
+  .elev-1 {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 22px rgba(15, 23, 42, 0.1);
+  }
+
+  .elev-2 {
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 14px 34px rgba(15, 23, 42, 0.14);
+  }
+
+  .elev-3 {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1), 0 22px 52px rgba(15, 23, 42, 0.2);
+  }
+
+  .elev-interactive {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 10px 24px rgba(15, 23, 42, 0.11);
+  }
+
+  .elev-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12), 0 20px 42px rgba(15, 23, 42, 0.16);
+  }
+
+  .dark .elev-1 {
+    box-shadow: 0 1px 2px rgba(2, 6, 23, 0.62), 0 10px 26px rgba(2, 6, 23, 0.5);
+  }
+
+  .dark .elev-2 {
+    box-shadow: 0 2px 6px rgba(2, 6, 23, 0.66), 0 16px 38px rgba(2, 6, 23, 0.56);
+  }
+
+  .dark .elev-3 {
+    box-shadow: 0 4px 12px rgba(2, 6, 23, 0.72), 0 24px 56px rgba(8, 47, 73, 0.42);
+  }
+
+  .dark .elev-interactive {
+    box-shadow: 0 1px 3px rgba(2, 6, 23, 0.62), 0 12px 28px rgba(2, 6, 23, 0.5);
+  }
+
+  .dark .elev-interactive:hover {
+    box-shadow: 0 4px 12px rgba(2, 6, 23, 0.66), 0 22px 46px rgba(8, 47, 73, 0.42);
+  }
+
+  .dark .bg-slate-50,
+  .dark .bg-white,
+  .dark .bg-white\/95,
+  .dark [class*="bg-[#f8fbff]"],
+  .dark [class*="bg-[#f7fafd]"],
+  .dark [class*="bg-[#f3f8fd]"] {
+    background-color: #0f172a !important;
+  }
+
+  .dark .text-slate-900,
+  .dark .text-slate-800,
+  .dark .text-slate-700 {
+    color: #e2e8f0 !important;
+  }
+
+  .dark .text-slate-600,
+  .dark .text-slate-500 {
+    color: #94a3b8 !important;
+  }
+
+  .dark [class*="border-[#dbe4f0]"],
+  .dark [class*="border-[#e2e8f0]"],
+  .dark [class*="border-[#e6edf5]"] {
+    border-color: #334155 !important;
+  }
+
+  .dark .text-indigo-600,
+  .dark .hover\:text-indigo-600:hover {
+    color: #38bdf8 !important;
+  }
+
+  .dark .bg-indigo-600 {
+    background-color: #0ea5e9 !important;
+  }
+
+  .dark .hover\:bg-indigo-700:hover {
+    background-color: #0284c7 !important;
   }
 }
 

@@ -43,12 +43,12 @@ export default function PricingCard({
 
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
-      <Card className={`flex flex-col 
+      <Card className={`flex flex-col elev-interactive
         h-full
-        ${popular ? "border-red-600 shadow-lg" : ""}
-        ${cheap ? "border-yellow-600 shadow-lg" : ""}
-        ${recommended ? "border-indigo-600 shadow-lg" : ""}
-        ${highQuality ? "border-green-600 shadow-lg" : ""}`}>
+        ${popular ? "border-red-600 shadow-[0_10px_28px_rgba(220,38,38,0.25)] dark:shadow-[0_12px_32px_rgba(220,38,38,0.22)]" : ""}
+        ${cheap ? "border-yellow-600 shadow-[0_10px_28px_rgba(202,138,4,0.24)] dark:shadow-[0_12px_32px_rgba(202,138,4,0.2)]" : ""}
+        ${recommended ? "border-indigo-600 shadow-[0_12px_32px_rgba(79,70,229,0.28)] dark:shadow-[0_14px_36px_rgba(56,189,248,0.22)]" : ""}
+        ${highQuality ? "border-green-600 shadow-[0_10px_28px_rgba(22,163,74,0.24)] dark:shadow-[0_12px_32px_rgba(22,163,74,0.2)]" : ""}`}>
         <CardHeader className="space-y-3">
           {popular && <Badge className="w-fit mb-2 bg-red-600">Más vendido</Badge>}
           {cheap && <Badge className="w-fit mb-2 bg-yellow-600">Mejor precio</Badge>}
