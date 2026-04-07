@@ -320,7 +320,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                 >
                   <Badge className="bg-white/10 text-white hover:bg-white/20 border-none">
-                    Hosting de Alto Rendimiento
+                    Para negocios de servicios
                   </Badge>
                 </motion.div>
                 <motion.h1
@@ -329,9 +329,10 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
                 >
-                  Acelera tu <span className="text-indigo-500">presencia</span> en línea
+                  Llena tu agenda con
+                  <span className="text-indigo-500"> más citas</span>
                   <br />
-                  con {COMPANY_NAME}
+                  y menos esfuerzo
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 30 }}
@@ -339,7 +340,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="max-w-[600px] text-white/90 md:text-xl"
                 >
-                  Infraestructura optimizada para velocidad, seguridad y automatización. Ideal para negocios de cualquier tamaño.
+                  Sitio web, automatización y atención inteligente para barberias, salones, spas, consultorios y consultoras.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
