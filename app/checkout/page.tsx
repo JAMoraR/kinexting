@@ -11,7 +11,6 @@ import { ArrowLeft, Banknote, Building2, CheckCircle2, CreditCard, Lock } from "
 
 import { Button } from "@/components/ui/button"
 import {
-  COMPANY_NAME,
   mapCatalogPlansToPlans,
   type BillingCycle,
   type CatalogExtra,
@@ -43,6 +42,9 @@ type PaymentFormProps = {
   onSuccess: () => void
   billingName: string
   payerPhone: string
+  cardMethodEnabled: boolean
+  cardholderName: string
+  onCardholderNameChange: (value: string) => void
 }
 
 type PaymentSummary = {
@@ -263,7 +265,14 @@ const getPlanPriceCents = (plan: Plan, billing: BillingCycle) => {
   return Math.round(amount * 100)
 }
 
-function PaymentForm({ onSuccess, billingName, payerPhone }: PaymentFormProps) {
+function PaymentForm({
+  onSuccess,
+  billingName,
+  payerPhone,
+  cardMethodEnabled,
+  cardholderName,
+  onCardholderNameChange,
+}: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -316,6 +325,19 @@ function PaymentForm({ onSuccess, billingName, payerPhone }: PaymentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {cardMethodEnabled && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-slate-700">Nombre del titular de la tarjeta</p>
+          <input
+            type="text"
+            value={cardholderName}
+            onChange={(event) => onCardholderNameChange(event.target.value)}
+            placeholder="Nombre completo"
+            className="h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm outline-none transition focus:border-sky-500"
+          />
+          {!cardholderName.trim() && <p className="text-xs text-amber-700">Completa el nombre del titular para pago con tarjeta.</p>}
+        </div>
+      )}
       <PaymentElement />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" className="w-full" disabled={!stripe || isSubmitting || !billingName.trim() || !payerPhone.trim()}>
@@ -728,30 +750,32 @@ export default function CheckoutPage() {
   const isBusinessTypeFieldValid = Boolean(businessInfo.businessType)
 
   const getRequiredFieldClass = (isValid: boolean) =>
-    `h-11 rounded-xl border border-l-4 border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500 ${
+    `h-12 rounded-xl border border-l-4 border-slate-300 bg-white px-4 text-sm outline-none transition focus:border-sky-500 ${
       isValid ? "border-l-sky-500" : "border-l-red-500"
     }`
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-6 md:py-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-8 md:py-12">
       <div className="container mx-auto max-w-6xl px-4">
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           <Link
             href="/configurar-plan"
-            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+            className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
             Regresar a configuracion
           </Link>
 
           <section className="overflow-visible rounded-3xl border border-[#dbe4f0] bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)] backdrop-blur">
-            <header className="border-b border-[#e6edf5] px-5 py-5 md:px-8">
-              <div className="mb-5 flex items-center justify-between">
-                <p className="text-[36px] font-extrabold tracking-tight text-slate-700 md:text-[40px]">{COMPANY_NAME}</p>
+            <header className="border-b border-[#e6edf5] px-6 py-6 md:px-10">
+              <div className="mb-6 flex items-center justify-between">
                 <span className="text-sm text-slate-500">Checkout</span>
+                <Button asChild variant="outline" size="sm" className="h-9 px-4">
+                  <Link href="/configurar-plan?status=cancel">Cancelar</Link>
+                </Button>
               </div>
 
-              <div className="grid grid-cols-4 gap-2 md:gap-4">
+              <div className="grid grid-cols-4 gap-3 md:gap-6">
                 {CHECKOUT_STEPS.map((stepLabel, index) => {
                   const disabled = index > completedStepIndex + 1
 
@@ -761,7 +785,7 @@ export default function CheckoutPage() {
                         type="button"
                         onClick={() => handleStepClick(STEP_KEYS[index])}
                         disabled={disabled}
-                        className={`mx-auto inline-flex min-w-[110px] items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+                        className={`mx-auto inline-flex min-w-[126px] items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${
                           index <= visualStep
                             ? "border-sky-200 bg-sky-100 text-sky-800"
                             : "border-slate-200 bg-white text-slate-500"
@@ -777,7 +801,7 @@ export default function CheckoutPage() {
             </header>
 
             <div className="grid md:grid-cols-[1.2fr,0.8fr]">
-              <div className="space-y-7 px-5 py-6 md:px-8 md:py-8">
+              <div className="space-y-9 px-6 py-8 md:px-10 md:py-10">
                 <AnimatePresence mode="wait" initial={false}>
                 {step === "config" && (
                   <motion.div
@@ -786,13 +810,14 @@ export default function CheckoutPage() {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    className="space-y-5 md:space-y-6"
                   >
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                       <p className="text-base font-medium text-slate-900">Plan</p>
                       {isCatalogLoading ? (
                         <p className="text-sm text-slate-500">Cargando planes...</p>
                       ) : (
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-4 sm:grid-cols-2">
                           {plans.map((plan) => {
                             const active = selectedPlanId === plan.id
                             const planPrice = getPlanPriceCents(plan, billingPeriod)
@@ -843,7 +868,7 @@ export default function CheckoutPage() {
                       </div>
                     </section>
 
-                    <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                       <p className="text-base font-medium text-slate-900">Extras</p>
                       {relevantExtras.length === 0 ? (
                         <p className="text-sm text-slate-500">No hay extras disponibles para este plan.</p>
@@ -881,7 +906,7 @@ export default function CheckoutPage() {
                     </section>
 
                     {requiresDomain && (
-                      <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                      <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                         <p className="text-base font-medium text-slate-900">Dominio</p>
                         <div className="space-y-2">
                           {DOMAIN_OPTIONS.map((option) => (
@@ -912,7 +937,7 @@ export default function CheckoutPage() {
 
                     {configError && <p className="text-sm text-red-600">{configError}</p>}
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end pt-1 md:pt-2">
                       <Button onClick={goToInfo}>Continuar</Button>
                     </div>
                   </motion.div>
@@ -925,8 +950,9 @@ export default function CheckoutPage() {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    className="space-y-5 md:space-y-6"
                   >
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                       <p className="text-base font-medium text-slate-900">Contacto</p>
                       <div className="space-y-3">
                         <input
@@ -936,7 +962,7 @@ export default function CheckoutPage() {
                           placeholder="Nombre completo"
                           className={`w-full ${getRequiredFieldClass(isPayerNameValid)}`}
                         />
-                        <div className="flex gap-2 sm:gap-3 relative">
+                        <div className="flex gap-3 sm:gap-4 relative">
                           <div ref={countrySelectorRef} className="relative flex-shrink-0">
                             <button
                               type="button"
@@ -1028,7 +1054,7 @@ export default function CheckoutPage() {
                       </div>
                     </section>
 
-                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                    <section className="space-y-5 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                       <p className="text-base font-medium text-slate-900">Datos del negocio</p>
                       <div className="space-y-3">
                         <input
@@ -1137,7 +1163,7 @@ export default function CheckoutPage() {
 
                     {infoError && <p className="text-sm text-red-600">{infoError}</p>}
 
-                    <div className="flex justify-between gap-3">
+                    <div className="flex justify-between gap-3 pt-1 md:pt-2">
                       <Button variant="outline" onClick={() => setStep("config")}>Volver</Button>
                       <Button onClick={goToPayment}>Continuar</Button>
                     </div>
@@ -1151,13 +1177,14 @@ export default function CheckoutPage() {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    className="space-y-5 md:space-y-6"
                   >
-                    <div className="rounded-2xl bg-[#f8fbff] p-4 md:p-5">
-                      <div className="mb-3 flex items-center justify-between">
+                    <div className="rounded-2xl bg-[#f8fbff] p-5 md:p-6">
+                      <div className="mb-4 flex items-center justify-between">
                         <p className="text-sm text-slate-500">Metodos de pago</p>
                         <Button variant="ghost" className="h-8 px-2 text-xs" onClick={() => setStep("config")}>Editar configuracion</Button>
                       </div>
-                      <div className="grid gap-2 sm:grid-cols-3">
+                      <div className="grid gap-3 sm:grid-cols-3">
                         {PAYMENT_METHODS.map((method) => {
                           const isActive = preferredMethod === method.id
                           const Icon = method.icon
@@ -1169,7 +1196,7 @@ export default function CheckoutPage() {
                                 setPreferredMethod(method.id)
                                 setError("")
                               }}
-                              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm transition-all ${
+                              className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-4 text-sm transition-all ${
                                 isActive
                                   ? "border-sky-300 bg-sky-500 text-white shadow-sm"
                                   : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50"
@@ -1180,23 +1207,10 @@ export default function CheckoutPage() {
                           )
                         })}
                       </div>
+
                     </div>
 
-                    <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
-                      <p className="text-base font-medium text-slate-900">Pago</p>
-                      {!preferredMethod && <p className="text-sm text-slate-500">Selecciona un método de pago para continuar.</p>}
-                      {cardMethodEnabled && (
-                        <input
-                          type="text"
-                          value={cardholderName}
-                          onChange={(event) => setCardholderName(event.target.value)}
-                          placeholder="Nombre del titular"
-                          className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                        />
-                      )}
-                    </section>
-
-                    <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6">
                       <p className="text-base font-medium text-slate-900">Facturacion</p>
                       <label className="flex items-center gap-2 text-sm text-slate-700">
                         <input
@@ -1246,7 +1260,7 @@ export default function CheckoutPage() {
                       </AnimatePresence>
                     </section>
 
-                    <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f7fafd] p-4 md:p-5">
+                    <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f7fafd] p-5 md:p-6">
                       <div className="flex items-center gap-2 text-slate-700">
                         <Lock className="h-4 w-4" />
                         <p className="text-sm font-medium">Procesar pago</p>
@@ -1270,6 +1284,9 @@ export default function CheckoutPage() {
                           <PaymentForm
                             billingName={effectiveBillingName}
                             payerPhone={payerPhone}
+                            cardMethodEnabled={cardMethodEnabled}
+                            cardholderName={cardholderName}
+                            onCardholderNameChange={setCardholderName}
                             onSuccess={() => {
                               setCompletedStepIndex((current) => Math.max(current, 2))
                               setStep("complete")
@@ -1277,10 +1294,6 @@ export default function CheckoutPage() {
                             }}
                           />
                         </Elements>
-                      )}
-
-                      {cardMethodEnabled && !cardholderName.trim() && (
-                        <p className="text-xs text-amber-700">Completa el nombre del titular para pago con tarjeta.</p>
                       )}
                     </section>
                   </motion.div>
@@ -1316,8 +1329,8 @@ export default function CheckoutPage() {
                 </AnimatePresence>
               </div>
 
-              <aside className="border-t border-[#e2e8f0] bg-[#f3f8fd] px-5 py-6 md:border-l md:border-t-0 md:px-7 md:py-8">
-                <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <aside className="border-t border-[#e2e8f0] bg-[#f3f8fd] px-6 py-8 md:border-l md:border-t-0 md:px-8 md:py-10">
+                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="mb-1 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{summary?.plan?.label || planLabel}</p>
@@ -1327,7 +1340,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 border-b border-slate-200 pb-4 text-sm">
+                <div className="space-y-3 border-b border-slate-200 pb-5 text-sm">
                   <div className="flex items-center justify-between text-slate-600">
                     <span>Subtotal</span>
                     <span>{formatAmount(subtotal, currency)}</span>
@@ -1346,7 +1359,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-5 flex items-center justify-between">
                   <p className="text-base font-semibold text-slate-900">Total</p>
                   <p className="text-2xl font-semibold tracking-tight text-slate-900">{formatAmount(total, currency)}</p>
                 </div>
