@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { loadStripe } from "@stripe/stripe-js"
@@ -349,7 +349,7 @@ function PaymentForm({
   )
 }
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const searchParams = useSearchParams()
   const { resolvedTheme } = useTheme()
 
@@ -1405,5 +1405,21 @@ export default function CheckoutPage() {
         </motion.div>
       </div>
     </main>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-8 md:py-12 dark:bg-[radial-gradient(circle_at_10%_10%,#1f2937,transparent_36%),radial-gradient(circle_at_90%_0%,#111827,transparent_34%),#020617]">
+          <div className="container">
+            <div className="h-24 animate-pulse rounded-2xl border border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-900/70" />
+          </div>
+        </main>
+      }
+    >
+      <CheckoutPageContent />
+    </Suspense>
   )
 }
