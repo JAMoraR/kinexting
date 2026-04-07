@@ -623,6 +623,7 @@ export default function ConfigurarPlan() {
             </motion.div>
 
             {/* Extras */}
+            {/*
             <motion.div variants={itemVariants}>
               <Card>
                 <CardHeader>
@@ -689,8 +690,10 @@ export default function ConfigurarPlan() {
                 </CardContent>
               </Card>
             </motion.div>
+              */}
 
             {/* Dominio */}
+            {/*
             {requiresDomain && (
               <motion.div variants={itemVariants}>
                 <Card>
@@ -755,6 +758,7 @@ export default function ConfigurarPlan() {
                 </Card>
               </motion.div>
             )}
+              */}
           </motion.div>
 
           {/* Resumen del pedido */}

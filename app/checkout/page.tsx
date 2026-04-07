@@ -903,7 +903,7 @@ function CheckoutPageContent() {
                         </button>
                       </div>
                     </section>
-
+                    {/*
                     <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                       <p className="text-base font-medium text-slate-900">Extras</p>
                       {relevantExtras.length === 0 ? (
@@ -940,7 +940,8 @@ function CheckoutPageContent() {
                         </div>
                       )}
                     </section>
-
+                        */}
+                      {/*
                     {requiresDomain && (
                       <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-5 md:p-6 elev-1">
                         <p className="text-base font-medium text-slate-900">Dominio</p>
@@ -970,6 +971,7 @@ function CheckoutPageContent() {
                         )}
                       </section>
                     )}
+                      */}
 
                     {configError && <p className="text-sm text-red-600">{configError}</p>}
 
