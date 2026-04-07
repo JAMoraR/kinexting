@@ -4,15 +4,14 @@ import type React from "react"
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { Bot, CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon, User } from "lucide-react"
+import { motion, AnimatePresence, useInView } from "framer-motion"
+import { Bot, CheckIcon, ServerIcon, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PricingCard from "@/components/pricing-card"
-import FeatureCard from "@/components/feature-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
 import ThemeToggle from "@/components/theme-toggle"
@@ -20,7 +19,6 @@ import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, type Plan, type Pr
 
 export default function Home() {
   // Referencias para las secciones
-  const featuresRef = useRef<HTMLElement>(null)
   const pricingRef = useRef<HTMLElement>(null)
   const comparisonRef = useRef<HTMLElement>(null)
   const servicesRef = useRef<HTMLElement>(null)
@@ -30,9 +28,6 @@ export default function Home() {
   // Referencias para animaciones
   const heroRef = useRef<HTMLDivElement>(null)
   const isHeroInView = useInView(heroRef, { once: true })
-
-  const featuresHeaderRef = useRef<HTMLDivElement>(null)
-  const isFeaturesHeaderInView = useInView(featuresHeaderRef, { once: true, margin: "-100px" })
 
   const pricingHeaderRef = useRef<HTMLDivElement>(null)
   const isPricingHeaderInView = useInView(pricingHeaderRef, { once: true, margin: "-100px" })
@@ -48,11 +43,6 @@ export default function Home() {
 
   const ctaRef = useRef<HTMLDivElement>(null)
   const isCtaInView = useInView(ctaRef, { once: true, margin: "-100px" })
-
-  // Efecto de paralaje para el hero
-  const { scrollY } = useScroll()
-  const heroY = useTransform(scrollY, [0, 500], [0, 150])
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.5])
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
   const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
@@ -186,22 +176,6 @@ export default function Home() {
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               <Link
-                href="#features"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault()
-                  scrollToSection(featuresRef)
-                }}
-              >
-                Características
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-            >
-              <Link
                 href="#pricing"
                 className="text-sm font-medium hover:text-indigo-600 transition-colors"
                 onClick={(e) => {
@@ -215,7 +189,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
             >
               <Link
                 href="#comparison"
@@ -231,7 +205,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
             >
               <Link
                 href="#services"
@@ -247,7 +221,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.7 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
             >
               <Link
                 href="#faq"
@@ -297,7 +271,6 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <motion.section
-          style={{ y: heroY, opacity: heroOpacity }}
           //className="relative overflow-hidden py-24 md:py-32"
           className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-24 md:py-32 dark:from-slate-950 dark:via-slate-900 dark:to-[#0b1222]"
         >
@@ -492,82 +465,87 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* Features Section */}
-        <section id="features" ref={featuresRef} className="py-16 md:py-24">
+        {/* Business Benefits Section */}
+        <section
+          id="services"
+          ref={servicesRef}
+          className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
+        >
           <div className="container">
-            <div className="text-center mb-12" ref={featuresHeaderRef}>
+            <div className="mb-12 text-center" ref={servicesHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
-                animate={isFeaturesHeaderInView ? "visible" : "hidden"}
+                animate={isServicesHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
               >
-                Características <span className="text-indigo-600">Premium</span>
+                Beneficios para negocios de <span className="text-indigo-600 dark:text-indigo-400">servicios</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
                 initial="hidden"
-                animate={isFeaturesHeaderInView ? "visible" : "hidden"}
+                animate={isServicesHeaderInView ? "visible" : "hidden"}
                 transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
+                className="mx-auto mt-4 max-w-[700px] text-slate-600 dark:text-slate-300"
               >
-                Nuestras soluciones están diseñadas para aquellos que buscan rendimiento, seguridad, facilidad de uso y agilizar procesos.
+                Pensado para barberias, salones, spas, consultorios y consultoras que quieren mas clientes y mejor atencion.
               </motion.p>
             </div>
+
             <motion.div
               variants={staggerContainerVariants}
               initial="hidden"
-              animate={isFeaturesHeaderInView ? "visible" : "hidden"}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              animate={isServicesHeaderInView ? "visible" : "hidden"}
+              className="grid gap-6 lg:grid-cols-[1.1fr_1fr]"
             >
               <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<BoltIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Alto Rendimiento"
-                  description="Servidores optimizados con SSD NVMe y la última tecnología para tiempos de carga ultrarrápidos."
-                />
+                <Card className="h-full rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.08)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.14)] dark:border-slate-700 dark:bg-slate-900/75 dark:shadow-[0_8px_24px_rgba(2,6,23,0.38)] dark:hover:shadow-[0_12px_30px_rgba(2,6,23,0.5)]">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900 dark:text-white">Resultados que se sienten en el dia a dia</CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-300">
+                      Mas citas, mejor seguimiento y una imagen profesional en cada contacto.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
+                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Agenda</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Citas</p>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Mas reservas desde web y WhatsApp</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
+                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Atencion</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Rapida</p>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Respuestas claras sin perder clientes</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
+                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Reputacion</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Confianza</p>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Tu marca se ve seria y profesional</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<ShieldCheckIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Seguridad Avanzada"
-                  description="Protección DDoS, firewalls, SSL gratuito y copias de seguridad automatizadas."
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<GlobeIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Visibilidad Global"
-                  description="Sus visiantes podrán acceder desde cualquier ubicación con tiempos de carga optimizados."
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<CodeIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Tecnologías Modernas"
-                  description="Nuestros desarrolladores utilizan las últimas tecnologías y herramientas para ofrecerte lo mejor."
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<ServerIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Escalabilidad"
-                  description="Escala vertical u horizontalmente según tus necesidades sin tiempo de inactividad largos."
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <FeatureCard
-                  icon={<ClockIcon className="h-10 w-10 text-indigo-600" />}
-                  title="Alta Eficiencia"
-                  description="Los chatbots de IA pueden manejar múltiples consultas simultáneamente, son capaces de agendar citas y más."
-                />
+
+              <motion.div variants={itemVariants} className="space-y-3">
+                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">1. Te encuentran y te escriben mas</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Tu negocio aparece claro, confiable y con llamada a la accion directa.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">2. Atiendes mejor sin saturarte</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Menos tiempo en tareas repetidas y mas foco en tus clientes.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">3. Te recomiendan con mas facilidad</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Una experiencia profesional mejora opiniones y retorno de clientes.</p>
+                </div>
               </motion.div>
             </motion.div>
           </div>
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" ref={pricingRef} className="py-16 md:py-24 bg-slate-50">
+        <section id="pricing" ref={pricingRef} className="border-t border-slate-200/80 bg-white py-16 md:py-24 dark:border-slate-800 dark:bg-slate-950">
           <div className="container">
             <div className="text-center mb-4" ref={pricingHeaderRef}>
               <motion.h2
@@ -776,85 +754,6 @@ export default function Home() {
                   </tr>
                 </tbody>
               </table>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Business Benefits Section */}
-        <section
-          id="services"
-          ref={servicesRef}
-          className="py-16 md:py-24 bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 text-white"
-        >
-          <div className="container">
-            <div className="mb-12 text-center" ref={servicesHeaderRef}>
-              <motion.h2
-                variants={fadeInUpVariants}
-                initial="hidden"
-                animate={isServicesHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
-              >
-                Beneficios para negocios de <span className="text-indigo-300">servicios</span>
-              </motion.h2>
-              <motion.p
-                variants={fadeInUpVariants}
-                initial="hidden"
-                animate={isServicesHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-white/90"
-              >
-                Pensado para barberias, salones, spas, consultorios y consultoras que quieren mas clientes y mejor atencion.
-              </motion.p>
-            </div>
-
-            <motion.div
-              variants={staggerContainerVariants}
-              initial="hidden"
-              animate={isServicesHeaderInView ? "visible" : "hidden"}
-              className="grid gap-6 lg:grid-cols-[1.1fr_1fr]"
-            >
-              <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-3xl border border-white/15 bg-white/[0.09] backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.22)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.28)]">
-                  <CardHeader>
-                    <CardTitle className="text-white">Resultados que se sienten en el dia a dia</CardTitle>
-                    <CardDescription className="text-white/80">
-                      Mas citas, mejor seguimiento y una imagen profesional en cada contacto.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
-                      <p className="text-xs uppercase tracking-wide text-cyan-200">Agenda</p>
-                      <p className="mt-2 text-2xl font-bold text-white">+Citas</p>
-                      <p className="mt-1 text-xs text-white/80">Mas reservas desde web y WhatsApp</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
-                      <p className="text-xs uppercase tracking-wide text-cyan-200">Atencion</p>
-                      <p className="mt-2 text-2xl font-bold text-white">+Rapida</p>
-                      <p className="mt-1 text-xs text-white/80">Respuestas claras sin perder clientes</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/12 bg-white/[0.11] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_6px_16px_rgba(2,6,23,0.2)]">
-                      <p className="text-xs uppercase tracking-wide text-cyan-200">Reputacion</p>
-                      <p className="mt-2 text-2xl font-bold text-white">+Confianza</p>
-                      <p className="mt-1 text-xs text-white/80">Tu marca se ve seria y profesional</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={itemVariants} className="space-y-3">
-                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
-                  <p className="text-sm font-semibold text-white">1. Te encuentran y te escriben mas</p>
-                  <p className="mt-1 text-sm text-white/80">Tu negocio aparece claro, confiable y con llamada a la accion directa.</p>
-                </div>
-                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
-                  <p className="text-sm font-semibold text-white">2. Atiendes mejor sin saturarte</p>
-                  <p className="mt-1 text-sm text-white/80">Menos tiempo en tareas repetidas y mas foco en tus clientes.</p>
-                </div>
-                <div className="rounded-2xl border border-white/14 bg-white/[0.09] p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.2)]">
-                  <p className="text-sm font-semibold text-white">3. Te recomiendan con mas facilidad</p>
-                  <p className="mt-1 text-sm text-white/80">Una experiencia profesional mejora opiniones y retorno de clientes.</p>
-                </div>
-              </motion.div>
             </motion.div>
           </div>
         </section>

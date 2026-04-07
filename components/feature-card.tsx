@@ -17,8 +17,8 @@ export default function FeatureCard({ icon, title, description }: FeatureCardPro
         <CardHeader className="pb-2">
           <motion.div
             initial={{ scale: 1 }}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 300 }}
+            whileHover={{ scale: 1.04 }}
+            transition={{ type: "spring", stiffness: 220, damping: 22 }}
             className="mb-2"
           >
             {icon}
