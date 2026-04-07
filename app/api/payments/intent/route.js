@@ -3,7 +3,7 @@ import { Stripe } from "stripe"
 import { createHash } from "node:crypto"
 
 const PLAN_IDS = new Set(["landing", "chatbot", "webapp", "chatbot-webapp"])
-const PREFERRED_METHODS = new Set(["all", "card", "oxxo", "spei"])
+const PREFERRED_METHODS = new Set(["card", "oxxo", "spei"])
 const DOMAIN_OPTIONS = new Set(["domain-1", "domain-2"])
 const OXXO_MAX_AMOUNT_MXN = 1_000_000
 const MAX_EXTRA_IDS = 10
@@ -24,6 +24,9 @@ const DOMAIN_REGEX = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,}$/i
 const PHONE_REGEX = /^\+?[0-9][0-9\s-]{7,19}$/
 const RFC_REGEX = /^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/i
 const IDEMPOTENCY_REGEX = /^[a-zA-Z0-9_-]{8,80}$/
+const CUSTOMER_NAME_REGEX = /^(?=.{3,120}$)(?=.*[A-Za-z\u00C0-\u024F])[A-Za-z\u00C0-\u024F]+(?:[ .-][A-Za-z\u00C0-\u024F]+){2,}$/
+const BUSINESS_NAME_REGEX = /^(?=.{2,160}$)(?=.*[A-Za-z0-9\u00C0-\u024F])[A-Za-z0-9\u00C0-\u024F .,&-]+$/
+const DISALLOWED_SYMBOLS_REGEX = /['"`;<>\\]/
 
 const cleanText = (value, maxLength = 120) => String(value || "").trim().slice(0, maxLength)
 
@@ -165,9 +168,7 @@ const resolvePaymentMethodTypes = (preferredMethod, amount) => {
   }
   if (preferredMethod === "spei") return ["customer_balance"]
 
-  const methods = ["card", "customer_balance"]
-  if (oxxoAllowed) methods.push("oxxo")
-  return methods
+  return ["card"]
 }
 
 export async function POST(request) {
@@ -201,7 +202,7 @@ export async function POST(request) {
     const customerPhone = cleanText(payload?.customerPhone, 25)
     const businessInfo = payload?.businessInfo && typeof payload.businessInfo === "object" ? payload.businessInfo : null
     const customerName = cleanText(payload?.customerName, 120)
-    const preferredMethod = cleanText(payload?.preferredMethod || "all", 20)
+    const preferredMethod = cleanText(payload?.preferredMethod || "card", 20)
     const invoice = payload?.invoice && typeof payload.invoice === "object" ? payload.invoice : null
     const idempotencyHeader = cleanText(request.headers.get("x-idempotency-key"), 80)
 
@@ -227,8 +228,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "Nombre completo requerido" }, { status: 400 })
     }
 
-    if (customerName.trim().split(/\s+/).length < 2) {
-      return NextResponse.json({ error: "Ingresa tu nombre completo (nombre y apellido)" }, { status: 400 })
+    if (DISALLOWED_SYMBOLS_REGEX.test(customerName) || !CUSTOMER_NAME_REGEX.test(customerName)) {
+      return NextResponse.json({ error: "Escribe tu nombre y dos apellidos. Si tienes apellidos compuestos, escríbelos juntos." }, { status: 400 })
     }
 
     if (!customerPhone || !PHONE_REGEX.test(customerPhone)) {
@@ -249,6 +250,13 @@ export async function POST(request) {
 
     if (!normalizedBusinessInfo.businessName) {
       return NextResponse.json({ error: "Completa el nombre de tu negocio para continuar" }, { status: 400 })
+    }
+
+    if (
+      DISALLOWED_SYMBOLS_REGEX.test(normalizedBusinessInfo.businessName) ||
+      !BUSINESS_NAME_REGEX.test(normalizedBusinessInfo.businessName)
+    ) {
+      return NextResponse.json({ error: "Nombre del negocio invalido" }, { status: 400 })
     }
 
     if (!normalizedBusinessInfo.businessType) {
@@ -349,6 +357,11 @@ export async function POST(request) {
         invoiceBusinessName: normalizedInvoice.enabled ? toStripeMetadata(normalizedInvoice.businessName) : "",
         invoiceEmail: normalizedInvoice.enabled ? toStripeMetadata(normalizedInvoice.email) : "",
       },
+    }, {
+      idempotencyKey: createHash("sha256")
+        .update(`${planId}:${billing}:${customerName}:${customerPhone}:${normalizedBusinessInfo.businessName}:${normalizedBusinessInfo.businessType}:${normalizedInvoice.enabled ? normalizedInvoice.rfc : ""}`)
+        .digest("hex")
+        .slice(0, 64),
     })
 
     const paymentMethodTypes = resolvePaymentMethodTypes(preferredMethod, totalAmount)
@@ -420,10 +433,12 @@ export async function POST(request) {
   } catch (error) {
     console.error("Failed to create PaymentIntent", error)
 
+    const safeMessage = process.env.NODE_ENV !== "production" && error instanceof Error ? error.message : null
+
     if (error instanceof Error && error.message.includes("OXXO")) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ error: "Failed to create payment intent" }, { status: 500 })
+    return NextResponse.json({ error: safeMessage || "Failed to create payment intent" }, { status: 500 })
   }
 }

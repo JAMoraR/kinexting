@@ -61,7 +61,7 @@ type PaymentSummary = {
   total: number
 }
 
-type PreferredMethod = "all" | "card" | "oxxo" | "spei"
+type PreferredMethod = "card" | "oxxo" | "spei"
 type CheckoutStep = "config" | "info" | "payment" | "complete"
 
 type InvoiceFormData = {
@@ -93,6 +93,9 @@ const PHONE_REGEX = /^\+?[0-9][0-9\s-]{7,19}$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const RFC_REGEX = /^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/i
 const DOMAIN_REGEX = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,}$/i
+const PERSON_NAME_ALLOWED_REGEX = /^[\p{L} .-]+$/u
+const BUSINESS_NAME_ALLOWED_REGEX = /^[\p{L}\p{N} .,&-]+$/u
+const BLOCKED_SYMBOLS_REGEX = /['"`;<>\\]/g
 
 const DOMAIN_OPTIONS = [
   { id: "domain-1", label: "Usar un dominio que ya poseo" },
@@ -114,7 +117,6 @@ const PAYMENT_METHODS: Array<{
   label: string
   icon: React.ComponentType<{ className?: string }>
 }> = [
-  { id: "all", label: "Todos", icon: CreditCard },
   { id: "card", label: "Tarjeta", icon: CreditCard },
   { id: "oxxo", label: "OXXO", icon: Banknote },
   { id: "spei", label: "SPEI", icon: Building2 },
@@ -137,6 +139,80 @@ const isValidPhone = (value: string) => PHONE_REGEX.test(value.trim())
 const isValidDomain = (value: string) => DOMAIN_REGEX.test(normalizeDomain(value))
 
 const isValidRfc = (value: string) => RFC_REGEX.test(value.trim().toUpperCase())
+
+const sanitizeGenericTextInput = (value: string) => value.replace(BLOCKED_SYMBOLS_REGEX, "")
+
+const sanitizePersonNameInput = (value: string) =>
+  sanitizeGenericTextInput(value)
+    .replace(/[^\p{L} .-]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trimStart()
+
+const sanitizeBusinessNameInput = (value: string) =>
+  sanitizeGenericTextInput(value)
+    .replace(/[^\p{L}\p{N} .,&-]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trimStart()
+
+const sanitizeLocationInput = (value: string) =>
+  sanitizeGenericTextInput(value)
+    .replace(/[^\p{L}\p{N} .,-]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trimStart()
+
+const isValidFullName = (value: string) => {
+  const normalized = value.trim().replace(/\s+/g, " ")
+  if (!normalized || normalized.split(" ").length < 3) return false
+  return PERSON_NAME_ALLOWED_REGEX.test(normalized)
+}
+
+const isValidBusinessName = (value: string) => {
+  const normalized = value.trim().replace(/\s+/g, " ")
+  if (!normalized || normalized.length < 2) return false
+  if (!BUSINESS_NAME_ALLOWED_REGEX.test(normalized)) return false
+  return /[\p{L}\p{N}]/u.test(normalized)
+}
+
+const stepPanelVariants = {
+  hidden: { opacity: 0, y: 10, scale: 0.995 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.14, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.995,
+    transition: { duration: 0.1, ease: "easeIn" as const },
+  },
+}
+
+const dropdownVariants = {
+  hidden: { opacity: 0, y: -6, scale: 0.985 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.1, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    y: -4,
+    scale: 0.985,
+    transition: { duration: 0.08, ease: "easeIn" as const },
+  },
+}
+
+const dropdownItemVariants = {
+  hidden: { opacity: 0, x: -4 },
+  visible: (index: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.08, delay: index * 0.006 },
+  }),
+}
 
 const buildIdempotencyKey = (input: unknown) => {
   const raw = JSON.stringify(input)
@@ -289,7 +365,7 @@ export default function CheckoutPage() {
   const [successMessage, setSuccessMessage] = useState("")
   const [summary, setSummary] = useState<PaymentSummary | null>(null)
 
-  const [preferredMethod, setPreferredMethod] = useState<PreferredMethod>("all")
+  const [preferredMethod, setPreferredMethod] = useState<PreferredMethod | null>(null)
   const allCountries = useMemo(() => getCountryPhoneData(), [])
   const [payerName, setPayerName] = useState("")
   const [selectedCountryIso, setSelectedCountryIso] = useState("")
@@ -298,6 +374,8 @@ export default function CheckoutPage() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const [filteredCountries, setFilteredCountries] = useState<CountryPhoneData[]>([])
   const countrySelectorRef = useRef<HTMLDivElement>(null)
+  const [showBusinessTypeDropdown, setShowBusinessTypeDropdown] = useState(false)
+  const businessTypeSelectorRef = useRef<HTMLDivElement>(null)
   const [cardholderName, setCardholderName] = useState("")
   const [businessInfo, setBusinessInfo] = useState<BusinessInfoFormData>({
     businessName: "",
@@ -369,8 +447,14 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const onDocumentMouseDown = (event: MouseEvent) => {
-      if (!countrySelectorRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node
+
+      if (!countrySelectorRef.current?.contains(target)) {
         setShowCountryDropdown(false)
+      }
+
+      if (!businessTypeSelectorRef.current?.contains(target)) {
+        setShowBusinessTypeDropdown(false)
       }
     }
 
@@ -439,7 +523,6 @@ export default function CheckoutPage() {
   )
 
   const idempotencyKey = useMemo(() => buildIdempotencyKey(payload), [payload])
-
   const planLabel = PLAN_LABELS[selectedPlanId as keyof typeof PLAN_LABELS] || selectedPlanId || "Plan"
   const billingLabel = billingPeriod === "annual" ? "Anual" : "Mensual"
 
@@ -469,7 +552,7 @@ export default function CheckoutPage() {
 
     const initIntent = async () => {
       try {
-        if (step !== "payment") {
+        if (step !== "payment" || !preferredMethod) {
           return
         }
 
@@ -528,7 +611,7 @@ export default function CheckoutPage() {
       isMounted = false
       abortController.abort()
     }
-  }, [idempotencyKey, payload, step])
+  }, [idempotencyKey, payload, preferredMethod, step])
 
   const goToInfo = () => {
     if (!selectedPlan) {
@@ -552,8 +635,8 @@ export default function CheckoutPage() {
       return
     }
 
-    if (payerName.trim().split(/\s+/).length < 2) {
-      setInfoError("Ingresa tu nombre completo (nombre y apellido).")
+    if (!isValidFullName(payerName)) {
+      setInfoError("Escribe tu nombre y dos apellidos. Si tienes apellidos compuestos, escríbelos juntos.")
       return
     }
 
@@ -569,6 +652,11 @@ export default function CheckoutPage() {
 
     if (!businessInfo.businessName.trim()) {
       setInfoError("Completa el nombre de tu negocio para continuar.")
+      return
+    }
+
+    if (!isValidBusinessName(businessInfo.businessName)) {
+      setInfoError("Ingresa un nombre de negocio valido (sin simbolos especiales).")
       return
     }
 
@@ -630,10 +718,19 @@ export default function CheckoutPage() {
           amount: getExtraPriceCents(extra, billingPeriod),
         }))
 
-  const cardMethodEnabled = preferredMethod === "all" || preferredMethod === "card"
+  const cardMethodEnabled = preferredMethod === "card"
   const effectiveBillingName = cardMethodEnabled ? cardholderName : payerName
   const fullPhoneNumber = `${countryCode}${payerPhone}`.replace(/\s+/g, "")
   const shouldShowDomainLabel = requiresDomain && domainLabel !== "Sin dominio"
+  const isPayerNameValid = isValidFullName(payerName)
+  const isPayerPhoneValid = isValidPhone(payerPhone)
+  const isBusinessNameFieldValid = isValidBusinessName(businessInfo.businessName)
+  const isBusinessTypeFieldValid = Boolean(businessInfo.businessType)
+
+  const getRequiredFieldClass = (isValid: boolean) =>
+    `h-11 rounded-xl border border-l-4 border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500 ${
+      isValid ? "border-l-sky-500" : "border-l-red-500"
+    }`
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,#ecfeff,transparent_32%),radial-gradient(circle_at_90%_0%,#e0f2fe,transparent_28%),#f8fafc] py-6 md:py-10">
@@ -647,7 +744,7 @@ export default function CheckoutPage() {
             Regresar a configuracion
           </Link>
 
-          <section className="overflow-hidden rounded-3xl border border-[#dbe4f0] bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)] backdrop-blur">
+          <section className="overflow-visible rounded-3xl border border-[#dbe4f0] bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)] backdrop-blur">
             <header className="border-b border-[#e6edf5] px-5 py-5 md:px-8">
               <div className="mb-5 flex items-center justify-between">
                 <p className="text-[36px] font-extrabold tracking-tight text-slate-700 md:text-[40px]">{COMPANY_NAME}</p>
@@ -681,8 +778,15 @@ export default function CheckoutPage() {
 
             <div className="grid md:grid-cols-[1.2fr,0.8fr]">
               <div className="space-y-7 px-5 py-6 md:px-8 md:py-8">
+                <AnimatePresence mode="wait" initial={false}>
                 {step === "config" && (
-                  <>
+                  <motion.div
+                    key="config"
+                    variants={stepPanelVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
                     <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
                       <p className="text-base font-medium text-slate-900">Plan</p>
                       {isCatalogLoading ? (
@@ -811,20 +915,26 @@ export default function CheckoutPage() {
                     <div className="flex justify-end">
                       <Button onClick={goToInfo}>Continuar</Button>
                     </div>
-                  </>
+                  </motion.div>
                 )}
 
                 {step === "info" && (
-                  <>
+                  <motion.div
+                    key="info"
+                    variants={stepPanelVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
                     <section className="space-y-4 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
                       <p className="text-base font-medium text-slate-900">Contacto</p>
                       <div className="space-y-3">
                         <input
                           type="text"
                           value={payerName}
-                          onChange={(event) => setPayerName(event.target.value)}
+                          onChange={(event) => setPayerName(sanitizePersonNameInput(event.target.value))}
                           placeholder="Nombre completo"
-                          className="h-11 w-full rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          className={`w-full ${getRequiredFieldClass(isPayerNameValid)}`}
                         />
                         <div className="flex gap-2 sm:gap-3 relative">
                           <div ref={countrySelectorRef} className="relative flex-shrink-0">
@@ -849,57 +959,70 @@ export default function CheckoutPage() {
                               </span>
                             </button>
 
-                            {showCountryDropdown && (
-                              <div className="absolute top-12 left-0 z-50 w-80 rounded-xl border border-slate-300 bg-white shadow-lg">
-                                <div className="border-b border-slate-200 p-2">
-                                  <input
-                                    type="text"
-                                    value={phoneSearchQuery}
-                                    onChange={(event) => setPhoneSearchQuery(event.target.value)}
-                                    placeholder="Buscar por +52, MX o Mexico"
-                                    className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
-                                  />
-                                </div>
+                            <AnimatePresence initial={false}>
+                              {showCountryDropdown && (
+                                <motion.div
+                                  key="country-dropdown"
+                                  variants={dropdownVariants}
+                                  initial="hidden"
+                                  animate="visible"
+                                  exit="exit"
+                                  className="absolute top-12 left-0 z-50 w-80 rounded-xl border border-slate-300 bg-white shadow-lg"
+                                >
+                                  <div className="border-b border-slate-200 p-2">
+                                    <input
+                                      type="text"
+                                      value={phoneSearchQuery}
+                                      onChange={(event) => setPhoneSearchQuery(event.target.value)}
+                                      placeholder="Buscar por +52, MX o Mexico"
+                                      className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                                    />
+                                  </div>
 
-                                <div className="max-h-48 overflow-y-auto">
-                                  {filteredCountries.length > 0 ? (
-                                    filteredCountries.map((country) => {
-                                      const FlagComponent = flagComponents[country.iso]
-                                      return (
-                                        <button
-                                          key={country.iso}
-                                          type="button"
-                                          onClick={() => {
-                                            setSelectedCountryIso(country.iso)
-                                            setPhoneSearchQuery("")
-                                            setShowCountryDropdown(false)
-                                          }}
-                                          className="flex w-full items-center gap-2 border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
-                                        >
-                                          {FlagComponent ? (
-                                            <FlagComponent className="h-4 w-6 flex-shrink-0 rounded-sm" />
-                                          ) : (
-                                            <span className="h-4 w-6 flex-shrink-0 rounded-sm bg-slate-200" />
-                                          )}
-                                          <span className="font-medium">{country.code}</span>
-                                          <span className="text-slate-500">{country.iso}</span>
-                                          <span className="ml-auto text-slate-600">{country.name}</span>
-                                        </button>
-                                      )
-                                    })
-                                  ) : (
-                                    <div className="px-3 py-2 text-sm text-slate-500">No se encontraron paises</div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                                  <div className="max-h-48 overflow-y-auto py-1">
+                                    {filteredCountries.length > 0 ? (
+                                      filteredCountries.map((country, index) => {
+                                        const FlagComponent = flagComponents[country.iso]
+                                        return (
+                                          <motion.button
+                                            key={country.iso}
+                                            type="button"
+                                            custom={index}
+                                            variants={dropdownItemVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            onClick={() => {
+                                              setSelectedCountryIso(country.iso)
+                                              setPhoneSearchQuery("")
+                                              setShowCountryDropdown(false)
+                                            }}
+                                            className="flex w-full items-center gap-2 border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
+                                          >
+                                            {FlagComponent ? (
+                                              <FlagComponent className="h-4 w-6 flex-shrink-0 rounded-sm" />
+                                            ) : (
+                                              <span className="h-4 w-6 flex-shrink-0 rounded-sm bg-slate-200" />
+                                            )}
+                                            <span className="font-medium">{country.code}</span>
+                                            <span className="text-slate-500">{country.iso}</span>
+                                            <span className="ml-auto text-slate-600">{country.name}</span>
+                                          </motion.button>
+                                        )
+                                      })
+                                    ) : (
+                                      <div className="px-3 py-2 text-sm text-slate-500">No se encontraron paises</div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                           <input
                             type="tel"
                             value={payerPhone}
                             onChange={(event) => setPayerPhone(event.target.value.replace(/\D/g, ""))}
                             placeholder="Numero de WhatsApp"
-                            className="h-11 flex-1 rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                            className={`flex-1 ${getRequiredFieldClass(isPayerPhoneValid)}`}
                           />
                         </div>
                       </div>
@@ -914,30 +1037,64 @@ export default function CheckoutPage() {
                           onChange={(event) =>
                             setBusinessInfo((current) => ({
                               ...current,
-                              businessName: event.target.value,
+                              businessName: sanitizeBusinessNameInput(event.target.value),
                             }))
                           }
                           placeholder="Nombre del negocio"
-                          className="h-11 w-full rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm outline-none transition focus:border-sky-500"
+                          className={`w-full ${getRequiredFieldClass(isBusinessNameFieldValid)}`}
                         />
                         <div className="grid gap-3 sm:grid-cols-2">
-                          <select
-                            value={businessInfo.businessType}
-                            onChange={(event) =>
-                              setBusinessInfo((current) => ({
-                                ...current,
-                                businessType: event.target.value,
-                              }))
-                            }
-                            className="h-11 rounded-xl border border-l-4 border-slate-300 border-l-red-500 bg-white px-3 text-sm text-slate-500 outline-none transition focus:border-sky-500"
-                          >
-                            <option value="">Tipo de negocio</option>
-                            {BUSINESS_TYPES.map((type) => (
-                              <option key={type} value={type} className="text-slate-900">
-                                {type}
-                              </option>
-                            ))}
-                          </select>
+                          <div ref={businessTypeSelectorRef} className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setShowBusinessTypeDropdown((current) => !current)}
+                              className={`h-11 w-full rounded-xl border border-l-4 bg-white px-3 text-left text-sm outline-none transition hover:border-sky-300 focus:border-sky-500 ${
+                                isBusinessTypeFieldValid ? "border-l-sky-500 text-slate-700" : "border-l-red-500 text-slate-500"
+                              }`}
+                            >
+                              <span className="flex items-center justify-between gap-3">
+                                <span className="truncate">
+                                  {businessInfo.businessType || "Tipo de negocio"}
+                                </span>
+                                <span className="text-xs text-slate-500">▾</span>
+                              </span>
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                              {showBusinessTypeDropdown && (
+                                <motion.div
+                                  key="business-type-dropdown"
+                                  variants={dropdownVariants}
+                                  initial="hidden"
+                                  animate="visible"
+                                  exit="exit"
+                                  className="absolute top-12 left-0 z-50 w-full overflow-hidden rounded-xl border border-slate-300 bg-white shadow-lg"
+                                >
+                                  <div className="max-h-48 overflow-y-auto py-1">
+                                    {BUSINESS_TYPES.map((type) => (
+                                      <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => {
+                                          setBusinessInfo((current) => ({
+                                            ...current,
+                                            businessType: type,
+                                          }))
+                                          setShowBusinessTypeDropdown(false)
+                                        }}
+                                        className="flex w-full items-center justify-between border-b border-slate-200 px-3 py-2 text-left text-sm hover:bg-sky-50 last:border-b-0"
+                                      >
+                                        <span className="font-medium text-slate-700">{type}</span>
+                                        {businessInfo.businessType === type && (
+                                          <span className="text-xs font-semibold text-sky-600">Seleccionado</span>
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                           <input
                             type="email"
                             value={businessInfo.email}
@@ -956,7 +1113,7 @@ export default function CheckoutPage() {
                             onChange={(event) =>
                               setBusinessInfo((current) => ({
                                 ...current,
-                                country: event.target.value,
+                                country: sanitizeLocationInput(event.target.value),
                               }))
                             }
                             placeholder="Pais (opcional)"
@@ -968,7 +1125,7 @@ export default function CheckoutPage() {
                             onChange={(event) =>
                               setBusinessInfo((current) => ({
                                 ...current,
-                                city: event.target.value,
+                                city: sanitizeLocationInput(event.target.value),
                               }))
                             }
                             placeholder="Ciudad (opcional)"
@@ -984,17 +1141,23 @@ export default function CheckoutPage() {
                       <Button variant="outline" onClick={() => setStep("config")}>Volver</Button>
                       <Button onClick={goToPayment}>Continuar</Button>
                     </div>
-                  </>
+                  </motion.div>
                 )}
 
                 {step === "payment" && (
-                  <>
+                  <motion.div
+                    key="payment"
+                    variants={stepPanelVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
                     <div className="rounded-2xl bg-[#f8fbff] p-4 md:p-5">
                       <div className="mb-3 flex items-center justify-between">
                         <p className="text-sm text-slate-500">Metodos de pago</p>
                         <Button variant="ghost" className="h-8 px-2 text-xs" onClick={() => setStep("config")}>Editar configuracion</Button>
                       </div>
-                      <div className="grid gap-2 sm:grid-cols-4">
+                      <div className="grid gap-2 sm:grid-cols-3">
                         {PAYMENT_METHODS.map((method) => {
                           const isActive = preferredMethod === method.id
                           const Icon = method.icon
@@ -1002,7 +1165,10 @@ export default function CheckoutPage() {
                             <button
                               key={method.id}
                               type="button"
-                              onClick={() => setPreferredMethod(method.id)}
+                              onClick={() => {
+                                setPreferredMethod(method.id)
+                                setError("")
+                              }}
                               className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm transition-all ${
                                 isActive
                                   ? "border-sky-300 bg-sky-500 text-white shadow-sm"
@@ -1018,6 +1184,7 @@ export default function CheckoutPage() {
 
                     <section className="space-y-3 rounded-2xl border border-[#dbe4f0] bg-[#f8fbff] p-4 md:p-5">
                       <p className="text-base font-medium text-slate-900">Pago</p>
+                      {!preferredMethod && <p className="text-sm text-slate-500">Selecciona un método de pago para continuar.</p>}
                       {cardMethodEnabled && (
                         <input
                           type="text"
@@ -1085,7 +1252,9 @@ export default function CheckoutPage() {
                         <p className="text-sm font-medium">Procesar pago</p>
                       </div>
 
-                      {!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
+                      {!preferredMethod ? (
+                        <p className="text-sm text-slate-500">Selecciona un método de pago para mostrar el formulario.</p>
+                      ) : !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
                         <p className="text-sm text-red-600">Falta NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY en tu entorno.</p>
                       ) : isLoading ? (
                         <div className="space-y-3 text-sm text-slate-500">
@@ -1114,15 +1283,27 @@ export default function CheckoutPage() {
                         <p className="text-xs text-amber-700">Completa el nombre del titular para pago con tarjeta.</p>
                       )}
                     </section>
-                  </>
+                  </motion.div>
                 )}
 
                 {step === "complete" && (
-                  <section className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-                    <div className="flex items-center gap-2 text-emerald-700">
+                  <motion.section
+                    key="complete"
+                    variants={stepPanelVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2, delay: 0.05 }}
+                      className="flex items-center gap-2 text-emerald-700"
+                    >
                       <CheckCircle2 className="h-5 w-5" />
                       <p className="text-base font-semibold">Pago completado</p>
-                    </div>
+                    </motion.div>
                     <p className="text-sm text-emerald-800">{successMessage || "Tu pago se proceso correctamente."}</p>
                     <div className="flex gap-3">
                       <Link href="/configurar-plan">
@@ -1130,8 +1311,9 @@ export default function CheckoutPage() {
                       </Link>
                       <Button variant="outline" onClick={() => setStep("payment")}>Ver pago</Button>
                     </div>
-                  </section>
+                  </motion.section>
                 )}
+                </AnimatePresence>
               </div>
 
               <aside className="border-t border-[#e2e8f0] bg-[#f3f8fd] px-5 py-6 md:border-l md:border-t-0 md:px-7 md:py-8">
