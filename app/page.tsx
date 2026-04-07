@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon } from "lucide-react"
+import { Bot, CheckIcon, ServerIcon, ShieldCheckIcon, GlobeIcon, BoltIcon, CodeIcon, ClockIcon, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -330,7 +330,8 @@ export default function Home() {
                   className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
                 >
                   Llena tu agenda con
-                  <span className="text-indigo-500"> más citas</span>
+                  <br />
+                    <span className="text-cyan-300 [text-shadow:0_2px_10px_rgba(34,211,238,0.45)]"> más citas</span>
                   <br />
                   y menos esfuerzo
                 </motion.h1>
@@ -346,7 +347,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className="flex flex-col sm:flex-row gap-4"
+                  className="flex flex-row flex-wrap gap-3 sm:gap-4"
                 >
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
@@ -362,47 +363,10 @@ export default function Home() {
                     </Link>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button size="lg" className="bg-sky-400 text-slate-950 hover:bg-sky-300 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-semibold">
+                    <Button size="lg" className="border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">
                       Prueba gratuita
                     </Button>
                   </motion.div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                  className="flex items-center gap-4 text-sm text-white/80"
-                >
-                  <div className="flex items-center gap-1">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
-                    >
-                      <CheckIcon className="h-4 w-4 text-green-400" />
-                    </motion.div>
-                    <span>99.9% Uptime</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
-                    >
-                      <CheckIcon className="h-4 w-4 text-green-400" />
-                    </motion.div>
-                    <span>Soporte 24/7</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
-                    >
-                      <CheckIcon className="h-4 w-4 text-green-400" />
-                    </motion.div>
-                    <span>SSL Gratis</span>
-                  </div>
                 </motion.div>
               </div>
               <motion.div
@@ -411,42 +375,93 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="relative mx-auto max-w-[500px]"
               >
-                <div className="relative rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur elev-3">
+                <div className="relative rounded-xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur elev-3">
                   <div className="flex items-center gap-2 border-b border-white/10 pb-2">
                     <div className="flex gap-1">
                       <div className="h-3 w-3 rounded-full bg-red-500" />
                       <div className="h-3 w-3 rounded-full bg-yellow-500" />
                       <div className="h-3 w-3 rounded-full bg-green-500" />
                     </div>
-                    <div className="flex-1 text-center text-xs text-white/60">terminal</div>
+                    <div className="flex-1 text-center text-xs text-white/60">chatbot en vivo</div>
                   </div>
-                  <div className="mt-2 space-y-2 font-mono text-sm text-green-400">
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-                      $ npm create next-app@latest my-website
-                    </motion.p>
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
-                      $ cd my-website
-                    </motion.p>
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>
-                      $ npm run dev
-                    </motion.p>
-                    <motion.p
+                  <div className="mt-3 space-y-1.5 text-xs text-white/90 sm:space-y-2 sm:text-sm">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                    >
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
+                        <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </span>
+                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                        Hola, tienen cita hoy para corte y barba?
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                      className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                    >
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
+                        <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </span>
+                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2 py-1.5 leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                        <span className="block text-right">Si, te puedo agendar a las 5:30 pm o 6:00 pm. Cual</span>
+                        <span className="block text-left">prefieres?</span>
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.1 }}
+                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                    >
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
+                        <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </span>
+                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                        6:00 pm por favor.
+                      </div>
+                    </motion.div>
+                    <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.4 }}
-                      className="text-white"
+                      className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
-                      ✓ Ready in 2.3s
-                    </motion.p>
-                    <motion.p
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
+                        <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </span>
+                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                        Listo, tu cita quedo confirmada para hoy 6:00 pm.
+                      </div>
+                    </motion.div>
+                    <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.7 }}
-                      className="text-white"
+                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
-                      ○ Listening on https://my-website.com
-                    </motion.p>
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
+                        <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </span>
+                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                        Wow, que facil fue. Gracias.
+                      </div>
+                    </motion.div>
                   </div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 2 }}
+                    className="mt-3 rounded-xl border border-cyan-200/60 bg-gradient-to-r from-cyan-400/40 to-indigo-400/35 px-2.5 py-2 text-base text-cyan-50 shadow-[0_0_0_1px_rgba(103,232,249,0.35),0_14px_28px_rgba(14,165,233,0.3)] backdrop-blur-sm sm:px-3 sm:text-base"
+                  >
+                    <span className="mb-1 inline-flex rounded-full border border-cyan-100/35 bg-cyan-200/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-50">Empieza hoy</span>
+                    <p>Asi de simple puede ser para tu negocio. Activa tu plan y convierte mensajes en citas.</p>
+                  </motion.div>
                 </div>
                 <motion.div
                   animate={{
