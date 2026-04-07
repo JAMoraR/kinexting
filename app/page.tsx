@@ -361,7 +361,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: 0.35, duration: 0.2 }}
                       className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
@@ -374,7 +374,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8 }}
+                      transition={{ delay: 0.5, duration: 0.2 }}
                       className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
@@ -388,7 +388,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 1.1 }}
+                      transition={{ delay: 0.65, duration: 0.2 }}
                       className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
@@ -401,7 +401,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 1.4 }}
+                      transition={{ delay: 0.8, duration: 0.2 }}
                       className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
@@ -414,7 +414,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 1.7 }}
+                      transition={{ delay: 0.95, duration: 0.2 }}
                       className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
                     >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
@@ -429,7 +429,7 @@ export default function Home() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 2 }}
+                    transition={{ delay: 1.1, duration: 0.25 }}
                     className="mt-3 rounded-xl border border-cyan-200/60 bg-gradient-to-r from-cyan-400/40 to-indigo-400/35 px-2.5 py-2 text-base text-cyan-50 shadow-[0_0_0_1px_rgba(103,232,249,0.35),0_14px_28px_rgba(14,165,233,0.3)] backdrop-blur-sm sm:px-3 sm:text-base"
                   >
                     <span className="mb-1 inline-flex rounded-full border border-cyan-100/35 bg-cyan-200/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-50">Empieza hoy</span>
