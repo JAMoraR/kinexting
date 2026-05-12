@@ -18,6 +18,8 @@ import ThemeToggle from "@/components/theme-toggle"
 import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, type Plan, type PricingCatalogResponse } from "@/lib/plans"
 
 export default function Home() {
+  const clientsAccessUrl = process.env.NODE_ENV === "production" ? "https://clientes.kinexting.com" : "http://localhost:3001"
+
   // Referencias para las secciones
   const pricingRef = useRef<HTMLElement>(null)
   const comparisonRef = useRef<HTMLElement>(null)
@@ -230,7 +232,7 @@ export default function Home() {
                   e.preventDefault()
                   scrollToSection(faqRef)
                 }}
-              >
+                >
                 FAQ
               </Link>
             </motion.div>
@@ -240,7 +242,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.8 }}
+              transition={{ duration: 0.3, delay: 0.85 }}
             >
               <Link
                 href="#contact"
@@ -256,13 +258,24 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.9 }}
+              transition={{ duration: 0.3, delay: 0.95 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Link href="/configurar-plan">
                 <Button className="bg-indigo-600 hover:bg-indigo-700">Comenzar</Button>
               </Link>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.75 }}
+            >
+              <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+                <Link href={clientsAccessUrl} target="_blank" rel="noreferrer">
+                  Clientes
+                </Link>
+              </Button>
             </motion.div>
           </div>
         </div>
@@ -464,6 +477,33 @@ export default function Home() {
             </div>
           </div>
         </motion.section>
+
+        {/* Clients Access Section */}
+        <section className="border-y border-slate-200/80 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950">
+          <div className="container">
+            <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_10px_30px_rgba(2,6,23,0.35)] md:p-10">
+              <div className="grid gap-6 md:grid-cols-[1.2fr_auto] md:items-center">
+                <div className="space-y-3">
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-200">Clientes actuales</Badge>
+                  <h2 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white sm:text-4xl">
+                    Acceso para tu panel y soporte
+                  </h2>
+                  <p className="max-w-2xl text-slate-600 dark:text-slate-300">
+                    Si ya eres cliente, entra a tu espacio privado para administrar tu servicio, revisar avances y recibir soporte.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:justify-self-end">
+                  <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+                    <a href={clientsAccessUrl} target="_blank" rel="noreferrer">
+                      Acceder a clientes
+                    </a>
+                  </Button>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{clientsAccessUrl}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Business Benefits Section */}
         <section
