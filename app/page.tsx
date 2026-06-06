@@ -349,9 +349,17 @@ export default function Home() {
                     </Link>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button size="lg" className="border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">
-                      Prueba gratuita
-                    </Button>
+                    <Link
+                      href="#pricing"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        window.location.href = 'http://localhost:3001/'
+                      }}
+                    >
+                      <Button size="lg" className="border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">
+                        Prueba gratuita
+                      </Button>
+                    </Link>
                   </motion.div>
                 </motion.div>
               </div>
@@ -1303,19 +1311,24 @@ export default function Home() {
               <h3 className="font-bold mb-4">Empresa</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/sobre-nosotros" className="text-slate-400 hover:text-white transition-colors">
                     Sobre nosotros
-                  </a>
+                  </Link>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Prensa
-                  </a>
+                  <Link href="/legal/terminos-de-servicio" className="text-slate-400 hover:text-white transition-colors">
+                    Términos de servicio
+                  </Link>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Contacto
-                  </a>
+                  <Link href="/legal/privacidad" className="text-slate-400 hover:text-white transition-colors">
+                    Política de privacidad
+                  </Link>
+                </motion.li>
+                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <Link href="/legal/cancelacion-y-facturacion" className="text-slate-400 hover:text-white transition-colors">
+                    Política de cancelación y facturación
+                  </Link>
                 </motion.li>
               </ul>
             </div>
@@ -1351,15 +1364,18 @@ export default function Home() {
               &copy; {new Date().getFullYear()} {COMPANY_NAME}. Todos los derechos reservados.
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">
+              <Link href="/about" className="text-slate-400 hover:text-white transition-colors text-sm">
+                Sobre nosotros
+              </Link>
+              <Link href="/legal/terms" className="text-slate-400 hover:text-white transition-colors text-sm">
                 Términos de servicio
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">
+              </Link>
+              <Link href="/legal/privacy" className="text-slate-400 hover:text-white transition-colors text-sm">
                 Política de privacidad
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">
-                Cookies
-              </a>
+              </Link>
+              <Link href="/legal/cancellation" className="text-slate-400 hover:text-white transition-colors text-sm">
+                Política de cancelación y facturación
+              </Link>
             </div>
           </motion.div>
         </div>

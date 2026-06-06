@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, type ReactNode } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -35,19 +35,10 @@ type PlanData = {
   description: string
 }
 
-type ExtraItem = {
-  id: string
-  name: string
-  description: string
-  monthlyPrice: number
-  annualPrice: number
-  icon: ReactNode
-}
-
 type ExtraSection = {
   id: string
   title: string
-  extras: ExtraItem[]
+  extras: CatalogExtra[]
 }
 
 const toPlanesData = (plans: Plan[]) =>
@@ -62,55 +53,6 @@ const toPlanesData = (plans: Plan[]) =>
     }
     return acc
   }, {} as Record<Plan["id"], PlanData>)
-
-const webExtras: ExtraItem[] = [
-  {
-    id: "web-cdn",
-    name: "CDN Premium",
-    description: "Acelera la entrega de contenido en todo el mundo",
-    monthlyPrice: 4.99,
-    annualPrice: 3.99,
-    icon: <Zap className="h-5 w-5" />,
-  },
-  {
-    id: "web-security",
-    name: "Seguridad Avanzada",
-    description: "Protección contra malware y ataques DDoS",
-    monthlyPrice: 5.99,
-    annualPrice: 4.99,
-    icon: <Shield className="h-5 w-5" />,
-  },
-]
-
-const chatbotExtras: ExtraItem[] = [
-  {
-    id: "chatbot-messages",
-    name: "Mensajes adicionales",
-    description: "+500 mensajes por hora para temporadas de alta demanda",
-    monthlyPrice: 8.99,
-    annualPrice: 7.49,
-    icon: <Plus className="h-5 w-5" />,
-  },
-  {
-    id: "chatbot-ia-credits",
-    name: "Créditos IA extra",
-    description: "+$150 en créditos mensuales para respuestas avanzadas",
-    monthlyPrice: 12.99,
-    annualPrice: 10.99,
-    icon: <Zap className="h-5 w-5" />,
-  },
-]
-
-const comboExtras: ExtraItem[] = [
-  {
-    id: "combo-resources",
-    name: "Recursos Adicionales",
-    description: "+25GB SSD y +10 bases de datos",
-    monthlyPrice: 7.99,
-    annualPrice: 6.49,
-    icon: <ServerIcon className="h-5 w-5" />,
-  },
-]
 
 const domainOptions = [
   { id: "domain-1", name: "Usar un dominio que ya poseo" },
@@ -139,46 +81,77 @@ const getPlanCategory = (planId: Plan["id"]) => {
   return "web"
 }
 
-const mergeExtrasWithCatalog = (baseExtras: ExtraItem[], catalogExtras: CatalogExtra[]) => {
-  const catalogMap = new Map(catalogExtras.map((extra) => [extra.id, extra]))
+const extraMatchesPlan = (extra: CatalogExtra, planId: Plan["id"]) => {
+  const category = extra.category || "general"
+  const planCategory = getPlanCategory(planId)
 
-  return baseExtras.map((extra) => {
-    const catalog = catalogMap.get(extra.id)
-    if (!catalog) {
-      return extra
-    }
+  if (planCategory === "both") {
+    return category === "web" || category === "chatbot" || category === "combo" || category === "general"
+  }
 
-    return {
-      ...extra,
-      name: catalog.name || extra.name,
-      description: catalog.description || extra.description,
-      monthlyPrice: catalog.prices?.monthly?.amount ?? extra.monthlyPrice,
-      annualPrice: catalog.prices?.annual?.amount ?? extra.annualPrice,
-    }
-  })
+  if (planCategory === "chatbot") {
+    return category === "chatbot" || category === "general"
+  }
+
+  return category === "web" || category === "general"
 }
 
-const getExtraSectionsByPlan = (
-  planId: Plan["id"],
-  mergedWebExtras: ExtraItem[],
-  mergedChatbotExtras: ExtraItem[],
-  mergedComboExtras: ExtraItem[],
-): ExtraSection[] => {
-  const category = getPlanCategory(planId)
-
-  if (category === "both") {
-    return [
-      { id: "web", title: "Extras para Web", extras: mergedWebExtras },
-      { id: "chatbot", title: "Extras para Chatbot", extras: mergedChatbotExtras },
-      { id: "combo", title: "Extras combinados", extras: mergedComboExtras },
-    ]
+const getExtraIcon = (category?: string) => {
+  switch (category) {
+    case "chatbot":
+      return <Plus className="h-5 w-5" />
+    case "combo":
+      return <ServerIcon className="h-5 w-5" />
+    case "general":
+      return <Shield className="h-5 w-5" />
+    case "web":
+    default:
+      return <Zap className="h-5 w-5" />
   }
+}
 
-  if (category === "chatbot") {
-    return [{ id: "chatbot", title: "Extras para Chatbot", extras: mergedChatbotExtras }]
-  }
+const getExtraSectionsByPlan = (planId: Plan["id"], catalogExtras: CatalogExtra[]): ExtraSection[] => {
+  const relevantExtras = catalogExtras.filter((extra) => extraMatchesPlan(extra, planId))
+  const planCategory = getPlanCategory(planId)
+  const categoryOrder =
+    planCategory === "both"
+      ? ["web", "chatbot", "combo", "general"]
+      : planCategory === "chatbot"
+      ? ["chatbot", "general"]
+      : ["web", "general"]
 
-  return [{ id: "web", title: "Extras para Web", extras: mergedWebExtras }]
+  const sectionsByCategory = new Map<string, CatalogExtra[]>()
+
+  relevantExtras.forEach((extra) => {
+    const category = extra.category || "general"
+    const items = sectionsByCategory.get(category) || []
+    items.push(extra)
+    sectionsByCategory.set(category, items)
+  })
+
+  return categoryOrder
+    .map((category) => {
+      const extras = sectionsByCategory.get(category) || []
+      if (extras.length === 0) {
+        return null
+      }
+
+      const title =
+        category === "chatbot"
+          ? "Extras para Chatbot"
+          : category === "combo"
+          ? "Extras combinados"
+          : category === "general"
+          ? "Otros servicios"
+          : "Extras para Web"
+
+      return {
+        id: category,
+        title,
+        extras,
+      }
+    })
+    .filter((section): section is ExtraSection => section !== null)
 }
 
 export default function ConfigurarPlan() {
@@ -208,22 +181,9 @@ export default function ConfigurarPlan() {
   const [newDomain, setNewDomain] = useState<string>("")
   const [totalPrice, setTotalPrice] = useState<number>(0)
 
-  const mergedWebExtras = useMemo(
-    () => mergeExtrasWithCatalog(webExtras, catalogExtras.filter((extra) => extra.category === "web")),
-    [catalogExtras],
-  )
-  const mergedChatbotExtras = useMemo(
-    () => mergeExtrasWithCatalog(chatbotExtras, catalogExtras.filter((extra) => extra.category === "chatbot")),
-    [catalogExtras],
-  )
-  const mergedComboExtras = useMemo(
-    () => mergeExtrasWithCatalog(comboExtras, catalogExtras.filter((extra) => extra.category === "combo")),
-    [catalogExtras],
-  )
-
   const extraSections = useMemo(
-    () => getExtraSectionsByPlan(selectedPlanId, mergedWebExtras, mergedChatbotExtras, mergedComboExtras),
-    [selectedPlanId, mergedWebExtras, mergedChatbotExtras, mergedComboExtras],
+    () => getExtraSectionsByPlan(selectedPlanId, catalogExtras),
+    [selectedPlanId, catalogExtras],
   )
   const sortedPlanCards = useMemo(
     () =>
@@ -623,74 +583,76 @@ export default function ConfigurarPlan() {
             </motion.div>
 
             {/* Extras */}
-            {/*
             <motion.div variants={itemVariants}>
               <Card>
                 <CardHeader>
-                  <CardTitle>Extras opcionales (Todavía falta checar esto)</CardTitle>
+                  <CardTitle>Servicios opcionales</CardTitle>
                   <CardDescription>
                     {getPlanCategory(selectedPlanId) === "both"
-                      ? "Tu plan incluye chatbot y web. Elige extras por lista."
+                      ? "Tu plan incluye chatbot y web. Los servicios disponibles se cargan desde Stripe."
                       : getPlanCategory(selectedPlanId) === "chatbot"
-                      ? "Tu plan es chatbot. Solo se muestran extras de chatbot."
-                      : "Tu plan es web. Solo se muestran extras de web."}
+                      ? "Tu plan es chatbot. Solo se muestran servicios de esa categoría desde Stripe."
+                      : "Tu plan es web. Solo se muestran servicios de esa categoría desde Stripe."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {extraSections.map((section) => (
-                    <div key={section.id} className="space-y-3">
-                      <h3 className="text-sm font-semibold text-indigo-700">{section.title}</h3>
-                      {section.extras.map((extra) => (
-                        <motion.div
-                          key={extra.id}
-                          initial={{ scale: 1 }}
-                          whileHover={{ scale: 1.01 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <Card
-                            className={`border-2 transition-all duration-300 ${
-                              selectedExtras.includes(extra.id)
-                                ? "border-indigo-600 bg-indigo-50/50 shadow-[0_8px_22px_rgba(79,70,229,0.22)] dark:shadow-[0_10px_28px_rgba(56,189,248,0.2)]"
-                                : "hover:border-indigo-200 hover:shadow-[0_8px_22px_rgba(15,23,42,0.12)] dark:hover:shadow-[0_10px_28px_rgba(2,6,23,0.5)]"
-                            }`}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-3">
-                                  <div
-                                    className={`rounded-full p-2 ${
-                                      selectedExtras.includes(extra.id)
-                                        ? "bg-indigo-100 text-indigo-600"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}
-                                  >
-                                    {extra.icon}
+                  {extraSections.length > 0 ? (
+                    extraSections.map((section) => (
+                      <div key={section.id} className="space-y-3">
+                        <h3 className="text-sm font-semibold text-indigo-700">{section.title}</h3>
+                        {section.extras.map((extra) => {
+                          const isSelected = selectedExtras.includes(extra.id)
+                          const price = billingPeriod === "monthly" ? extra.prices?.monthly?.amount : extra.prices?.annual?.amount
+
+                          return (
+                            <motion.div
+                              key={extra.id}
+                              initial={{ scale: 1 }}
+                              whileHover={{ scale: 1.01 }}
+                              transition={{ type: "spring", stiffness: 300 }}
+                            >
+                              <Card
+                                className={`border-2 transition-all duration-300 ${
+                                  isSelected
+                                    ? "border-indigo-600 bg-indigo-50/50 shadow-[0_8px_22px_rgba(79,70,229,0.22)] dark:shadow-[0_10px_28px_rgba(56,189,248,0.2)]"
+                                    : "hover:border-indigo-200 hover:shadow-[0_8px_22px_rgba(15,23,42,0.12)] dark:hover:shadow-[0_10px_28px_rgba(2,6,23,0.5)]"
+                                }`}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                      <div
+                                        className={`rounded-full p-2 ${
+                                          isSelected ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-600"
+                                        }`}
+                                      >
+                                        {getExtraIcon(extra.category)}
+                                      </div>
+                                      <div>
+                                        <h3 className="font-medium">{extra.name || extra.id}</h3>
+                                        <p className="text-sm text-muted-foreground">{extra.description || ""}</p>
+                                        <p className="mt-1 text-sm font-medium text-indigo-600">
+                                          {typeof price === "number" ? `${formatCurrency(price)}/${billingPeriod === "monthly" ? "Mensual" : "Anual"}` : "Precio no disponible"}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Switch checked={isSelected} onCheckedChange={() => toggleExtra(extra.id)} />
                                   </div>
-                                  <div>
-                                    <h3 className="font-medium">{extra.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{extra.description}</p>
-                                    <p className="mt-1 text-sm font-medium text-indigo-600">
-                                      {billingPeriod === "monthly"
-                                        ? `${formatCurrency(extra.monthlyPrice)}/Mensual`
-                                        : `${formatCurrency(extra.annualPrice)}/Anual`}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Switch
-                                  checked={selectedExtras.includes(extra.id)}
-                                  onCheckedChange={() => toggleExtra(extra.id)}
-                                />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          )
+                        })}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+                      No hay servicios sincronizados desde Stripe para este plan.
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
-              */}
 
             {/* Dominio */}
             {/*

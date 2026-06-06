@@ -98,7 +98,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className="scroll-smooth">
       <Analytics />
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
