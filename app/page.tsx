@@ -109,11 +109,26 @@ export default function Home() {
   const scrollToSection = (elementRef: React.RefObject<HTMLElement | null>) => {
     if (elementRef.current) {
       window.scrollTo({
-        top: elementRef.current.offsetTop - 80, // Ajuste para el header fijo
+        top: elementRef.current.offsetTop - 70, // Ajuste para el header fijo
         behavior: "smooth",
       })
     }
   }
+
+  const handleServiceClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    type: "chatbot" | "web" | "all",
+    cycle?: "monthly" | "annual"
+  ) => {
+    e.preventDefault();
+
+    setPlanType(type);
+    if (cycle) {
+      setBillingCycle(cycle);
+    }
+
+    scrollToSection(pricingRef);
+  };
 
   // Variantes para animaciones
   const fadeInUpVariants = {
@@ -245,7 +260,7 @@ export default function Home() {
                   scrollToSection(pricingRef)
                 }}
               >
-                Planes
+                Servicios
               </Link>
             </motion.div>
             <motion.div
@@ -388,7 +403,7 @@ export default function Home() {
                       }}
                     >
                       <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
-                        Ver planes
+                        Ver servicios
                       </Button>
                     </Link>
                   </motion.div>
@@ -544,7 +559,7 @@ export default function Home() {
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
               >
-                Beneficios para negocios de <span className="text-indigo-600 dark:text-indigo-400">servicios</span>
+                Beneficios para <span className="text-indigo-600 dark:text-indigo-400">tu negocio</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
@@ -619,7 +634,7 @@ export default function Home() {
                 animate={isPricingHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
               >
-                Nuestros <span className="text-indigo-600">Planes</span>
+                Nuestros <span className="text-indigo-600">Servicios</span>
               </motion.h2>
             </div>
             <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "monthly" | "annual")} className="w-full max-w-6xl mx-auto">
@@ -720,7 +735,7 @@ export default function Home() {
                 animate={isComparisonHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
               >
-                Comparación de <span className="text-indigo-600">Planes</span>
+                Comparación de <span className="text-indigo-600">Servicios</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
@@ -729,7 +744,7 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
                 className="mx-auto mt-4 max-w-[700px] text-slate-300"
               >
-                Compara nuestros planes para encontrar el que mejor se adapte a tus necesidades.
+                Compara nuestros servicios para encontrar el que mejor se adapte a tus necesidades.
               </motion.p>
             </div>
             <motion.div
@@ -884,7 +899,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="mt-4 text-white/90 md:text-xl"
                 >
-                  Únete a miles de desarrolladores y empresas que confían en nosotros para sus proyectos web.
+                  Únete a los negocios y empresas que confían en nuestra tecnología para automatizar su atención, captar más clientes y potenciar sus resultados digitales.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -901,7 +916,7 @@ export default function Home() {
                       }}
                     >
                       <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
-                        Ver planes
+                        Ver servicios
                       </Button>
                     </Link>
                   </motion.div>
@@ -1170,7 +1185,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5"
+            className="grid gap-8 sm:grid-cols-1 sm:flow-col sm:justify-center md:grid-cols-3 lg:grid-cols-4"
           >
             <div className="col-span-1 lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
@@ -1178,8 +1193,7 @@ export default function Home() {
                 <span className="text-xl font-bold">{COMPANY_NAME}</span>
               </div>
               <p className="text-slate-400 mb-4 max-w-xs">
-                Soluciones de hosting profesional para profesionistas, desarrolladores y empresas. Rendimiento, seguridad y soporte
-                técnico 24/7.
+                Soluciones digitales y automatización para negocios locales, profesionales y empresas. Optimiza tu operación, escala tus ventas y cuenta con soporte técnico especializado siempre que lo necesites.
               </p>
               <div className="flex gap-4">
                 <motion.a
@@ -1272,18 +1286,52 @@ export default function Home() {
               <h3 className="font-bold mb-4">Servicios</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Hosting Web
+                  <a
+                    href="#pricing"
+                    onClick={(e) => handleServiceClick(e, "all")}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    Todos nuestros servicios
                   </a>
                 </motion.li>
+
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Dominios
+                  <a
+                    href="#pricing"
+                    onClick={(e) => handleServiceClick(e, "web")}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    Páginas Web
                   </a>
                 </motion.li>
+
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Correos
+                  <a
+                    href="#pricing"
+                    onClick={(e) => handleServiceClick(e, "chatbot")}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    Chatbots Inteligentes
+                  </a>
+                </motion.li>
+
+                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <a
+                    href="#pricing"
+                    onClick={(e) => handleServiceClick(e, "all", "monthly")}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    Plan Semestral
+                  </a>
+                </motion.li>
+
+                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <a
+                    href="#pricing"
+                    onClick={(e) => handleServiceClick(e, "all", "annual")}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    Plan Anual
                   </a>
                 </motion.li>
               </ul>
@@ -1313,6 +1361,7 @@ export default function Home() {
                 </motion.li>
               </ul>
             </div>
+            {/*
             <div>
               <h3 className="font-bold mb-4">Soporte</h3>
               <ul className="space-y-2">
@@ -1333,6 +1382,7 @@ export default function Home() {
                 </motion.li>
               </ul>
             </div>
+            */}
           </motion.div>
         </div>
       </footer>
