@@ -325,6 +325,7 @@ export default function Home() {
                 <Button className="bg-indigo-600 hover:bg-indigo-700">Comenzar</Button>
               </Link>
             </motion.div>
+            {/* PENDIENTE: Acceso a clientes actuales
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -336,6 +337,7 @@ export default function Home() {
                 </Link>
               </Button>
             </motion.div>
+            */}
           </div>
         </div>
       </header>
@@ -407,6 +409,7 @@ export default function Home() {
                       </Button>
                     </Link>
                   </motion.div>
+                  {/* PENDIENTE: Prueba gratuita
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="#pricing"
@@ -420,6 +423,7 @@ export default function Home() {
                       </Button>
                     </Link>
                   </motion.div>
+                  */}
                 </motion.div>
               </div>
               <motion.div
@@ -939,7 +943,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Clients Access Section */}
+        {/* PENDIENTE: Seccion de acceso a clientes actuales */}
+        {/* Clients Access Section
         <section className="border-y border-slate-200/80 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950">
           <div className="container">
             <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_10px_30px_rgba(2,6,23,0.35)] md:p-10">
@@ -965,6 +970,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        */}
 
         {/* Contact Section */}
         <section id="contact" ref={contactRef} className="py-16 md:py-24 bg-slate-50">
