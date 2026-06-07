@@ -46,6 +46,21 @@ export default function Home() {
   const ctaRef = useRef<HTMLDivElement>(null)
   const isCtaInView = useInView(ctaRef, { once: true, margin: "-100px" })
 
+  const benefitsResultsRef = useRef<HTMLDivElement>(null)
+  const isBenefitsResultsInView = useInView(benefitsResultsRef, { once: true, margin: "-80px" })
+
+  const benefitsListRef = useRef<HTMLDivElement>(null)
+  const isBenefitsListInView = useInView(benefitsListRef, { once: true, margin: "-80px" })
+
+  const pricingCardsRef = useRef<HTMLDivElement>(null)
+  const isPricingCardsInView = useInView(pricingCardsRef, { once: true, margin: "-80px" })
+
+  const comparisonTableRef = useRef<HTMLDivElement>(null)
+  const isComparisonTableInView = useInView(comparisonTableRef, { once: true, margin: "-80px" })
+
+  const footerRef = useRef<HTMLElement>(null)
+  const isFooterInView = useInView(footerRef, { once: true, margin: "-120px" })
+
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
   const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
@@ -115,6 +130,13 @@ export default function Home() {
     }
   }
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (window.location.pathname === "/") {
+      e.preventDefault();
+      scrollToSection(heroRef);
+    }
+  };
+
   const handleServiceClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     type: "chatbot" | "web" | "all",
@@ -143,26 +165,35 @@ export default function Home() {
     },
   }
 
-  const staggerContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
+  const getServiceCardMotion = (index: number, count: number) => {
+    const middleIndex = Math.floor(count / 2)
+    const isMiddleCard = count % 2 === 1 && index === middleIndex
+    const slideFromLeft = count % 2 === 0 ? index < count / 2 : index < middleIndex
+
+    return {
+      initial: isMiddleCard
+        ? { opacity: 0, y: 32 }
+        : { opacity: 0, x: slideFromLeft ? -72 : 72 },
+      whileInView: { opacity: 1, x: 0, y: 0 },
       transition: {
-        staggerChildren: 0.1,
+        duration: 0.55,
+        ease: "easeOut" as const,
+        delay: index * 0.12,
       },
-    },
+      viewport: { once: true, amount: 0.35 },
+    }
   }
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-      },
+  const getFooterSideMotion = (side: "left" | "right", delay = 0) => ({
+    initial: { opacity: 0, x: side === "left" ? -48 : 48 },
+    whileInView: { opacity: 1, x: 0 },
+    transition: {
+      duration: 0.55,
+      ease: "easeOut" as const,
+      delay,
     },
-  }
+    viewport: { once: true, amount: 0.35 },
+  })
 
   const comparisonPlans = ["Landing", "Chatbot", "Web App", "Chatbot + Web App"] as const
 
@@ -213,13 +244,29 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2">
             <motion.div
               initial={{ rotate: 0 }}
               animate={{ rotate: 360 }}
               transition={{ duration: 2, ease: "easeInOut", repeat: 0 }}
             >
-              <ServerIcon className="h-6 w-6 text-indigo-600" />
+              {/* Cambiado el ServerIcon por el layout de la ventana alineado al giro actual */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-indigo-600"
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M3 9h18" />
+                <path d="M9 21V9" />
+              </svg>
             </motion.div>
             <motion.span
               initial={{ opacity: 0, x: -20 }}
@@ -517,7 +564,7 @@ export default function Home() {
                     className="mt-3 rounded-xl border border-cyan-200/60 bg-gradient-to-r from-cyan-400/40 to-indigo-400/35 px-2.5 py-2 text-base text-cyan-50 shadow-[0_0_0_1px_rgba(103,232,249,0.35),0_14px_28px_rgba(14,165,233,0.3)] backdrop-blur-sm sm:px-3 sm:text-base"
                   >
                     <span className="mb-1 inline-flex rounded-full border border-cyan-100/35 bg-cyan-200/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-50">Empieza hoy</span>
-                    <p>Asi de simple puede ser para tu negocio. Activa tu plan y convierte mensajes en citas.</p>
+                    <p>Asi de simple puede ser para tu negocio. Adquiere nuestros servicios y convierte mensajes en citas.</p>
                   </motion.div>
                 </div>
                 <motion.div
@@ -576,13 +623,13 @@ export default function Home() {
               </motion.p>
             </div>
 
-            <motion.div
-              variants={staggerContainerVariants}
-              initial="hidden"
-              animate={isServicesHeaderInView ? "visible" : "hidden"}
-              className="grid gap-6 lg:grid-cols-[1.1fr_1fr]"
-            >
-              <motion.div variants={itemVariants}>
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+              <motion.div
+                initial={{ opacity: 0, x: -36 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+              >
                 <Card className="h-full rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.08)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.14)] dark:border-slate-700 dark:bg-slate-900/75 dark:shadow-[0_8px_24px_rgba(2,6,23,0.38)] dark:hover:shadow-[0_12px_30px_rgba(2,6,23,0.5)]">
                   <CardHeader>
                     <CardTitle className="text-slate-900 dark:text-white">Resultados que se sienten en el dia a dia</CardTitle>
@@ -590,41 +637,68 @@ export default function Home() {
                       Mas citas, mejor seguimiento y una imagen profesional en cada contacto.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
-                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Agenda</p>
-                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Citas</p>
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Mas reservas desde web y WhatsApp</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
-                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Atencion</p>
-                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Rapida</p>
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Respuestas claras sin perder clientes</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]">
-                      <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">Reputacion</p>
-                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">+Confianza</p>
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Tu marca se ve seria y profesional</p>
-                    </div>
+                  <CardContent ref={benefitsResultsRef} className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      {
+                        title: "+Citas",
+                        label: "Agenda",
+                        description: "Mas reservas desde web y WhatsApp",
+                      },
+                      {
+                        title: "+Rapida",
+                        label: "Atencion",
+                        description: "Respuestas claras sin perder clientes",
+                      },
+                      {
+                        title: "+Confianza",
+                        label: "Reputacion",
+                        description: "Tu marca se ve seria y profesional",
+                      },
+                    ].map((benefit, index) => (
+                      <motion.div
+                        key={benefit.label}
+                        initial={{ opacity: 0, x: -24 }}
+                        animate={isBenefitsResultsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -24 }}
+                        transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.12 }}
+                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">{benefit.label}</p>
+                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{benefit.title}</p>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{benefit.description}</p>
+                      </motion.div>
+                    ))}
                   </CardContent>
                 </Card>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="space-y-3">
-                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">1. Te encuentran y te escriben mas</p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Tu negocio aparece claro, confiable y con llamada a la accion directa.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">2. Atiendes mejor sin saturarte</p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Menos tiempo en tareas repetidas y mas foco en tus clientes.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">3. Te recomiendan con mas facilidad</p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Una experiencia profesional mejora opiniones y retorno de clientes.</p>
-                </div>
-              </motion.div>
-            </motion.div>
+              <div ref={benefitsListRef} className="space-y-3">
+                {[
+                  {
+                    title: "1. Te encuentran y te escriben mas",
+                    description: "Tu negocio aparece claro, confiable y con llamada a la accion directa.",
+                  },
+                  {
+                    title: "2. Atiendes mejor sin saturarte",
+                    description: "Menos tiempo en tareas repetidas y mas foco en tus clientes.",
+                  },
+                  {
+                    title: "3. Te recomiendan con mas facilidad",
+                    description: "Una experiencia profesional mejora opiniones y retorno de clientes.",
+                  },
+                ].map((benefit, index) => (
+                  <motion.div
+                    key={benefit.title}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={isBenefitsListInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                    transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.12 }}
+                    className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]"
+                  >
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{benefit.title}</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{benefit.description}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -687,42 +761,44 @@ export default function Home() {
                     ))}
                   </div>
                 ) : (
-                  <motion.div
-                    variants={staggerContainerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className={`grid gap-6 mx-auto w-full ${getPricingGridClass(filteredPlans.length)}`}
-                  >
+                  <div ref={pricingCardsRef} className={`grid gap-6 mx-auto w-full ${getPricingGridClass(filteredPlans.length)}`}>
                     <AnimatePresence mode="popLayout">
-                      {filteredPlans.map((plan) => (
-                        <motion.div
-                          key={plan.id}
-                          layout
-                          variants={itemVariants}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 20 }}
-                          transition={{ duration: 0.3 }}
-                          className="h-full"
-                        >
-                          <PricingCard
-                            title={plan.title}
-                            price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
-                            period={billingCycle === "monthly" ? "mensual" : "anual"}
-                            description={plan.description}
-                            features={plan.features}
-                            differences={plan.differences}
-                            buttonText={plan.buttonText}
-                            buttonLink={buildPlanLink(plan.id, billingCycle)}
-                            cheap={plan.cheap}
-                            popular={plan.popular}
-                            recommended={plan.recommended}
-                            highQuality={plan.highQuality}
-                          />
-                        </motion.div>
-                      ))}
+                      {filteredPlans.map((plan, index) => {
+                        const entrance = getServiceCardMotion(index, filteredPlans.length)
+
+                        return (
+                          <motion.div
+                            key={plan.id}
+                            layout
+                            initial="initial"
+                            whileInView="whileInView" // Framer Motion buscará automáticamente esta clave en tus variantes
+                            variants={{
+                              initial: entrance.initial,
+                              whileInView: entrance.whileInView
+                            }}
+                            transition={entrance.transition}
+                            viewport={entrance.viewport} // Esto controlará el disparo limpio al hacer scroll
+                            className="h-full"
+                          >
+                            <PricingCard
+                              title={plan.title}
+                              price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
+                              period={billingCycle === "monthly" ? "mensual" : "anual"}
+                              description={plan.description}
+                              features={plan.features}
+                              differences={plan.differences}
+                              buttonText={plan.buttonText}
+                              buttonLink={buildPlanLink(plan.id, billingCycle)}
+                              cheap={plan.cheap}
+                              popular={plan.popular}
+                              recommended={plan.recommended}
+                              highQuality={plan.highQuality}
+                            />
+                          </motion.div>
+                        )
+                      })}
                     </AnimatePresence>
-                  </motion.div>
+                  </div>
                 )}
               </TabsContent>
             </Tabs>
@@ -752,9 +828,10 @@ export default function Home() {
               </motion.p>
             </div>
             <motion.div
+              ref={comparisonTableRef}
               initial={{ opacity: 0, y: 30 }}
-              animate={isComparisonHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
               className="overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
             >
               <table className="min-w-[760px] w-full border-collapse">
@@ -772,7 +849,13 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {comparisonRows.map((row, rowIndex) => (
-                    <tr key={row.label} className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}>
+                    <motion.tr
+                      key={row.label}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                      transition={{ duration: 0.45, ease: "easeOut", delay: rowIndex * 0.08 }}
+                      className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}
+                    >
                       <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
                         {row.label}
                       </td>
@@ -784,7 +867,7 @@ export default function Home() {
                           {renderComparisonCell(value)}
                         </td>
                       ))}
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
@@ -1182,20 +1265,38 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
+      {/* Componente Footer */}
       <footer className="relative mt-16 border-t border-slate-800 bg-slate-900 text-white dark:border-cyan-900/40 dark:bg-gradient-to-b dark:from-[#050b17] dark:via-[#071128] dark:to-[#030712] dark:text-white dark:shadow-[0_-20px_50px_rgba(2,6,23,0.7)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/45 to-transparent dark:via-cyan-300/55" />
-        <div className="container py-12 md:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="grid gap-8 sm:grid-cols-1 sm:flow-col sm:justify-center md:grid-cols-3 lg:grid-cols-4"
-          >
-            <div className="col-span-1 lg:col-span-2">
+        <div className="container py-12 md:py-16 overflow-hidden"> {/* overflow-hidden evita scrollbars horizontales durante la animación */}
+          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
+            
+            {/* BLOQUE IZQUIERDO: Descripción y Redes Sociales (Animación desde la izquierda) */}
+            <motion.div
+              initial={getFooterSideMotion("left").initial}
+              whileInView={getFooterSideMotion("left").whileInView}
+              transition={getFooterSideMotion("left").transition}
+              viewport={getFooterSideMotion("left").viewport}
+              className="col-span-1 lg:col-span-2"
+            >
               <div className="flex items-center gap-2 mb-4">
-                <ServerIcon className="h-6 w-6 text-indigo-400" />
+                {/* Cambiado el ServerIcon por un icono más adecuado al giro de plataformas/web */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6 text-indigo-400"
+                >
+                  <rect width="18" height="18" x="3" y="3" rx="2" />
+                  <path d="M3 9h18" />
+                  <path d="M9 21V9" />
+                </svg>
                 <span className="text-xl font-bold">{COMPANY_NAME}</span>
               </div>
               <p className="text-slate-400 mb-4 max-w-xs">
@@ -1287,8 +1388,15 @@ export default function Home() {
                   </svg>
                 </motion.a>
               </div>
-            </div>
-            <div>
+            </motion.div>
+
+            {/* BLOQUE DERECHO - COLUMNA 1: Servicios (Animación desde la derecha) */}
+            <motion.div
+              initial={getFooterSideMotion("right", 0.1).initial}
+              whileInView={getFooterSideMotion("right", 0.1).whileInView}
+              transition={getFooterSideMotion("right", 0.1).transition}
+              viewport={getFooterSideMotion("right", 0.1).viewport}
+            >
               <h3 className="font-bold mb-4">Servicios</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -1300,7 +1408,6 @@ export default function Home() {
                     Todos nuestros servicios
                   </a>
                 </motion.li>
-
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
@@ -1310,7 +1417,6 @@ export default function Home() {
                     Páginas Web
                   </a>
                 </motion.li>
-
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
@@ -1320,17 +1426,15 @@ export default function Home() {
                     Chatbots Inteligentes
                   </a>
                 </motion.li>
-
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all", "monthly")}
                     className="text-slate-400 hover:text-white transition-colors"
-                  >
+                >
                     Plan Semestral
                   </a>
                 </motion.li>
-
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
@@ -1341,55 +1445,41 @@ export default function Home() {
                   </a>
                 </motion.li>
               </ul>
-            </div>
-            <div>
+            </motion.div>
+
+            {/* BLOQUE DERECHO - COLUMNA 2: Empresa (Animación desde la derecha con un retraso extra para escalonar) */}
+            <motion.div
+              initial={getFooterSideMotion("right", 0.2).initial}
+              whileInView={getFooterSideMotion("right", 0.2).whileInView}
+              transition={getFooterSideMotion("right", 0.2).transition}
+              viewport={getFooterSideMotion("right", 0.2).viewport}
+            >
               <h3 className="font-bold mb-4">Empresa</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/sobre-nosotros" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/about" className="text-slate-400 hover:text-white transition-colors">
                     Sobre nosotros
                   </Link>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/terminos-de-servicio" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/terms" className="text-slate-400 hover:text-white transition-colors">
                     Términos de servicio
                   </Link>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/privacidad" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/privacy" className="text-slate-400 hover:text-white transition-colors">
                     Política de privacidad
                   </Link>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/cancelacion-y-facturacion" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/cancellation" className="text-slate-400 hover:text-white transition-colors">
                     Política de cancelación y facturación
                   </Link>
                 </motion.li>
               </ul>
-            </div>
-            {/*
-            <div>
-              <h3 className="font-bold mb-4">Soporte</h3>
-              <ul className="space-y-2">
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Centro de ayuda
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Estado del sistema
-                  </a>
-                </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                    Tutoriales
-                  </a>
-                </motion.li>
-              </ul>
-            </div>
-            */}
-          </motion.div>
+            </motion.div>
+
+          </div>
         </div>
       </footer>
     </div>
