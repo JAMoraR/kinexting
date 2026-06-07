@@ -149,6 +149,50 @@ export default function Home() {
     },
   }
 
+  const comparisonPlans = ["Landing", "Chatbot", "Web App", "Chatbot + Web App"] as const
+
+  const comparisonRows = [
+    {
+      label: "Dominio .com",
+      values: [true, false, true, true],
+    },
+    {
+      label: "Sitio web",
+      values: [true, false, true, true],
+    },
+    {
+      label: "Web administrativa",
+      values: [false, false, true, true],
+    },
+    {
+      label: "Base de datos",
+      values: [false, true, true, true],
+    },
+    {
+      label: "Chatbot de IA",
+      values: [false, true, false, true],
+    },
+    {
+      label: "Créditos de IA",
+      values: [false, "Mensuales", false, "Mensuales"],
+    },
+    {
+      label: "Soporte",
+      values: ["24/7", "24/7", "24/7", "24/7"],
+    },
+  ] as const
+
+  const renderComparisonCell = (value: boolean | string) => {
+    if (value === true) {
+      return <CheckIcon className="mx-auto h-5 w-5 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.25)]" aria-hidden="true" />
+    }
+    if (typeof value === "string") {
+      return <span className="text-sm font-medium text-slate-400/80">{value}</span>
+    }
+
+    return <span className="text-sm font-medium text-slate-400/80">-</span>
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -172,6 +216,22 @@ export default function Home() {
             </motion.span>
           </Link>
           <nav className="hidden md:flex gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              <Link
+                href="#services"
+                className="text-sm font-medium hover:text-indigo-600 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection(servicesRef)
+                }}
+              >
+                Beneficios
+              </Link>
+            </motion.div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -202,22 +262,6 @@ export default function Home() {
                 }}
               >
                 Comparación
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-            >
-              <Link
-                href="#services"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault()
-                  scrollToSection(servicesRef)
-                }}
-              >
-                Servicios
               </Link>
             </motion.div>
             <motion.div
@@ -486,33 +530,6 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* Clients Access Section */}
-        <section className="border-y border-slate-200/80 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950">
-          <div className="container">
-            <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_10px_30px_rgba(2,6,23,0.35)] md:p-10">
-              <div className="grid gap-6 md:grid-cols-[1.2fr_auto] md:items-center">
-                <div className="space-y-3">
-                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-200">Clientes actuales</Badge>
-                  <h2 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white sm:text-4xl">
-                    Acceso para tu panel y soporte
-                  </h2>
-                  <p className="max-w-2xl text-slate-600 dark:text-slate-300">
-                    Si ya eres cliente, entra a tu espacio privado para administrar tu servicio, revisar avances y recibir soporte.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:justify-self-end">
-                  <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
-                    <a href={clientsAccessUrl} target="_blank" rel="noreferrer">
-                      Acceder a clientes
-                    </a>
-                  </Button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{clientsAccessUrl}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Business Benefits Section */}
         <section
           id="services"
@@ -694,14 +711,14 @@ export default function Home() {
         </section>
 
         {/* Comparison Section */}
-        <section id="comparison" ref={comparisonRef} className="py-16 md:py-24">
+        <section id="comparison" ref={comparisonRef} className="bg-[#080d18] py-16 md:py-24">
           <div className="container">
             <div className="text-center mb-12" ref={comparisonHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isComparisonHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+                className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
               >
                 Comparación de <span className="text-indigo-600">Planes</span>
               </motion.h2>
@@ -710,7 +727,7 @@ export default function Home() {
                 initial="hidden"
                 animate={isComparisonHeaderInView ? "visible" : "hidden"}
                 transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
+                className="mx-auto mt-4 max-w-[700px] text-slate-300"
               >
                 Compara nuestros planes para encontrar el que mejor se adapte a tus necesidades.
               </motion.p>
@@ -719,87 +736,37 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={isComparisonHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 p-2 elev-2 dark:border-slate-700 dark:bg-slate-900/70"
+              className="overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
             >
-              <table className="w-full border-collapse">
+              <table className="min-w-[760px] w-full border-collapse">
                 <thead>
-                  <tr className="border-b">
-                    <th className="py-4 px-4 text-left">Características</th>
-                    {plans.map((plan) => (
-                      <th key={plan.id} className="py-4 px-4 text-center">
-                        {plan.title}
+                  <tr className="border-b border-slate-500/30">
+                    <th className="px-5 py-5 text-left text-[15px] font-semibold text-slate-100">
+                      Característica
+                    </th>
+                    {comparisonPlans.map((plan) => (
+                      <th key={plan} className="px-5 py-5 text-center text-[15px] font-semibold text-slate-100">
+                        {plan}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Sitios web */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">Sitios web</td>
-                    {plans.map((plan) => (
-                      <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.features.find((feature) => feature.toLowerCase().includes("sitio web") || feature.toLowerCase().includes("sitios web")) || "-"}
+                  {comparisonRows.map((row, rowIndex) => (
+                    <tr key={row.label} className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}>
+                      <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
+                        {row.label}
                       </td>
-                    ))}
-                  </tr>
-
-                  {/* Almacenamiento */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">Almacenamiento</td>
-                    {plans.map((plan) => (
-                      <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.features.find((feature) => feature.includes("GB NVMe")) || "-"}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Google Ads */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">Google Ads</td>
-                    {plans.map(() => (
-                      <td key={Math.random()} className="py-4 px-4 text-center">
-                        Personalizado
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Herramientas de SEO */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">Herramientas de SEO</td>
-                    {plans.map((plan) => (
-                      <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.features.find((feature) => feature.includes("Herramienta de SEO") || feature.includes("Herramientas de SEO")) || "0"}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* SSL */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">SSL</td>
-                    {plans.map((plan) => (
-                      <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.features.includes("SSL Gratuito") ? (
-                          <CheckIcon className="h-5 w-5 text-green-500 mx-auto" />
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Soporte */}
-                  <tr className="border-b">
-                    <td className="py-4 px-4 font-medium">Soporte</td>
-                    {plans.map((plan) => (
-                      <td key={plan.id} className="py-4 px-4 text-center">
-                        {plan.id === "chatbot-webapp"
-                          ? "Prioritario"
-                          : plan.features.includes("Soporte 24/7")
-                          ? "24/7"
-                          : "-"}
-                      </td>
-                    ))}
-                  </tr>
+                      {row.values.map((value, valueIndex) => (
+                        <td
+                          key={`${row.label}-${comparisonPlans[valueIndex]}`}
+                          className="border-b border-slate-500/20 px-5 py-5 text-center"
+                        >
+                          {renderComparisonCell(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </motion.div>
@@ -860,11 +827,6 @@ export default function Home() {
                     question: "¿Que pasa si no tengo fotos, textos o estructura?",
                     answer:
                       "No hay problema. Te guiamos con una estructura clara para mostrar servicios, precios, ubicacion y formas de contacto. Avanzas aunque no tengas todo listo desde el dia uno.",
-                  },
-                  {
-                    question: "¿Hay contratos forzosos o permanencia?",
-                    answer:
-                      "No necesitas atarte a largo plazo para probar. Puedes escalar conforme tu negocio crece y adaptar el plan segun tus resultados.",
                   },
                 ]}
               />
@@ -957,16 +919,35 @@ export default function Home() {
                     </Link>
                   </motion.div>
                 </motion.div>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={isCtaInView ? { opacity: 1 } : { opacity: 0 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                  className="mt-6 text-sm text-white/80"
-                >
-                  Sin contratos a largo plazo. Cancela cuando quieras.
-                </motion.p>
               </div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Clients Access Section */}
+        <section className="border-y border-slate-200/80 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950">
+          <div className="container">
+            <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_10px_30px_rgba(2,6,23,0.35)] md:p-10">
+              <div className="grid gap-6 md:grid-cols-[1.2fr_auto] md:items-center">
+                <div className="space-y-3">
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-200">Clientes actuales</Badge>
+                  <h2 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white sm:text-4xl">
+                    Acceso para tu panel y soporte
+                  </h2>
+                  <p className="max-w-2xl text-slate-600 dark:text-slate-300">
+                    Si ya eres cliente, entra a tu espacio privado para administrar tu servicio, revisar avances y recibir soporte.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:justify-self-end">
+                  <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+                    <a href={clientsAccessUrl} target="_blank" rel="noreferrer">
+                      Acceder a clientes
+                    </a>
+                  </Button>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{clientsAccessUrl}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1351,31 +1332,6 @@ export default function Home() {
                   </a>
                 </motion.li>
               </ul>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4"
-          >
-            <p className="text-slate-400 text-sm">
-              &copy; {new Date().getFullYear()} {COMPANY_NAME}. Todos los derechos reservados.
-            </p>
-            <div className="flex gap-6">
-              <Link href="/about" className="text-slate-400 hover:text-white transition-colors text-sm">
-                Sobre nosotros
-              </Link>
-              <Link href="/legal/terms" className="text-slate-400 hover:text-white transition-colors text-sm">
-                Términos de servicio
-              </Link>
-              <Link href="/legal/privacy" className="text-slate-400 hover:text-white transition-colors text-sm">
-                Política de privacidad
-              </Link>
-              <Link href="/legal/cancellation" className="text-slate-400 hover:text-white transition-colors text-sm">
-                Política de cancelación y facturación
-              </Link>
             </div>
           </motion.div>
         </div>
