@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { Stripe } from "stripe"
 
-const PLAN_IDS = new Set(["landing", "chatbot", "webapp", "chatbot-webapp"])
+const PLAN_IDS = new Set(["asistente", "recepcionista", "soporte-tecnico", "personalizado"])
 
 const PLAN_FLAGS = {
-    landing: { cheap: true },
-    chatbot: { popular: true },
-    webapp: { recommended: true },
-    "chatbot-webapp": { highQuality: true },
+    asistente: { cheap: true },
+    recepcionista: { popular: true },
+    "soporte-tecnico": { highQuality: true },
+    personalizado: { recommended: true },
 }
 
 const normalizeText = (value) =>
@@ -33,10 +33,10 @@ const resolvePlanId = (price) => {
     const productName = price.product && typeof price.product !== "string" ? price.product.name : ""
     const candidate = normalizeText(price.nickname || productName)
 
-    if (candidate.includes("chatbot") && candidate.includes("web")) return "chatbot-webapp"
-    if (candidate.includes("web app") || candidate === "webapp" || candidate === "web app") return "webapp"
-    if (candidate.includes("chatbot")) return "chatbot"
-    if (candidate.includes("landing")) return "landing"
+    if (candidate.includes("asistente")) return "asistente"
+    if (candidate.includes("recepcionista")) return "recepcionista"
+    if (candidate.includes("soporte-tecnico")) return "soporte-tecnico"
+    if (candidate.includes("personalizado") || candidate.includes("personalize")) return "personalizado"
 
     return null
 }
