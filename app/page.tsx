@@ -1162,7 +1162,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-bold">Teléfono</h3>
-                      <p className="text-muted-foreground">+52 983 308 9883</p>
+                      <p className="text-muted-foreground">+52 998 686 0637</p>
                     </div>
                   </motion.div>
                   <motion.div
