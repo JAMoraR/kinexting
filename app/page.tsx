@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useInView } from "framer-motion"
-import { Bot, CheckIcon, ServerIcon, User } from "lucide-react"
+import { Bot, CheckIcon, ServerIcon, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -197,36 +197,63 @@ export default function Home() {
     viewport: { once: true, amount: 0.35 },
   })
 
-  const comparisonPlans = ["Landing", "Chatbot", "Web App", "Chatbot + Web App"] as const
+  const comparisonPlans = ["Asistente", "Recepcionista", "Soporte Técnico", "Personalizado"] as const
 
   const comparisonRows = [
     {
-      label: "Dominio .com",
-      values: [true, false, true, true],
+      category: "CAPACIDAD Y CONSUMO DE IA",
+      rows: [
+        {
+          label: "Mensajes Incluidos",
+          values: ["+2,000 mensajes/mes", "+3,000 mensajes/mes", "+6,000 mensajes/mes", "A medida"],
+        },
+        {
+          label: "Análisis de Multimedia (Fotos, Audios, Archivos)",
+          values: [true, true, true, true],
+        },
+        {
+          label: "Historial de Memoria",
+          values: ["10 mensajes", "10 mensajes", "Contexto Extendido", "A medida"],
+        },
+      ],
     },
     {
-      label: "Sitio web",
-      values: [true, false, true, true],
+      category: "CANALES Y FUNCIONALIDADES CORE",
+      rows: [
+        {
+          label: "Despliegue en Canales (WhatsApp / Messenger / Tiktok / Instagram)",
+          values: [true, true, true, true],
+        },
+        {
+          label: "Base de Conocimientos / FAQs Comerciales",
+          values: [true, true, true, true],
+        },
+        {
+          label: "Agendamiento Activo de Citas e Integración con Calendarios",
+          values: [false, true, false, true],
+        },
+        {
+          label: "Validación de Horarios en Tiempo Real",
+          values: [true, true, true, true],
+        },
+        {
+          label: "Entrenamiento Masivo (Manuales, Políticas y PDFs Extensos)",
+          values: [false, false, true, true],
+        },
+        {
+          label: "Levantamiento de Tickets y Canalización con Agentes Humanos",
+          values: [true, true, true, true],
+        },
+      ],
     },
     {
-      label: "Web administrativa",
-      values: [false, false, true, true],
-    },
-    {
-      label: "Base de datos",
-      values: [false, true, true, true],
-    },
-    {
-      label: "Chatbot de IA",
-      values: [false, true, false, true],
-    },
-    {
-      label: "Créditos de IA",
-      values: [false, "Mensuales", false, "Mensuales"],
-    },
-    {
-      label: "Soporte",
-      values: ["24/7", "24/7", "24/7", "24/7"],
+      category: "SOPORTE",
+      rows: [
+        {
+          label: "Soporte Técnico",
+          values: ["24/7 Estándar", "24/7 Estandar", "24/7 Estandar", "24/7 Dedicado"],
+        },
+      ],
     },
   ] as const
 
@@ -238,7 +265,7 @@ export default function Home() {
       return <span className="text-sm font-medium text-slate-400/80">{value}</span>
     }
 
-    return <span className="text-sm font-medium text-slate-400/80">-</span>
+    return <X className="mx-auto h-5 w-5 text-slate-500" aria-hidden="true" />
   }
 
   return (
@@ -853,27 +880,42 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonRows.map((row, rowIndex) => (
+                  {comparisonRows.flatMap((category) => [
                     <motion.tr
-                      key={row.label}
+                      key={category.category}
                       initial={{ opacity: 0, y: 20 }}
                       animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                      transition={{ duration: 0.45, ease: "easeOut", delay: rowIndex * 0.08 }}
-                      className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
                     >
-                      <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
-                        {row.label}
+                      <td
+                        colSpan={5}
+                        className="border-b border-slate-500/20 px-5 py-4 text-[13px] font-bold tracking-wider text-indigo-400 uppercase"
+                      >
+                        {category.category}
                       </td>
-                      {row.values.map((value, valueIndex) => (
-                        <td
-                          key={`${row.label}-${comparisonPlans[valueIndex]}`}
-                          className="border-b border-slate-500/20 px-5 py-5 text-center"
-                        >
-                          {renderComparisonCell(value)}
+                    </motion.tr>,
+                    ...category.rows.map((row, rowIndex, rows) => (
+                      <motion.tr
+                        key={row.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                        transition={{ duration: 0.45, ease: "easeOut", delay: (rowIndex + 1) * 0.05 }}
+                        className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}
+                      >
+                        <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
+                          {row.label}
                         </td>
-                      ))}
-                    </motion.tr>
-                  ))}
+                        {row.values.map((value, valueIndex) => (
+                          <td
+                            key={`${row.label}-${comparisonPlans[valueIndex]}`}
+                            className="border-b border-slate-500/20 px-5 py-5 text-center"
+                          >
+                            {renderComparisonCell(value)}
+                          </td>
+                        ))}
+                      </motion.tr>
+                    )),
+                  ])}
                 </tbody>
               </table>
             </motion.div>
