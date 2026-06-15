@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import ThemeToggle from "@/components/theme-toggle"
 import {
   COMPANY_NAME,
+  buildWhatsAppLink,
   mapCatalogPlansToPlans,
   PLAN_CATEGORY,
   type BillingCycle,
@@ -31,10 +32,12 @@ import {
 type PlanData = {
   id: PlanId
   name: string
-  monthlyPrice: number
+  quarterlyPrice: number
+  semiannualPrice: number
   annualPrice: number
   features: string[]
   description: string
+  hidePrice?: boolean
 }
 
 type ExtraSection = {
@@ -48,10 +51,12 @@ const toPlanesData = (plans: Plan[]) =>
     acc[plan.id] = {
       id: plan.id,
       name: plan.title,
-      monthlyPrice: plan.price.monthly,
-      annualPrice: plan.price.annual,
+      quarterlyPrice: plan.price?.quarterly ?? 0,
+      semiannualPrice: plan.price?.semiannual ?? 0,
+      annualPrice: plan.price?.annual ?? 0,
       features: plan.features,
       description: plan.description,
+      hidePrice: plan.hidePrice,
     }
     return acc
   }, {} as Record<PlanId, PlanData>)
@@ -164,11 +169,11 @@ export default function ConfigurarPlan() {
   const planesData = useMemo(() => toPlanesData(plans), [plans])
   const defaultPlanId: PlanId = (plans.find((plan) => plan.popular)?.id ?? plans[0]?.id ?? "asistente") as PlanId
   const planParam = searchParams.get("plan")
-  const billingParam = searchParams.get("billing") || "monthly"
+  const billingParam = searchParams.get("billing") || "quarterly"
 
   const initialPlanId = isPlanId(planParam) ? planParam : defaultPlanId
   const initialPlan = planesData[initialPlanId] ?? null
-  const initialBilling: BillingCycle = billingParam === "annual" ? "annual" : "monthly"
+  const initialBilling: BillingCycle = billingParam === "semiannual" ? "semiannual" : billingParam === "annual" ? "annual" : "quarterly"
 
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(initialPlanId)
   const [planData, setPlanData] = useState<PlanData | null>(initialPlan)
@@ -185,8 +190,10 @@ export default function ConfigurarPlan() {
   const sortedPlanCards = useMemo(
     () =>
       Object.values(planesData).sort((a, b) => {
-        const priceA = billingPeriod === "monthly" ? a.monthlyPrice : a.annualPrice
-        const priceB = billingPeriod === "monthly" ? b.monthlyPrice : b.annualPrice
+        if (a.id === "a-medida" && b.id !== "a-medida") return 1
+        if (b.id === "a-medida" && a.id !== "a-medida") return -1
+        const priceA = billingPeriod === "quarterly" ? a.quarterlyPrice : billingPeriod === "semiannual" ? a.semiannualPrice : a.annualPrice
+        const priceB = billingPeriod === "quarterly" ? b.quarterlyPrice : billingPeriod === "semiannual" ? b.semiannualPrice : b.annualPrice
         return priceA - priceB
       }),
     [planesData, billingPeriod],
@@ -269,7 +276,7 @@ export default function ConfigurarPlan() {
   }, [planParam, defaultPlanId, planesData])
 
   useEffect(() => {
-    setBillingPeriod(billingParam === "annual" ? "annual" : "monthly")
+    setBillingPeriod(billingParam === "semiannual" ? "semiannual" : billingParam === "annual" ? "annual" : "quarterly")
   }, [billingParam])
 
   useEffect(() => {
@@ -293,12 +300,14 @@ export default function ConfigurarPlan() {
       return
     }
 
-    let price = billingPeriod === "monthly" ? activePlanData.monthlyPrice : activePlanData.annualPrice
+    let price = billingPeriod === "quarterly" ? activePlanData.quarterlyPrice : billingPeriod === "semiannual" ? activePlanData.semiannualPrice : activePlanData.annualPrice
 
     selectedExtras.forEach((extraId) => {
       const extra = extrasMap.get(extraId)
       if (extra) {
-        price += billingPeriod === "monthly" ? extra.monthlyPrice : extra.annualPrice
+        const eMonthly = extra.prices?.monthly?.amount ?? 0
+        const eAnnual = extra.prices?.annual?.amount ?? 0
+        price += billingPeriod === "quarterly" ? eMonthly : billingPeriod === "semiannual" ? (eMonthly * 6) : eAnnual
       }
     })
 
@@ -311,6 +320,11 @@ export default function ConfigurarPlan() {
 
   const handleCheckout = async () => {
     if (!activePlanData || isCheckoutLoading) {
+      return
+    }
+
+    if (selectedPlanId === "a-medida") {
+      window.location.href = buildWhatsAppLink()
       return
     }
 
@@ -352,6 +366,11 @@ export default function ConfigurarPlan() {
 
   const handleTrialPayment = async () => {
     if (!activePlanData) {
+      return
+    }
+
+    if (selectedPlanId === "a-medida") {
+      window.location.href = buildWhatsAppLink()
       return
     }
 
@@ -492,12 +511,19 @@ export default function ConfigurarPlan() {
                       {activePlanData?.name === plan.name && <Badge className="bg-indigo-600">Seleccionado</Badge>}
                     </div>
                     <div className="flex items-baseline gap-1 mb-2">
-                      <span className="text-2xl font-bold">
-                        {formatCurrency(billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        /{billingPeriod === "monthly" ? "Mensual" : "Anual"}
-                      </span>
+                      {!plan.hidePrice && (
+                        <>
+                          <span className="text-2xl font-bold">
+                            {formatCurrency(billingPeriod === "quarterly" ? plan.quarterlyPrice : billingPeriod === "semiannual" ? plan.semiannualPrice : plan.annualPrice)}
+                          </span>
+                          <span className="text-muted-foreground">
+                            /{billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
+                          </span>
+                        </>
+                      )}
+                      {plan.hidePrice && (
+                        <span className="text-muted-foreground text-sm">Precio personalizado</span>
+                      )}
                     </div>
                     <ul className="text-sm space-y-1 mt-4">
                       {plan.features.slice(0, 3).map((feature, index) => (
@@ -538,19 +564,21 @@ export default function ConfigurarPlan() {
                 <CardContent>
                   <Tabs
                     value={billingPeriod}
-                    onValueChange={(value) => setBillingPeriod(value as "monthly" | "annual")}
+                    onValueChange={(value) => setBillingPeriod(value as "quarterly" | "semiannual" | "annual")}
                     className="w-full"
                   >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="monthly">
-                        Mensual
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="quarterly">
+                        Trimestral
+                      </TabsTrigger>
+                      <TabsTrigger value="semiannual">
+                        Semestral
                       </TabsTrigger>
                       <TabsTrigger value="annual">
-                        Anual{" "}
-                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">15% descuento</Badge>
+                        Anual
                       </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="monthly" className="mt-4">
+                    <TabsContent value="quarterly" className="mt-4">
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -558,7 +586,19 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación Mensual con renovación automática.
+                          Facturación Trimestral con renovación automática.
+                        </p>
+                      </motion.div>
+                    </TabsContent>
+                    <TabsContent value="semiannual" className="mt-4">
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <p className="text-sm text-muted-foreground">
+                          Facturación Semestral con renovación automática.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -570,7 +610,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación Anual con renovación automática. Facturación con un 15% de descuento.
+                          Facturación Anual con renovación automática.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -599,7 +639,9 @@ export default function ConfigurarPlan() {
                         <h3 className="text-sm font-semibold text-indigo-700">{section.title}</h3>
                         {section.extras.map((extra) => {
                           const isSelected = selectedExtras.includes(extra.id)
-                          const price = billingPeriod === "monthly" ? extra.prices?.monthly?.amount : extra.prices?.annual?.amount
+                          const monthlyAmount = extra.prices?.monthly?.amount ?? 0
+                          const annualAmount = extra.prices?.annual?.amount ?? 0
+                          const price = billingPeriod === "quarterly" ? monthlyAmount * 3 : billingPeriod === "semiannual" ? monthlyAmount * 6 : annualAmount
 
                           return (
                             <motion.div
@@ -629,7 +671,7 @@ export default function ConfigurarPlan() {
                                         <h3 className="font-medium">{extra.name || extra.id}</h3>
                                         <p className="text-sm text-muted-foreground">{extra.description || ""}</p>
                                         <p className="mt-1 text-sm font-medium text-indigo-600">
-                                          {typeof price === "number" ? `${formatCurrency(price)}/${billingPeriod === "monthly" ? "Mensual" : "Anual"}` : "Precio no disponible"}
+                                          {typeof price === "number" ? `${formatCurrency(price)}/${billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}` : "Precio no disponible"}
                                         </p>
                                       </div>
                                     </div>
@@ -751,19 +793,26 @@ export default function ConfigurarPlan() {
                       <h3 className="font-medium">
                         Plan {activePlanData?.name || ""}{" "}
                         <Badge className="ml-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
-                          {billingPeriod === "monthly" ? "Mensual" : "Anual"}
+                          {billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
                         </Badge>
                       </h3>
-                      <motion.span
-                        key={`${activePlanData?.name || "loading"}-${billingPeriod}`}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="font-medium"
-                      >
-                        {billingPeriod === "monthly"
-                          ? `${formatCurrency(activePlanData?.monthlyPrice ?? 0)}/Mensual`
-                          : `${formatCurrency(activePlanData?.annualPrice ?? 0)}/Anual`}
-                      </motion.span>
+                      {!activePlanData?.hidePrice && (
+                        <motion.span
+                          key={`${activePlanData?.name || "loading"}-${billingPeriod}`}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="font-medium"
+                        >
+                          {billingPeriod === "quarterly"
+                            ? `${formatCurrency(activePlanData?.quarterlyPrice ?? 0)}/Trimestral`
+                            : billingPeriod === "semiannual"
+                            ? `${formatCurrency(activePlanData?.semiannualPrice ?? 0)}/Semestral`
+                            : `${formatCurrency(activePlanData?.annualPrice ?? 0)}/Anual`}
+                        </motion.span>
+                      )}
+                      {activePlanData?.hidePrice && (
+                        <span className="text-sm text-muted-foreground">Precio personalizado</span>
+                      )}
                     </div>
                     <AnimatePresence mode="wait">
                       <motion.ul
@@ -807,13 +856,15 @@ export default function ConfigurarPlan() {
                               className="flex items-center justify-between text-sm"
                             >
                               <div className="flex items-center gap-2">
-                                <div className="rounded-full bg-indigo-100 p-1 text-indigo-600">{extra.icon}</div>
+                                <div className="rounded-full bg-indigo-100 p-1 text-indigo-600">{getExtraIcon(extra.category)}</div>
                                 <span>{extra.name}</span>
                               </div>
                               <span>
-                                {billingPeriod === "monthly"
-                                  ? `${formatCurrency(extra.monthlyPrice)}/Mensual`
-                                  : `${formatCurrency(extra.annualPrice)}/Anual`}
+                                {billingPeriod === "quarterly"
+                                  ? `${formatCurrency(extra.prices?.monthly?.amount ?? 0)}/Trimestral`
+                                  : billingPeriod === "semiannual"
+                                  ? `${formatCurrency((extra.prices?.monthly?.amount ?? 0) * 6)}/Semestral`
+                                  : `${formatCurrency(extra.prices?.annual?.amount ?? 0)}/Anual`}
                               </span>
                             </motion.li>
                           )
@@ -828,18 +879,23 @@ export default function ConfigurarPlan() {
               <CardFooter className="pt-4 flex flex-col gap-4">
                 <div className="flex items-center justify-between w-full">
                   <div className="font-medium text-lg text-slate-900 dark:text-slate-100">Total</div>
-                  <motion.div
-                    key={totalPrice}
-                    initial={{ scale: 1.08 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="font-bold text-lg text-slate-900 dark:text-slate-100"
-                  >
-                    {formatCurrency(totalPrice)}
-                    <span className="text-sm font-normal text-slate-600 dark:text-slate-300">
-                      /{billingPeriod === "monthly" ? "Mensual" : "Anual"}
-                    </span>
-                  </motion.div>
+                  {!activePlanData?.hidePrice && (
+                    <motion.div
+                      key={totalPrice}
+                      initial={{ scale: 1.08 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="font-bold text-lg text-slate-900 dark:text-slate-100"
+                    >
+                      {formatCurrency(totalPrice)}
+                      <span className="text-sm font-normal text-slate-600 dark:text-slate-300">
+                        /{billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
+                      </span>
+                    </motion.div>
+                  )}
+                  {activePlanData?.hidePrice && (
+                    <span className="text-sm text-muted-foreground">Precio personalizado</span>
+                  )}
                 </div>
 
                 <Button
@@ -848,7 +904,7 @@ export default function ConfigurarPlan() {
                   disabled={!activePlanData}
                 >
                   <span className="flex items-center transition-transform duration-200 ease-out group-hover:translate-x-1">
-                    Continuar al pago
+                    {selectedPlanId === "a-medida" ? "Cotizar por WhatsApp" : "Continuar al pago"}
                     <ChevronRight className="ml-1 h-4 w-4" />
                   </span>
                 </Button>

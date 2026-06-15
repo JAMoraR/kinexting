@@ -61,7 +61,7 @@ export default function Home() {
   const footerRef = useRef<HTMLElement>(null)
   const isFooterInView = useInView(footerRef, { once: true, margin: "-120px" })
 
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
+  const [billingCycle, setBillingCycle] = useState<"quarterly" | "semiannual" | "annual">("quarterly")
   const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
   const [isPricingLoading, setIsPricingLoading] = useState(true)
@@ -109,8 +109,10 @@ export default function Home() {
     if (planType === "chatbot") return category === "chatbot" || category === "both"
     return category === "web" || category === "both"
   }).sort((a, b) => {
-    const currentPriceA = billingCycle === "monthly" ? a.price.monthly : a.price.annual
-    const currentPriceB = billingCycle === "monthly" ? b.price.monthly : b.price.annual
+    if (a.id === "a-medida" && b.id !== "a-medida") return 1
+    if (b.id === "a-medida" && a.id !== "a-medida") return -1
+    const currentPriceA = billingCycle === "quarterly" ? (a.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (a.price?.semiannual ?? 0) : (a.price?.annual ?? 0)
+    const currentPriceB = billingCycle === "quarterly" ? (b.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (b.price?.semiannual ?? 0) : (b.price?.annual ?? 0)
     return currentPriceA - currentPriceB
   })
 
@@ -141,7 +143,7 @@ export default function Home() {
   const handleServiceClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     type: "chatbot" | "web" | "all",
-    cycle?: "monthly" | "annual"
+    cycle?: "quarterly" | "semiannual" | "annual"
   ) => {
     e.preventDefault();
 
@@ -716,16 +718,17 @@ export default function Home() {
                 Nuestros <span className="text-indigo-600">Servicios</span>
               </motion.h2>
             </div>
-            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "monthly" | "annual")} className="w-full max-w-6xl mx-auto">
+            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "quarterly" | "semiannual" | "annual")} className="w-full max-w-6xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="flex justify-center"
               >
-                <TabsList className="grid w-full max-w-md grid-cols-2">
-                  <TabsTrigger value="monthly" className="text-xs sm:text-sm">Mensual</TabsTrigger>
-                  <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual (15% descuento)</TabsTrigger>
+                <TabsList className="grid w-full max-w-md grid-cols-3">
+                  <TabsTrigger value="quarterly" className="text-xs sm:text-sm">Trimestral</TabsTrigger>
+                  <TabsTrigger value="semiannual" className="text-xs sm:text-sm">Semestral</TabsTrigger>
+                  <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual</TabsTrigger>
                 </TabsList>
               </motion.div>
               <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "web" | "all")} className="w-full max-w-6xl mx-auto">
@@ -783,8 +786,8 @@ export default function Home() {
                           >
                             <PricingCard
                               title={plan.title}
-                              price={billingCycle === "monthly" ? plan.price.monthly : plan.price.annual}
-                              period={billingCycle === "monthly" ? "mensual" : "anual"}
+                              price={billingCycle === "quarterly" ? (plan.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (plan.price?.semiannual ?? 0) : (plan.price?.annual ?? 0)}
+                              period={billingCycle === "quarterly" ? "trimestral" : billingCycle === "semiannual" ? "semestral" : "anual"}
                               description={plan.description}
                               features={plan.features}
                               differences={plan.differences}
@@ -794,6 +797,7 @@ export default function Home() {
                               popular={plan.popular}
                               recommended={plan.recommended}
                               highQuality={plan.highQuality}
+                              hidePrice={plan.hidePrice}
                             />
                           </motion.div>
                         )
@@ -1430,7 +1434,7 @@ export default function Home() {
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
-                    onClick={(e) => handleServiceClick(e, "all", "monthly")}
+                    onClick={(e) => handleServiceClick(e, "all", "semiannual")}
                     className="text-slate-400 hover:text-white transition-colors"
                 >
                     Plan Semestral

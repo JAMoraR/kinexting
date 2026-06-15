@@ -53,7 +53,7 @@ type PaymentFormProps = {
 
 type PaymentSummary = {
   currency: string
-  billing: "monthly" | "annual"
+  billing: BillingCycle
   plan: {
     id: string
     label: string
@@ -260,7 +260,7 @@ const getExtraPriceCents = (extra: CatalogExtra, billing: BillingCycle) => {
 }
 
 const getPlanPriceCents = (plan: Plan, billing: BillingCycle) => {
-  const amount = billing === "annual" ? plan.price.annual : plan.price.monthly
+  const amount = billing === "annual" ? (plan.price?.annual ?? 0) : billing === "semiannual" ? (plan.price?.semiannual ?? 0) : (plan.price?.quarterly ?? 0)
   return Math.round(amount * 100)
 }
 
@@ -371,7 +371,7 @@ function CheckoutPageContent() {
   const [infoError, setInfoError] = useState("")
 
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(isPlanId(planParam) ? planParam : "asistente")
-  const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(billingParam === "annual" ? "annual" : "monthly")
+  const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(billingParam === "semiannual" ? "semiannual" : billingParam === "annual" ? "annual" : "quarterly")
   const [selectedDomain, setSelectedDomain] = useState(selectedDomainParam)
   const [newDomain, setNewDomain] = useState(newDomainParam)
   const [selectedExtras, setSelectedExtras] = useState<string[]>(
@@ -546,7 +546,7 @@ function CheckoutPageContent() {
 
   const idempotencyKey = useMemo(() => buildIdempotencyKey(payload), [payload])
   const planLabel = PLAN_LABELS[selectedPlanId as keyof typeof PLAN_LABELS] || selectedPlanId || "Plan"
-  const billingLabel = billingPeriod === "annual" ? "Anual" : "Mensual"
+  const billingLabel = billingPeriod === "annual" ? "Anual" : billingPeriod === "semiannual" ? "Semestral" : "Trimestral"
 
   const domainLabel = useMemo(() => {
     if (!selectedDomain) return "Sin dominio"
@@ -867,7 +867,7 @@ function CheckoutPageContent() {
                                 }`}
                               >
                                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{plan.title}</p>
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{billingPeriod === "annual" ? "Anual" : "Mensual"}</p>
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{billingPeriod === "annual" ? "Anual" : billingPeriod === "semiannual" ? "Semestral" : "Trimestral"}</p>
                                 <p className="mt-2 text-base font-semibold text-slate-800 dark:text-cyan-200">{formatAmount(planPrice)}</p>
                               </button>
                             )
@@ -875,17 +875,28 @@ function CheckoutPageContent() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <button
                           type="button"
-                          onClick={() => setBillingPeriod("monthly")}
+                          onClick={() => setBillingPeriod("quarterly")}
                           className={`h-10 rounded-xl border text-sm ${
-                            billingPeriod === "monthly"
+                            billingPeriod === "quarterly"
                               ? "border-sky-300 bg-sky-100 text-sky-900"
                               : "border-slate-200 bg-white text-slate-700"
                           }`}
                         >
-                          Mensual
+                          Trimestral
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBillingPeriod("semiannual")}
+                          className={`h-10 rounded-xl border text-sm ${
+                            billingPeriod === "semiannual"
+                              ? "border-sky-300 bg-sky-100 text-sky-900"
+                              : "border-slate-200 bg-white text-slate-700"
+                          }`}
+                        >
+                          Semestral
                         </button>
                         <button
                           type="button"

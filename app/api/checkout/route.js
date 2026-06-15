@@ -115,6 +115,12 @@ const resolveExtraId = (price) => {
 
 const getInterval = (billing) => (billing === "annual" ? "year" : "month")
 
+const getQuantity = (billing) => {
+	if (billing === "quarterly") return 3
+	if (billing === "semiannual") return 6
+	return 1
+}
+
 const isRecurringPlanPrice = (price, selectedPlanId) => {
 	const interval = price.recurring?.interval
 	return Boolean(interval && (interval === "month" || interval === "year") && resolvePlanId(price) === selectedPlanId)
@@ -157,7 +163,7 @@ export async function POST(request) {
 		}
 
 		const planId = cleanText(payload?.planId, 40)
-		const billing = payload?.billing === "annual" ? "annual" : "monthly"
+		const billing = payload?.billing === "semiannual" ? "semiannual" : payload?.billing === "annual" ? "annual" : "quarterly"
 		const extraIds = dedupeTextList(payload?.extraIds)
 		const selectedDomain = cleanText(payload?.selectedDomain, 40)
 		const newDomain = cleanDomain(payload?.newDomain)
@@ -188,20 +194,21 @@ export async function POST(request) {
 		})
 
 		const targetInterval = getInterval(billing)
+		const quantity = getQuantity(billing)
 		const planCandidates = prices.data.filter((price) => isRecurringPlanPrice(price, planId))
 		const basePlanPrice = pickPriceForInterval(planCandidates, targetInterval)
 		if (!basePlanPrice) {
 			return NextResponse.json({ error: "Price not found for selected plan" }, { status: 400 })
 		}
 
-		const lineItems = [{ price: basePlanPrice.id, quantity: 1 }]
+		const lineItems = [{ price: basePlanPrice.id, quantity }]
 		const unknownExtraIds = []
 
 		for (const extraId of extraIds) {
 			const extraCandidates = prices.data.filter((price) => isRecurringExtraPrice(price, extraId))
 			const extraPrice = pickPriceForInterval(extraCandidates, targetInterval)
 			if (extraPrice) {
-				lineItems.push({ price: extraPrice.id, quantity: 1 })
+				lineItems.push({ price: extraPrice.id, quantity })
 			} else {
 				unknownExtraIds.push(extraId)
 			}

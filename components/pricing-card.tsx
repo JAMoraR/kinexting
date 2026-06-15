@@ -9,7 +9,7 @@ import Link from "next/link"
 
 interface PricingCardProps {
   title: string
-  price: number
+  price?: number
   period?: string
   description: string
   features: string[]
@@ -20,6 +20,7 @@ interface PricingCardProps {
   cheap?: boolean
   recommended?: boolean
   highQuality?: boolean
+  hidePrice?: boolean
 }
 
 export default function PricingCard({
@@ -35,11 +36,14 @@ export default function PricingCard({
   cheap = false,
   recommended = false,
   highQuality = false,
+  hidePrice = false,
 }: PricingCardProps) {
-  const formattedPrice = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
+  const formattedPrice = typeof price === "number"
+    ? new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(price)
+    : "0.00"
 
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
@@ -55,12 +59,14 @@ export default function PricingCard({
           {recommended && <Badge className="w-fit mb-2 bg-indigo-600">Recomendado</Badge>}
           {highQuality && <Badge className="w-fit mb-2 bg-green-600">Más ventajas</Badge>}
           <CardTitle>{title}</CardTitle>
-          <div className="flex items-baseline gap-1">
-            <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold">
-              ${formattedPrice}
-            </motion.span>
-            <span className="text-muted-foreground">/{period}</span>
-          </div>
+          {!hidePrice && (
+            <div className="flex items-baseline gap-1">
+              <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold">
+                ${formattedPrice}
+              </motion.span>
+              <span className="text-muted-foreground">/{period}</span>
+            </div>
+          )}
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1">

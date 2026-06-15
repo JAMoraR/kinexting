@@ -1,16 +1,21 @@
 export const COMPANY_NAME = "Kinexting"
 
+export const WHATSAPP_NUMBER = "521234567890"
+
+export const buildWhatsAppLink = () =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hola, quiero cotizar un plan a medida")}`
+
 export type PlanId = "asistente" | "recepcionista" | "soporte-tecnico" | "a-medida"
 
 export type PlanCategory = "chatbot" | "web" | "both"
 
-export type BillingCycle = "monthly" | "annual"
+export type BillingCycle = "quarterly" | "semiannual" | "annual"
 
 export type Plan = {
   id: PlanId
   category: PlanCategory
   title: string
-  price: { monthly: number; annual: number }
+  price?: { quarterly: number; semiannual: number; annual: number }
   period: string
   description: string
   features: string[]
@@ -20,6 +25,7 @@ export type Plan = {
   popular?: boolean
   recommended?: boolean
   highQuality?: boolean
+  hidePrice?: boolean
 }
 
 type CatalogPrice = {
@@ -90,13 +96,31 @@ const PLAN_COPY: Record<PlanId, { description: string; differences: string[] }> 
   },
 }
 
-export const buildPlanLink = (planId: PlanId, billing: BillingCycle) =>
-  `/configurar-plan?plan=${planId}&billing=${billing}`
+export const buildPlanLink = (planId: PlanId, billing: BillingCycle) => {
+  if (planId === "a-medida") {
+    return buildWhatsAppLink()
+  }
+  return `/configurar-plan?plan=${planId}&billing=${billing}`
+}
 
 export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
   const monthlyPrice = catalogPlan.prices?.monthly?.amount
   const annualPrice = catalogPlan.prices?.annual?.amount
   const staticCopy = PLAN_COPY[catalogPlan.id]
+
+  if (catalogPlan.id === "a-medida") {
+    return {
+      id: catalogPlan.id,
+      category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "both",
+      title: catalogPlan.title || catalogPlan.id,
+      period: "trimestral",
+      description: staticCopy?.description || catalogPlan.description || "",
+      features: Array.isArray(catalogPlan.features) ? catalogPlan.features : [],
+      differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
+      buttonText: "Cotizar",
+      hidePrice: true,
+    }
+  }
 
   if (typeof monthlyPrice !== "number" || typeof annualPrice !== "number") {
     return null
@@ -107,10 +131,11 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "chatbot",
     title: catalogPlan.title || catalogPlan.id,
     price: {
-      monthly: monthlyPrice,
+      quarterly: monthlyPrice * 3,
+      semiannual: monthlyPrice * 6,
       annual: annualPrice,
     },
-    period: "mensual",
+    period: "trimestral",
     description: staticCopy?.description || catalogPlan.description || "",
     features: Array.isArray(catalogPlan.features) ? catalogPlan.features : [],
     differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
@@ -125,10 +150,13 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
 export const mapCatalogPlansToPlans = (catalogPlans: CatalogPlan[] | undefined): Plan[] => {
   const sortByPrice = (items: Plan[]) =>
     [...items].sort((a, b) => {
-      const monthlyDiff = a.price.monthly - b.price.monthly
-      if (monthlyDiff !== 0) return monthlyDiff
+      if (a.id === "a-medida" && b.id !== "a-medida") return 1
+      if (b.id === "a-medida" && a.id !== "a-medida") return -1
 
-      const annualDiff = a.price.annual - b.price.annual
+      const quarterlyDiff = (a.price?.quarterly ?? 0) - (b.price?.quarterly ?? 0)
+      if (quarterlyDiff !== 0) return quarterlyDiff
+
+      const annualDiff = (a.price?.annual ?? 0) - (b.price?.annual ?? 0)
       if (annualDiff !== 0) return annualDiff
 
       return a.title.localeCompare(b.title)

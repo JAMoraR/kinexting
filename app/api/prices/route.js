@@ -234,6 +234,10 @@ export async function GET() {
 
         const plans = Array.from(plansById.values())
             .map((plan) => {
+                if (plan.id === "a-medida" && !plan.prices.monthly && !plan.prices.annual) {
+                    return plan
+                }
+
                 if (!plan.prices.monthly) {
                     return null
                 }
