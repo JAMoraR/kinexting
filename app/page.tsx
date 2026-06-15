@@ -730,6 +730,7 @@ export default function Home() {
                   <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual</TabsTrigger>
                 </TabsList>
               </motion.div>
+              {/*
               <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "all")} className="w-full max-w-6xl mx-auto">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -743,6 +744,7 @@ export default function Home() {
                   </TabsList>
                 </motion.div>
               </Tabs>
+              */}
               <TabsContent value={billingCycle} className="space-y-4">
                 {isPricingLoading ? (
                   <div className={`grid gap-6 mx-auto w-full ${getPricingGridClass(4)}`}>
