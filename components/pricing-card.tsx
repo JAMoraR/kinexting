@@ -60,11 +60,11 @@ export default function PricingCard({
           {highQuality && <Badge className="w-fit mb-2 bg-green-600">Más ventajas</Badge>}
           <CardTitle>{title}</CardTitle>
           {!hidePrice && (
-            <div className="flex items-baseline gap-1">
-              <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold">
+            <div className="flex items-baseline gap-1 overflow-hidden">
+              <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold shrink-0">
                 ${formattedPrice}
               </motion.span>
-              <span className="text-muted-foreground">/{period}</span>
+              <span className="text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis">/{period}</span>
             </div>
           )}
           <CardDescription>{description}</CardDescription>
@@ -102,8 +102,10 @@ export default function PricingCard({
               <Button
                 className={`w-full 
                   ${recommended ? "bg-indigo-600 hover:bg-indigo-700" : ""}
-                  ${popular ? "bg-red-600 hover:bg-red-700" : ""}`}
-                variant={recommended || popular ? "default" : "outline"}
+                  ${popular ? "bg-red-600 hover:bg-red-700" : ""}
+                  ${cheap ? "bg-yellow-600 hover:bg-yellow-700" : ""}
+                  ${highQuality ? "bg-green-600 hover:bg-green-700" : ""}`}
+                variant={recommended || popular || cheap || highQuality ? "default" : "outline"}
               >
                 {buttonText}
               </Button>
