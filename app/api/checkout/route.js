@@ -68,35 +68,12 @@ const isRateLimited = (clientIp) => {
 
 const requiresDomain = (planId) => planId === "a-medida"
 
-const normalizeText = (value) =>
-	String(value || "")
-		.toLowerCase()
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.replace(/[^a-z0-9+ ]/g, " ")
-		.replace(/\s+/g, " ")
-		.trim()
+const PERIOD_SUFFIXES = ["_trimester", "_semester", "_year"]
 
-const resolvePlanId = (price) => {
-	const metadataId = price.metadata?.plan_id
-	if (metadataId && PLAN_IDS.has(metadataId)) return metadataId
-
-	const lookupKey = price.lookup_key ?? ""
-	if (lookupKey.startsWith("plan.")) {
-		const lookupParts = lookupKey.split(".")
-		const inferred = lookupParts.slice(1, -1).join("-")
-		if (PLAN_IDS.has(inferred)) return inferred
-	}
-
-	const productName = price.product && typeof price.product !== "string" ? price.product.name : ""
-	const candidate = normalizeText(price.nickname || productName)
-
-	if (candidate.includes("asistente")) return "asistente"
-	if (candidate.includes("recepcionista")) return "recepcionista"
-	if (candidate.includes("soporte tecnico") || candidate.includes("soporte-tecnico")) return "soporte-tecnico"
-	if (candidate.includes("a medida") || candidate.includes("a-medida") || candidate.includes("personalizado")) return "a-medida"
-
-	return null
+const PERIOD_SUFFIX_MAP = {
+	quarterly: "_trimester",
+	semiannual: "_semester",
+	annual: "_year",
 }
 
 const resolveExtraId = (price) => {
@@ -113,28 +90,16 @@ const resolveExtraId = (price) => {
 	return null
 }
 
-const getInterval = (billing) => (billing === "annual" ? "year" : "month")
-
-const getQuantity = (billing) => {
-	if (billing === "quarterly") return 3
-	if (billing === "semiannual") return 6
-	return 1
-}
-
-const isRecurringPlanPrice = (price, selectedPlanId) => {
-	const interval = price.recurring?.interval
-	return Boolean(interval && (interval === "month" || interval === "year") && resolvePlanId(price) === selectedPlanId)
-}
-
-const isRecurringExtraPrice = (price, selectedExtraId) => {
+const isExtraPrice = (price, selectedExtraId) => {
 	const interval = price.recurring?.interval
 	return Boolean(interval && (interval === "month" || interval === "year") && resolveExtraId(price) === selectedExtraId)
 }
 
-const pickPriceForInterval = (candidates, targetInterval) => {
-	const exact = candidates.find((price) => price.recurring?.interval === targetInterval)
-	if (exact) return exact
-
+const pickExtraPrice = (candidates, billing) => {
+	if (billing === "annual") {
+		const exact = candidates.find((price) => price.recurring?.interval === "year")
+		if (exact) return exact
+	}
 	return candidates.find((price) => price.recurring?.interval === "month") ?? null
 }
 
@@ -193,22 +158,21 @@ export async function POST(request) {
 			expand: ["data.product"],
 		})
 
-		const targetInterval = getInterval(billing)
-		const quantity = getQuantity(billing)
-		const planCandidates = prices.data.filter((price) => isRecurringPlanPrice(price, planId))
-		const basePlanPrice = pickPriceForInterval(planCandidates, targetInterval)
+		const planSuffix = PERIOD_SUFFIX_MAP[billing]
+		const expectedLookupKey = `${planId}${planSuffix}`
+		const basePlanPrice = prices.data.find((price) => price.lookup_key === expectedLookupKey)
 		if (!basePlanPrice) {
 			return NextResponse.json({ error: "Price not found for selected plan" }, { status: 400 })
 		}
 
-		const lineItems = [{ price: basePlanPrice.id, quantity }]
+		const lineItems = [{ price: basePlanPrice.id, quantity: 1 }]
 		const unknownExtraIds = []
 
 		for (const extraId of extraIds) {
-			const extraCandidates = prices.data.filter((price) => isRecurringExtraPrice(price, extraId))
-			const extraPrice = pickPriceForInterval(extraCandidates, targetInterval)
+			const extraCandidates = prices.data.filter((price) => isExtraPrice(price, extraId))
+			const extraPrice = pickExtraPrice(extraCandidates, billing)
 			if (extraPrice) {
-				lineItems.push({ price: extraPrice.id, quantity })
+				lineItems.push({ price: extraPrice.id, quantity: 1 })
 			} else {
 				unknownExtraIds.push(extraId)
 			}

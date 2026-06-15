@@ -7,7 +7,7 @@ export const buildWhatsAppLink = () =>
 
 export type PlanId = "asistente" | "recepcionista" | "soporte-tecnico" | "a-medida"
 
-export type PlanCategory = "chatbot" | "web" | "both"
+export type PlanCategory = "chatbot" | "both"
 
 export type BillingCycle = "quarterly" | "semiannual" | "annual"
 
@@ -49,7 +49,8 @@ export type CatalogPlan = {
     highQuality?: boolean
   }
   prices?: {
-    monthly?: CatalogPrice | null
+    quarterly?: CatalogPrice | null
+    semiannual?: CatalogPrice | null
     annual?: CatalogPrice | null
   }
 }
@@ -104,8 +105,6 @@ export const buildPlanLink = (planId: PlanId, billing: BillingCycle) => {
 }
 
 export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
-  const monthlyPrice = catalogPlan.prices?.monthly?.amount
-  const annualPrice = catalogPlan.prices?.annual?.amount
   const staticCopy = PLAN_COPY[catalogPlan.id]
 
   if (catalogPlan.id === "a-medida") {
@@ -122,7 +121,11 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     }
   }
 
-  if (typeof monthlyPrice !== "number" || typeof annualPrice !== "number") {
+  const quarterlyPrice = catalogPlan.prices?.quarterly?.amount
+  const semiannualPrice = catalogPlan.prices?.semiannual?.amount
+  const annualPrice = catalogPlan.prices?.annual?.amount
+
+  if (typeof quarterlyPrice !== "number" || typeof semiannualPrice !== "number" || typeof annualPrice !== "number") {
     return null
   }
 
@@ -131,8 +134,8 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "chatbot",
     title: catalogPlan.title || catalogPlan.id,
     price: {
-      quarterly: monthlyPrice * 3,
-      semiannual: monthlyPrice * 6,
+      quarterly: quarterlyPrice,
+      semiannual: semiannualPrice,
       annual: annualPrice,
     },
     period: "trimestral",

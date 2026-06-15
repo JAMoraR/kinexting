@@ -62,7 +62,7 @@ export default function Home() {
   const isFooterInView = useInView(footerRef, { once: true, margin: "-120px" })
 
   const [billingCycle, setBillingCycle] = useState<"quarterly" | "semiannual" | "annual">("quarterly")
-  const [planType, setPlanType] = useState<"chatbot" | "web" | "all">("all")
+  const [planType, setPlanType] = useState<"chatbot" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
   const [isPricingLoading, setIsPricingLoading] = useState(true)
 
@@ -106,8 +106,7 @@ export default function Home() {
   const filteredPlans = plans.filter((plan) => {
     if (planType === "all") return true
     const category = plan.category || PLAN_CATEGORY[plan.id as PlanId] || "chatbot"
-    if (planType === "chatbot") return category === "chatbot" || category === "both"
-    return category === "web" || category === "both"
+    return category === "chatbot" || category === "both"
   }).sort((a, b) => {
     if (a.id === "a-medida" && b.id !== "a-medida") return 1
     if (b.id === "a-medida" && a.id !== "a-medida") return -1
@@ -142,7 +141,7 @@ export default function Home() {
 
   const handleServiceClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    type: "chatbot" | "web" | "all",
+    type: "chatbot" | "all",
     cycle?: "quarterly" | "semiannual" | "annual"
   ) => {
     e.preventDefault();
@@ -731,16 +730,15 @@ export default function Home() {
                   <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual</TabsTrigger>
                 </TabsList>
               </motion.div>
-              <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "web" | "all")} className="w-full max-w-6xl mx-auto">
+              <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "all")} className="w-full max-w-6xl mx-auto">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                   className="flex justify-center mb-8"
                 >
-                  <TabsList className="grid w-full max-w-md grid-cols-3">
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
                     <TabsTrigger value="chatbot" className="text-xs sm:text-sm">Chatbot</TabsTrigger>
-                    <TabsTrigger value="web" className="text-xs sm:text-sm">Web</TabsTrigger>
                     <TabsTrigger value="all" className="text-xs sm:text-sm">Todo</TabsTrigger>
                   </TabsList>
                 </motion.div>
@@ -1416,10 +1414,10 @@ export default function Home() {
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
-                    onClick={(e) => handleServiceClick(e, "web")}
+                    onClick={(e) => handleServiceClick(e, "all")}
                     className="text-slate-400 hover:text-white transition-colors"
                   >
-                    Páginas Web
+                    Todos los servicios
                   </a>
                 </motion.li>
                 <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>

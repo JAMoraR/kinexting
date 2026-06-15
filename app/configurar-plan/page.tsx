@@ -91,11 +91,7 @@ const extraMatchesPlan = (extra: CatalogExtra, planId: PlanId) => {
     return category === "web" || category === "chatbot" || category === "combo" || category === "general"
   }
 
-  if (planCategory === "chatbot") {
-    return category === "chatbot" || category === "general"
-  }
-
-  return category === "web" || category === "general"
+  return category === "chatbot" || category === "general"
 }
 
 const getExtraIcon = (category?: string) => {
