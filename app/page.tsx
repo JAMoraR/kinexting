@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Bot, CheckIcon, ServerIcon, User, X } from "lucide-react"
@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PricingCard from "@/components/pricing-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
+import { useIsMobile } from "@/hooks/use-mobile"
 import ThemeToggle from "@/components/theme-toggle"
 import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, PLAN_CATEGORY, type Plan, type PlanId, type PricingCatalogResponse } from "@/lib/plans"
 
@@ -65,6 +66,8 @@ export default function Home() {
   const [planType, setPlanType] = useState<"chatbot" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
   const [isPricingLoading, setIsPricingLoading] = useState(true)
+
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     let isMounted = true
@@ -155,19 +158,32 @@ export default function Home() {
   };
 
   // Variantes para animaciones
-  const fadeInUpVariants = {
-    hidden: { opacity: 0, y: 30 },
+  const fadeInUpVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: isMobile ? 15 : 30 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: isMobile ? 0.4 : 0.6,
         ease: "easeOut" as const,
       },
     },
-  }
+  }), [isMobile])
 
-  const getServiceCardMotion = (index: number, count: number) => {
+  const getServiceCardMotion = (index: number, count: number, mobile: boolean) => {
+    if (mobile) {
+      return {
+        initial: { opacity: 0 },
+        whileInView: { opacity: 1 },
+        transition: {
+          duration: 0.35,
+          ease: "easeOut" as const,
+          delay: index * 0.08,
+        },
+        viewport: { once: true, amount: 0.1 },
+      }
+    }
+
     const middleIndex = Math.floor(count / 2)
     const isMiddleCard = count % 2 === 1 && index === middleIndex
     const slideFromLeft = count % 2 === 0 ? index < count / 2 : index < middleIndex
@@ -186,15 +202,15 @@ export default function Home() {
     }
   }
 
-  const getFooterSideMotion = (side: "left" | "right", delay = 0) => ({
-    initial: { opacity: 0, x: side === "left" ? -48 : 48 },
+  const getFooterSideMotion = (side: "left" | "right", delay = 0, mobile: boolean) => ({
+    initial: { opacity: 0, x: mobile ? 0 : (side === "left" ? -48 : 48) },
     whileInView: { opacity: 1, x: 0 },
     transition: {
-      duration: 0.55,
+      duration: mobile ? 0.35 : 0.55,
       ease: "easeOut" as const,
       delay,
     },
-    viewport: { once: true, amount: 0.35 },
+    viewport: { once: true, amount: mobile ? 0.1 : 0.35 },
   })
 
   const comparisonPlans = ["Asistente", "Recepcionista", "Soporte Técnico", "Personalizado"] as const
@@ -269,7 +285,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col ${isMobile ? 'overflow-x-hidden' : ''}`}>
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
         <div className="container flex h-16 items-center justify-between">
@@ -597,27 +613,27 @@ export default function Home() {
                   </motion.div>
                 </div>
                 <motion.div
-                  animate={{
+                  animate={!isMobile ? {
                     scale: [1, 1.1, 1],
                     opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
+                  } : { opacity: 0.3 }}
+                  transition={!isMobile ? {
                     duration: 4,
                     repeat: Number.POSITIVE_INFINITY,
                     repeatType: "reverse",
-                  }}
+                  } : {}}
                   className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-purple-600/30 blur-2xl"
                 />
                 <motion.div
-                  animate={{
+                  animate={!isMobile ? {
                     scale: [1, 1.2, 1],
                     opacity: [0.3, 0.5, 0.3],
-                  }}
-                  transition={{
+                  } : { opacity: 0.3 }}
+                  transition={!isMobile ? {
                     duration: 5,
                     repeat: Number.POSITIVE_INFINITY,
                     repeatType: "reverse",
-                  }}
+                  } : {}}
                   className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-indigo-600/30 blur-2xl"
                 />
               </motion.div>
@@ -654,10 +670,11 @@ export default function Home() {
 
             <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
               <motion.div
-                initial={{ opacity: 0, x: -36 }}
+                initial={{ opacity: 0, x: isMobile ? 0 : -36 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.35 }}
-                transition={{ duration: 0.55, ease: "easeOut" }}
+                viewport={{ once: true, amount: isMobile ? 0.1 : 0.35 }}
+                transition={{ duration: isMobile ? 0.35 : 0.55, ease: "easeOut" }}
+                className={isMobile ? 'will-change-[opacity,transform]' : ''}
               >
                 <Card className="h-full rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.08)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.14)] dark:border-slate-700 dark:bg-slate-900/75 dark:shadow-[0_8px_24px_rgba(2,6,23,0.38)] dark:hover:shadow-[0_12px_30px_rgba(2,6,23,0.5)]">
                   <CardHeader>
@@ -686,9 +703,9 @@ export default function Home() {
                     ].map((benefit, index) => (
                       <motion.div
                         key={benefit.label}
-                        initial={{ opacity: 0, x: -24 }}
-                        animate={isBenefitsResultsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -24 }}
-                        transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.12 }}
+                        initial={{ opacity: 0, x: isMobile ? 0 : -24 }}
+                        animate={isBenefitsResultsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: isMobile ? 0 : -24 }}
+                        transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut", delay: index * (isMobile ? 0.06 : 0.12) }}
                         className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]"
                       >
                         <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">{benefit.label}</p>
@@ -717,9 +734,9 @@ export default function Home() {
                 ].map((benefit, index) => (
                   <motion.div
                     key={benefit.title}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={isBenefitsListInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-                    transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.12 }}
+                    initial={{ opacity: 0, y: isMobile ? 10 : 24 }}
+                    animate={isBenefitsListInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 10 : 24 }}
+                    transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut", delay: index * (isMobile ? 0.06 : 0.12) }}
                     className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]"
                   >
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{benefit.title}</p>
@@ -795,21 +812,21 @@ export default function Home() {
                   <div ref={pricingCardsRef} className={`grid gap-6 mx-auto w-full ${getPricingGridClass(filteredPlans.length)}`}>
                     <AnimatePresence mode="popLayout">
                       {filteredPlans.map((plan, index) => {
-                        const entrance = getServiceCardMotion(index, filteredPlans.length)
+                        const entrance = getServiceCardMotion(index, filteredPlans.length, isMobile)
 
                         return (
                           <motion.div
                             key={plan.id}
-                            layout
+                            layout={!isMobile}
                             initial="initial"
-                            whileInView="whileInView" // Framer Motion buscará automáticamente esta clave en tus variantes
+                            whileInView="whileInView"
                             variants={{
                               initial: entrance.initial,
                               whileInView: entrance.whileInView
                             }}
                             transition={entrance.transition}
-                            viewport={entrance.viewport} // Esto controlará el disparo limpio al hacer scroll
-                            className="h-full"
+                            viewport={entrance.viewport}
+                            className={`h-full ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
                           >
                             <PricingCard
                               title={plan.title}
@@ -864,7 +881,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-              className="overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
+              className={`overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)] ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
             >
               <table className="min-w-[760px] w-full border-collapse">
                 <thead>
@@ -883,9 +900,9 @@ export default function Home() {
                   {comparisonRows.flatMap((category) => [
                     <motion.tr
                       key={category.category}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
+                      initial={{ opacity: 0, y: isMobile ? 8 : 20 }}
+                      animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 8 : 20 }}
+                      transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut" }}
                     >
                       <td
                         colSpan={5}
@@ -897,9 +914,9 @@ export default function Home() {
                     ...category.rows.map((row, rowIndex, rows) => (
                       <motion.tr
                         key={row.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                        transition={{ duration: 0.45, ease: "easeOut", delay: (rowIndex + 1) * 0.05 }}
+                        initial={{ opacity: 0, y: isMobile ? 8 : 20 }}
+                        animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 8 : 20 }}
+                        transition={{ duration: isMobile ? 0.25 : 0.45, ease: "easeOut", delay: (rowIndex + 1) * (isMobile ? 0.02 : 0.05) }}
                         className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}
                       >
                         <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
@@ -948,7 +965,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={isFaqHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mx-auto max-w-3xl"
+              className={`mx-auto max-w-3xl ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
             >
               <FaqAccordion
                 items={[
@@ -991,31 +1008,31 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={isCtaInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.6 }}
-              className="rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-8 md:p-12 lg:p-16 relative overflow-hidden elev-3"
+              className={`rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-8 md:p-12 lg:p-16 relative overflow-hidden elev-3 ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
             >
               <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
               <motion.div
-                animate={{
+                animate={!isMobile ? {
                   scale: [1, 1.1, 1],
                   opacity: [0.3, 0.6, 0.3],
-                }}
-                transition={{
+                } : { opacity: 0.3 }}
+                transition={!isMobile ? {
                   duration: 8,
                   repeat: Number.POSITIVE_INFINITY,
                   repeatType: "reverse",
-                }}
+                } : {}}
                 className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-purple-600/30 blur-3xl"
               />
               <motion.div
-                animate={{
+                animate={!isMobile ? {
                   scale: [1, 1.2, 1],
                   opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
+                } : { opacity: 0.3 }}
+                transition={!isMobile ? {
                   duration: 10,
                   repeat: Number.POSITIVE_INFINITY,
                   repeatType: "reverse",
-                }}
+                } : {}}
                 className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-600/30 blur-3xl"
               />
               <div className="relative z-10 max-w-3xl mx-auto text-center">
@@ -1107,10 +1124,11 @@ export default function Home() {
           <div className="container">
             <div className="grid gap-8 lg:grid-cols-2">
               <motion.div
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: isMobile ? 0 : -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: isMobile ? 0.35 : 0.6 }}
                 viewport={{ once: true, margin: "-100px" }}
+                className={isMobile ? 'will-change-[opacity,transform]' : ''}
               >
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
                   Ponte en <span className="text-indigo-600">Contacto</span>
@@ -1208,11 +1226,11 @@ export default function Home() {
                 </div>
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: isMobile ? 0 : 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: isMobile ? 0.35 : 0.6, delay: isMobile ? 0 : 0.2 }}
                 viewport={{ once: true, margin: "-100px" }}
-                className="rounded-xl border bg-card p-6 elev-2"
+                className={`rounded-xl border bg-card p-6 elev-2 ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
               >
                 <h3 className="text-xl font-bold">Envíanos un mensaje</h3>
                 <form className="mt-6 space-y-4">
@@ -1320,10 +1338,10 @@ export default function Home() {
             
             {/* BLOQUE IZQUIERDO: Descripción y Redes Sociales (Animación desde la izquierda) */}
             <motion.div
-              initial={getFooterSideMotion("left").initial}
-              whileInView={getFooterSideMotion("left").whileInView}
-              transition={getFooterSideMotion("left").transition}
-              viewport={getFooterSideMotion("left").viewport}
+              initial={getFooterSideMotion("left", 0, isMobile).initial}
+              whileInView={getFooterSideMotion("left", 0, isMobile).whileInView}
+              transition={getFooterSideMotion("left", 0, isMobile).transition}
+              viewport={getFooterSideMotion("left", 0, isMobile).viewport}
               className="col-span-1 lg:col-span-2"
             >
               <div className="flex items-center gap-2 mb-4">
@@ -1351,7 +1369,7 @@ export default function Home() {
               </p>
               <div className="flex gap-4">
                 <motion.a
-                  whileHover={{ scale: 1.1, color: "#ffffff" }}
+                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
                   href="#"
                   className="text-slate-400 hover:text-white transition-colors"
                 >
@@ -1371,7 +1389,7 @@ export default function Home() {
                   </svg>
                 </motion.a>
                 <motion.a
-                  whileHover={{ scale: 1.1, color: "#ffffff" }}
+                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
                   href="#"
                   className="text-slate-400 hover:text-white transition-colors"
                 >
@@ -1391,7 +1409,7 @@ export default function Home() {
                   </svg>
                 </motion.a>
                 <motion.a
-                  whileHover={{ scale: 1.1, color: "#ffffff" }}
+                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
                   href="#"
                   className="text-slate-400 hover:text-white transition-colors"
                 >
@@ -1413,7 +1431,7 @@ export default function Home() {
                   </svg>
                 </motion.a>
                 <motion.a
-                  whileHover={{ scale: 1.1, color: "#ffffff" }}
+                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
                   href="#"
                   className="text-slate-400 hover:text-white transition-colors"
                 >
@@ -1439,14 +1457,14 @@ export default function Home() {
 
             {/* BLOQUE DERECHO - COLUMNA 1: Servicios (Animación desde la derecha) */}
             <motion.div
-              initial={getFooterSideMotion("right", 0.1).initial}
-              whileInView={getFooterSideMotion("right", 0.1).whileInView}
-              transition={getFooterSideMotion("right", 0.1).transition}
-              viewport={getFooterSideMotion("right", 0.1).viewport}
+              initial={getFooterSideMotion("right", 0.1, isMobile).initial}
+              whileInView={getFooterSideMotion("right", 0.1, isMobile).whileInView}
+              transition={getFooterSideMotion("right", 0.1, isMobile).transition}
+              viewport={getFooterSideMotion("right", 0.1, isMobile).viewport}
             >
               <h3 className="font-bold mb-4">Servicios</h3>
               <ul className="space-y-2">
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all")}
@@ -1455,7 +1473,7 @@ export default function Home() {
                     Todos nuestros servicios
                   </a>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all")}
@@ -1464,7 +1482,7 @@ export default function Home() {
                     Todos los servicios
                   </a>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "chatbot")}
@@ -1473,7 +1491,7 @@ export default function Home() {
                     Chatbots Inteligentes
                   </a>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all", "semiannual")}
@@ -1482,7 +1500,7 @@ export default function Home() {
                     Plan Semestral
                   </a>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all", "annual")}
@@ -1496,29 +1514,29 @@ export default function Home() {
 
             {/* BLOQUE DERECHO - COLUMNA 2: Empresa (Animación desde la derecha con un retraso extra para escalonar) */}
             <motion.div
-              initial={getFooterSideMotion("right", 0.2).initial}
-              whileInView={getFooterSideMotion("right", 0.2).whileInView}
-              transition={getFooterSideMotion("right", 0.2).transition}
-              viewport={getFooterSideMotion("right", 0.2).viewport}
+              initial={getFooterSideMotion("right", 0.2, isMobile).initial}
+              whileInView={getFooterSideMotion("right", 0.2, isMobile).whileInView}
+              transition={getFooterSideMotion("right", 0.2, isMobile).transition}
+              viewport={getFooterSideMotion("right", 0.2, isMobile).viewport}
             >
               <h3 className="font-bold mb-4">Empresa</h3>
               <ul className="space-y-2">
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <Link href="/about" className="text-slate-400 hover:text-white transition-colors">
                     Sobre nosotros
                   </Link>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <Link href="/legal/terms" className="text-slate-400 hover:text-white transition-colors">
                     Términos de servicio
                   </Link>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <Link href="/legal/privacy" className="text-slate-400 hover:text-white transition-colors">
                     Política de privacidad
                   </Link>
                 </motion.li>
-                <motion.li whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <Link href="/legal/cancellation" className="text-slate-400 hover:text-white transition-colors">
                     Política de cancelación y facturación
                   </Link>

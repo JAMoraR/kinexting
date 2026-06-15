@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import Link from "next/link"
 
 interface PricingCardProps {
@@ -38,6 +39,7 @@ export default function PricingCard({
   highQuality = false,
   hidePrice = false,
 }: PricingCardProps) {
+  const isMobile = useIsMobile()
   const formattedPrice = typeof price === "number"
     ? new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
@@ -46,7 +48,7 @@ export default function PricingCard({
     : "0.00"
 
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
+    <motion.div whileHover={isMobile ? undefined : { y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
       <Card className={`flex flex-col elev-interactive
         h-full
         ${popular ? "border-red-600 shadow-[0_10px_28px_rgba(220,38,38,0.25)] dark:shadow-[0_12px_32px_rgba(220,38,38,0.22)]" : ""}
@@ -61,7 +63,7 @@ export default function PricingCard({
           <CardTitle>{title}</CardTitle>
           {!hidePrice && (
             <div className="flex items-baseline gap-1 overflow-hidden">
-              <motion.span initial={{ scale: 1 }} whileHover={{ scale: 1.1 }} className="text-3xl font-bold shrink-0">
+              <motion.span initial={{ scale: 1 }} whileHover={isMobile ? undefined : { scale: 1.1 }} className="text-3xl font-bold shrink-0">
                 ${formattedPrice}
               </motion.span>
               <span className="text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis">/{period}</span>
@@ -75,9 +77,9 @@ export default function PricingCard({
               <motion.li
                 key={index}
                 className="flex items-center gap-2"
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: isMobile ? 0 : -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * (isMobile ? 0.03 : 0.1) }}
               >
                 <CheckIcon className="h-5 w-5 text-indigo-600" />
                 <span>{feature}</span>
@@ -87,9 +89,9 @@ export default function PricingCard({
               <motion.li
                 key={index}
                 className="flex items-center gap-2"
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: isMobile ? 0 : -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * (isMobile ? 0.03 : 0.1) }}
               >
                 <span className="text-gray-400">- {differences}</span>
               </motion.li>
@@ -97,7 +99,7 @@ export default function PricingCard({
           </ul>
         </CardContent>
         <CardFooter className="mt-auto">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full">
+          <motion.div whileHover={isMobile ? undefined : { scale: 1.05 }} whileTap={isMobile ? undefined : { scale: 0.95 }} className="w-full">
             <Link href={buttonLink} className="w-full">
               <Button
                 className={`w-full 

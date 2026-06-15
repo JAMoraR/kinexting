@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { motion } from "framer-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { ReactNode } from "react"
 
 interface FeatureCardProps {
@@ -11,13 +12,14 @@ interface FeatureCardProps {
 }
 
 export default function FeatureCard({ icon, title, description }: FeatureCardProps) {
+  const isMobile = useIsMobile()
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+    <motion.div whileHover={isMobile ? undefined : { y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
       <Card className="border-2 hover:border-indigo-600/50 transition-colors h-full elev-interactive">
         <CardHeader className="pb-2">
           <motion.div
             initial={{ scale: 1 }}
-            whileHover={{ scale: 1.04 }}
+            whileHover={isMobile ? undefined : { scale: 1.04 }}
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             className="mb-2"
           >
