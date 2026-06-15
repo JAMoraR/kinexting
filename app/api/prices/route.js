@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { Stripe } from "stripe"
 
-const PLAN_IDS = new Set(["asistente", "recepcionista", "soporte-tecnico", "personalizado"])
+const PLAN_IDS = new Set(["asistente", "recepcionista", "soporte-tecnico", "a-medida"])
 
 const PLAN_FLAGS = {
     asistente: { cheap: true },
     recepcionista: { popular: true },
     "soporte-tecnico": { highQuality: true },
-    personalizado: { recommended: true },
+    "a-medida": { recommended: true },
 }
 
 const normalizeText = (value) =>
@@ -35,8 +35,8 @@ const resolvePlanId = (price) => {
 
     if (candidate.includes("asistente")) return "asistente"
     if (candidate.includes("recepcionista")) return "recepcionista"
-    if (candidate.includes("soporte-tecnico")) return "soporte-tecnico"
-    if (candidate.includes("personalizado") || candidate.includes("personalize")) return "personalizado"
+    if (candidate.includes("soporte tecnico") || candidate.includes("soporte-tecnico")) return "soporte-tecnico"
+    if (candidate.includes("a medida") || candidate.includes("a-medida") || candidate.includes("personalizado")) return "a-medida"
 
     return null
 }
@@ -137,20 +137,51 @@ export async function GET() {
             expand: ["data.product"],
         })
 
+        // ── DEBUG: Todos los servicios recuperados de Stripe ──
+        const allServices = prices.data.map((p) => ({
+            id: p.id,
+            nickname: p.nickname,
+            lookup_key: p.lookup_key,
+            product_name: p.product && typeof p.product !== "string" ? p.product.name : "N/A",
+            metadata: p.metadata,
+            unit_amount: p.unit_amount,
+            currency: p.currency,
+            interval: p.recurring?.interval,
+        }))
+        console.log("=== TODOS los servicios recuperados de Stripe ===")
+        console.table(allServices)
+
         const plansById = new Map()
         const extrasById = new Map()
+        const matchedPlanIds = []
+        const unmatchedPrices = []
 
         prices.data.forEach((price) => {
             const interval = getPriceInterval(price)
             if (!interval || (interval !== "month" && interval !== "year")) {
+                unmatchedPrices.push({
+                    reason: `Intervalo no soportado: "${interval}"`,
+                    priceId: price.id,
+                    nickname: price.nickname,
+                })
                 return
             }
 
-            if (isCatalogPlan(price) || resolvePlanId(price)) {
+            const planIdResolved = resolvePlanId(price)
+            const isPlan = isCatalogPlan(price) || planIdResolved
+
+            if (isPlan) {
                 const planId = resolvePlanId(price)
                 if (!planId) {
+                    unmatchedPrices.push({
+                        reason: "isCatalogPlan true pero resolvePlanId devolvió null",
+                        priceId: price.id,
+                        nickname: price.nickname,
+                    })
                     return
                 }
+
+                matchedPlanIds.push({ planId, priceId: price.id, nickname: price.nickname })
 
                 const plan = ensurePlanEntry(plansById, planId, price)
                 const targetInterval = interval === "month" ? "monthly" : "annual"
@@ -159,11 +190,17 @@ export async function GET() {
                     amount: getPriceAmount(price),
                     currency: price.currency,
                 }
+                return
             }
 
             if (isCatalogExtra(price)) {
                 const extraId = price.metadata?.extra_id
                 if (!extraId) {
+                    unmatchedPrices.push({
+                        reason: "isCatalogExtra true pero metadata.extra_id vacío",
+                        priceId: price.id,
+                        nickname: price.nickname,
+                    })
                     return
                 }
 
@@ -174,8 +211,26 @@ export async function GET() {
                     amount: getPriceAmount(price),
                     currency: price.currency,
                 }
+                return
             }
+
+            // No es plan ni extra
+            unmatchedPrices.push({
+                reason: "No coincide como plan ni como extra",
+                priceId: price.id,
+                nickname: price.nickname,
+                lookup_key: price.lookup_key,
+                metadata: price.metadata,
+            })
         })
+
+        // ── DEBUG: Los que SÍ coincidieron con la lógica ──
+        console.log("=== Servicios que SÍ coincidieron como planes ===")
+        console.table(matchedPlanIds.length > 0 ? matchedPlanIds : "Ninguno")
+
+        // ── DEBUG: Los que NO se renderizan y causas ──
+        console.log("=== Servicios que NO se renderizan y posibles causas ===")
+        console.table(unmatchedPrices.length > 0 ? unmatchedPrices : "Ninguno")
 
         const plans = Array.from(plansById.values())
             .map((plan) => {

@@ -1,9 +1,14 @@
 export const COMPANY_NAME = "Kinexting"
 
+export type PlanId = "asistente" | "recepcionista" | "soporte-tecnico" | "a-medida"
+
+export type PlanCategory = "chatbot" | "web" | "both"
+
 export type BillingCycle = "monthly" | "annual"
 
 export type Plan = {
-  id: "landing" | "chatbot" | "webapp" | "chatbot-webapp"
+  id: PlanId
+  category: PlanCategory
   title: string
   price: { monthly: number; annual: number }
   period: string
@@ -24,7 +29,8 @@ type CatalogPrice = {
 }
 
 export type CatalogPlan = {
-  id: Plan["id"]
+  id: PlanId
+  category?: PlanCategory
   title?: string
   description?: string
   features?: string[]
@@ -58,26 +64,33 @@ export type PricingCatalogResponse = {
   extras?: CatalogExtra[]
 }
 
-const PLAN_COPY: Record<Plan["id"], { description: string; differences: string[] }> = {
-  landing: {
-    description: "Ideal para quienes buscan una presencia online con un sitio web optimizado.",
-    differences: ["Web administrativa", "Base de datos", "Chatbot de IA", "Creditos de IA"],
+export const PLAN_CATEGORY: Record<PlanId, PlanCategory> = {
+  asistente: "chatbot",
+  recepcionista: "chatbot",
+  "soporte-tecnico": "chatbot",
+  "a-medida": "both",
+}
+
+const PLAN_COPY: Record<PlanId, { description: string; differences: string[] }> = {
+  asistente: {
+    description: "Asistente virtual con IA para automatizar conversaciones y atención al cliente.",
+    differences: [],
   },
-  chatbot: {
-    description: "Perfecto para quienes quieren automatizar su atención al cliente y mejorar la interacción.",
-    differences: ["Sitio web", "Web administrativa", "Dominio .com", "SSL", "SEO"],
+  recepcionista: {
+    description: "Recepcionista digital que gestiona llamadas, citas y mensajes automáticamente.",
+    differences: [],
   },
-  webapp: {
-    description: "Perfecto para sitios web profesionales y pequeñas empresas.",
-    differences: ["Chatbot de IA", "Creditos de IA"],
+  "soporte-tecnico": {
+    description: "Soporte técnico automatizado con IA para resolver incidencias 24/7.",
+    differences: [],
   },
-  "chatbot-webapp": {
-    description: "Ideal para negocios que buscan lo mejor en automatización y presencia online.",
+  "a-medida": {
+    description: "Solución personalizada adaptada a las necesidades específicas de tu negocio.",
     differences: [],
   },
 }
 
-export const buildPlanLink = (planId: Plan["id"], billing: BillingCycle) =>
+export const buildPlanLink = (planId: PlanId, billing: BillingCycle) =>
   `/configurar-plan?plan=${planId}&billing=${billing}`
 
 export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
@@ -91,6 +104,7 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
 
   return {
     id: catalogPlan.id,
+    category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "chatbot",
     title: catalogPlan.title || catalogPlan.id,
     price: {
       monthly: monthlyPrice,

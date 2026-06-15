@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { Stripe } from "stripe"
 import { createHash } from "node:crypto"
 
-const PLAN_IDS = new Set(["landing", "chatbot", "webapp", "chatbot-webapp"])
+const PLAN_IDS = new Set(["asistente", "recepcionista", "soporte-tecnico", "a-medida"])
 const DOMAIN_OPTIONS = new Set(["domain-1", "domain-2"])
 const MAX_EXTRA_IDS = 10
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -66,7 +66,7 @@ const isRateLimited = (clientIp) => {
 	return false
 }
 
-const requiresDomain = (planId) => planId !== "chatbot"
+const requiresDomain = (planId) => planId === "a-medida"
 
 const normalizeText = (value) =>
 	String(value || "")
@@ -91,10 +91,10 @@ const resolvePlanId = (price) => {
 	const productName = price.product && typeof price.product !== "string" ? price.product.name : ""
 	const candidate = normalizeText(price.nickname || productName)
 
-	if (candidate.includes("chatbot") && candidate.includes("web")) return "chatbot-webapp"
-	if (candidate.includes("web app") || candidate === "webapp" || candidate === "web app") return "webapp"
-	if (candidate.includes("chatbot")) return "chatbot"
-	if (candidate.includes("landing")) return "landing"
+	if (candidate.includes("asistente")) return "asistente"
+	if (candidate.includes("recepcionista")) return "recepcionista"
+	if (candidate.includes("soporte tecnico") || candidate.includes("soporte-tecnico")) return "soporte-tecnico"
+	if (candidate.includes("a medida") || candidate.includes("a-medida") || candidate.includes("personalizado")) return "a-medida"
 
 	return null
 }

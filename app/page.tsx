@@ -15,7 +15,7 @@ import PricingCard from "@/components/pricing-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
 import ThemeToggle from "@/components/theme-toggle"
-import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, type Plan, type PricingCatalogResponse } from "@/lib/plans"
+import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, PLAN_CATEGORY, type Plan, type PlanId, type PricingCatalogResponse } from "@/lib/plans"
 
 export default function Home() {
   const clientsAccessUrl = process.env.NODE_ENV === "production" ? "https://clientes.kinexting.com" : "http://localhost:3001"
@@ -105,8 +105,9 @@ export default function Home() {
 
   const filteredPlans = plans.filter((plan) => {
     if (planType === "all") return true
-    if (planType === "chatbot") return plan.id.includes("chatbot")
-    return plan.id.includes("web") || plan.id === "landing"
+    const category = plan.category || PLAN_CATEGORY[plan.id as PlanId] || "chatbot"
+    if (planType === "chatbot") return category === "chatbot" || category === "both"
+    return category === "web" || category === "both"
   }).sort((a, b) => {
     const currentPriceA = billingCycle === "monthly" ? a.price.monthly : a.price.annual
     const currentPriceB = billingCycle === "monthly" ? b.price.monthly : b.price.annual

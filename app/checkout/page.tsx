@@ -14,9 +14,11 @@ import { Button } from "@/components/ui/button"
 import ThemeToggle from "@/components/theme-toggle"
 import {
   mapCatalogPlansToPlans,
+  PLAN_CATEGORY,
   type BillingCycle,
   type CatalogExtra,
   type Plan,
+  type PlanId,
   type PricingCatalogResponse,
 } from "@/lib/plans"
 import { filterCountries, getCountryPhoneData, type CountryPhoneData } from "@/lib/country-phone-codes"
@@ -84,13 +86,13 @@ type BusinessInfoFormData = {
 }
 
 const PLAN_LABELS = {
-  landing: "Landing",
-  chatbot: "Chatbot",
-  webapp: "Web App",
-  "chatbot-webapp": "Chatbot + Web App",
+  asistente: "Asistente",
+  recepcionista: "Recepcionista",
+  "soporte-tecnico": "Soporte Tecnico",
+  "a-medida": "A Medida",
 } as const
 
-const PLAN_IDS: Plan["id"][] = ["landing", "chatbot", "webapp", "chatbot-webapp"]
+const PLAN_IDS: PlanId[] = ["asistente", "recepcionista", "soporte-tecnico", "a-medida"]
 const STEP_KEYS: CheckoutStep[] = ["config", "info", "payment", "complete"]
 const CHECKOUT_STEPS = ["Configuracion", "Informacion", "Pago", "Completar"]
 const PHONE_REGEX = /^\+?[0-9][0-9\s-]{7,19}$/
@@ -231,18 +233,13 @@ const buildIdempotencyKey = (input: unknown) => {
   return `intent_${normalized.padStart(8, "0")}`
 }
 
-const isPlanId = (value: string | null): value is Plan["id"] => Boolean(value && PLAN_IDS.includes(value as Plan["id"]))
+const isPlanId = (value: string | null): value is PlanId => Boolean(value && PLAN_IDS.includes(value as PlanId))
 
-const getPlanCategory = (planId: Plan["id"]) => {
-  const hasChatbot = planId.includes("chatbot")
-  const hasWeb = planId === "landing" || planId.includes("webapp")
-
-  if (hasChatbot && hasWeb) return "both"
-  if (hasChatbot) return "chatbot"
-  return "web"
+const getPlanCategory = (planId: PlanId) => {
+  return PLAN_CATEGORY[planId] || "chatbot"
 }
 
-const extraMatchesPlan = (extra: CatalogExtra, planId: Plan["id"]) => {
+const extraMatchesPlan = (extra: CatalogExtra, planId: PlanId) => {
   const category = extra.category || "general"
   const planCategory = getPlanCategory(planId)
 
@@ -373,7 +370,7 @@ function CheckoutPageContent() {
   const [configError, setConfigError] = useState("")
   const [infoError, setInfoError] = useState("")
 
-  const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(isPlanId(planParam) ? planParam : "landing")
+  const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(isPlanId(planParam) ? planParam : "asistente")
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(billingParam === "annual" ? "annual" : "monthly")
   const [selectedDomain, setSelectedDomain] = useState(selectedDomainParam)
   const [newDomain, setNewDomain] = useState(newDomainParam)

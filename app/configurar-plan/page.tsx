@@ -20,14 +20,16 @@ import ThemeToggle from "@/components/theme-toggle"
 import {
   COMPANY_NAME,
   mapCatalogPlansToPlans,
+  PLAN_CATEGORY,
   type BillingCycle,
   type CatalogExtra,
   type Plan,
+  type PlanId,
   type PricingCatalogResponse,
 } from "@/lib/plans"
 
 type PlanData = {
-  id: Plan["id"]
+  id: PlanId
   name: string
   monthlyPrice: number
   annualPrice: number
@@ -52,17 +54,17 @@ const toPlanesData = (plans: Plan[]) =>
       description: plan.description,
     }
     return acc
-  }, {} as Record<Plan["id"], PlanData>)
+  }, {} as Record<PlanId, PlanData>)
 
 const domainOptions = [
   { id: "domain-1", name: "Usar un dominio que ya poseo" },
   { id: "domain-2", name: "Registrar un nuevo dominio" },
 ]
 
-const PLAN_IDS: Plan["id"][] = ["landing", "chatbot", "webapp", "chatbot-webapp"]
+const PLAN_IDS: PlanId[] = ["asistente", "recepcionista", "soporte-tecnico", "a-medida"]
 
-const isPlanId = (value: string | null): value is Plan["id"] =>
-  Boolean(value && PLAN_IDS.includes(value as Plan["id"]))
+const isPlanId = (value: string | null): value is PlanId =>
+  Boolean(value && PLAN_IDS.includes(value as PlanId))
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("es-MX", {
@@ -72,16 +74,11 @@ const formatCurrency = (amount: number) =>
     maximumFractionDigits: 2,
   }).format(amount)
 
-const getPlanCategory = (planId: Plan["id"]) => {
-  const hasChatbot = planId.includes("chatbot")
-  const hasWeb = planId === "landing" || planId.includes("webapp")
-
-  if (hasChatbot && hasWeb) return "both"
-  if (hasChatbot) return "chatbot"
-  return "web"
+const getPlanCategory = (planId: PlanId) => {
+  return PLAN_CATEGORY[planId] || "chatbot"
 }
 
-const extraMatchesPlan = (extra: CatalogExtra, planId: Plan["id"]) => {
+const extraMatchesPlan = (extra: CatalogExtra, planId: PlanId) => {
   const category = extra.category || "general"
   const planCategory = getPlanCategory(planId)
 
@@ -110,7 +107,7 @@ const getExtraIcon = (category?: string) => {
   }
 }
 
-const getExtraSectionsByPlan = (planId: Plan["id"], catalogExtras: CatalogExtra[]): ExtraSection[] => {
+const getExtraSectionsByPlan = (planId: PlanId, catalogExtras: CatalogExtra[]): ExtraSection[] => {
   const relevantExtras = catalogExtras.filter((extra) => extraMatchesPlan(extra, planId))
   const planCategory = getPlanCategory(planId)
   const categoryOrder =
@@ -165,7 +162,7 @@ export default function ConfigurarPlan() {
   const [checkoutError, setCheckoutError] = useState("")
 
   const planesData = useMemo(() => toPlanesData(plans), [plans])
-  const defaultPlanId = plans.find((plan) => plan.popular)?.id ?? plans[0]?.id ?? "landing"
+  const defaultPlanId: PlanId = (plans.find((plan) => plan.popular)?.id ?? plans[0]?.id ?? "asistente") as PlanId
   const planParam = searchParams.get("plan")
   const billingParam = searchParams.get("billing") || "monthly"
 
@@ -173,7 +170,7 @@ export default function ConfigurarPlan() {
   const initialPlan = planesData[initialPlanId] ?? null
   const initialBilling: BillingCycle = billingParam === "annual" ? "annual" : "monthly"
 
-  const [selectedPlanId, setSelectedPlanId] = useState<Plan["id"]>(initialPlanId)
+  const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(initialPlanId)
   const [planData, setPlanData] = useState<PlanData | null>(initialPlan)
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(initialBilling)
   const [selectedExtras, setSelectedExtras] = useState<string[]>([])
@@ -250,7 +247,7 @@ export default function ConfigurarPlan() {
     const fallbackPlan = Object.values(planesData)[0] ?? null
 
     if (planParam && planParam in planesData) {
-      const validPlanId = planParam as Plan["id"]
+      const validPlanId = planParam as PlanId
       setSelectedPlanId(validPlanId)
       setPlanData(planesData[validPlanId])
       return
