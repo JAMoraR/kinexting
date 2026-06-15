@@ -252,7 +252,7 @@ export async function GET() {
 
         const plans = Array.from(plansById.values())
             .map((plan) => {
-                if (plan.id === "a-medida" && !plan.prices.quarterly && !plan.prices.semiannual && !plan.prices.annual) {
+                if (plan.id === "a-medida") {
                     return plan
                 }
 
