@@ -77,18 +77,9 @@ export const metadata: Metadata = {
     creator: '@kinexting',
     site: '@kinexting',
   },
-  /*icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    other: {
-      favicons: [
-        {
-          url: '/favicon-16x16.png',
-          sizes: '16x16',
-        },
-      ],
-    },
-  },*/
+  icons: {
+    icon: '/favicon.png',
+  },
   description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento a través de la tecnología y la innovación digital.',
 }
 

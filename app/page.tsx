@@ -17,6 +17,11 @@ import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
 import { useIsMobile } from "@/hooks/use-mobile"
 import ThemeToggle from "@/components/theme-toggle"
 import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, PLAN_CATEGORY, type Plan, type PlanId, type PricingCatalogResponse } from "@/lib/plans"
+import Image from "next/image"
+import FullWhiteLogo from "@/public/logos/fullWhite.png"
+import FullBlackLogo from "@/public/logos/fullBlack.png"
+import MinimalBlackLogo from "@/public/logos/minimalBlack.png"
+import MinimalWhiteLogo from "@/public/logos/minimalWhite.png"
 
 export default function Home() {
   const clientsAccessUrl = process.env.NODE_ENV === "production" ? "https://clientes.kinexting.com" : "http://localhost:3001"
@@ -221,7 +226,7 @@ export default function Home() {
       rows: [
         {
           label: "Mensajes Incluidos",
-          values: ["+2,000 mensajes/mes", "+3,000 mensajes/mes", "+6,000 mensajes/mes", "A medida"],
+          values: ["+1,000 mensajes/mes", "+1,500 mensajes/mes", "+2,000 mensajes/mes", "A medida"],
         },
         {
           label: "Análisis de Multimedia (Fotos, Audios, Archivos)",
@@ -290,37 +295,53 @@ export default function Home() {
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2">
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, ease: "easeInOut", repeat: 0 }}
-            >
-              {/* Cambiado el ServerIcon por el layout de la ventana alineado al giro actual */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-indigo-600"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M3 9h18" />
-                <path d="M9 21V9" />
-              </svg>
-            </motion.div>
-            <motion.span
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-xl font-bold"
-            >
-              {COMPANY_NAME}
-            </motion.span>
+            {isMobile ? (
+              <>
+                <Image
+                  src={MinimalBlackLogo}
+                  alt={COMPANY_NAME}
+                  width={28}
+                  height={28}
+                  className="h-7 w-auto block dark:hidden"
+                  priority
+                />
+                <Image
+                  src={MinimalWhiteLogo}
+                  alt={COMPANY_NAME}
+                  width={28}
+                  height={28}
+                  className="h-7 w-auto hidden dark:block"
+                  priority
+                />
+                <motion.span
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-xl font-bold"
+                >
+                  {COMPANY_NAME}
+                </motion.span>
+              </>
+            ) : (
+              <>
+                <Image
+                  src={FullBlackLogo}
+                  alt={COMPANY_NAME}
+                  width={130}
+                  height={32}
+                  className="h-8 w-auto block dark:hidden"
+                  priority
+                />
+                <Image
+                  src={FullWhiteLogo}
+                  alt={COMPANY_NAME}
+                  width={130}
+                  height={32}
+                  className="h-8 w-auto hidden dark:block"
+                  priority
+                />
+              </>
+            )}
           </Link>
           <nav className="hidden md:flex gap-6">
             <motion.div
@@ -1345,23 +1366,13 @@ export default function Home() {
               className="col-span-1 lg:col-span-2"
             >
               <div className="flex items-center gap-2 mb-4">
-                {/* Cambiado el ServerIcon por un icono más adecuado al giro de plataformas/web */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-6 w-6 text-indigo-400"
-                >
-                  <rect width="18" height="18" x="3" y="3" rx="2" />
-                  <path d="M3 9h18" />
-                  <path d="M9 21V9" />
-                </svg>
+                <Image
+                  src={MinimalWhiteLogo}
+                  alt={COMPANY_NAME}
+                  width={28}
+                  height={28}
+                  className="h-7 w-auto dark:block"
+                />
                 <span className="text-xl font-bold">{COMPANY_NAME}</span>
               </div>
               <p className="text-slate-400 mb-4 max-w-xs">
