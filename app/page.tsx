@@ -5,8 +5,29 @@ import type React from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useInView } from "framer-motion"
-import { Bot, CheckIcon, ServerIcon, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  Bot,
+  Calendar,
+  Check,
+  CheckCircle2,
+  CheckIcon,
+  Clock,
+  Database,
+  Globe,
+  MessageSquare,
+  ServerIcon,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  User,
+  Users,
+  X,
+  Zap,
+} from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -662,109 +683,352 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* Business Benefits Section */}
+        {/* Business Benefits Section - Rediseño Bento Grid Impeccable */}
         <section
           id="services"
           ref={servicesRef}
-          className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
+          className="relative overflow-hidden py-20 md:py-32 bg-slate-50/70 dark:bg-[#060c18] border-t border-slate-200/80 dark:border-slate-800/80"
         >
-          <div className="container">
-            <div className="mb-12 text-center" ref={servicesHeaderRef}>
+          {/* Luces ambientales tenues */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-10 right-10 w-[400px] h-[300px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+          <div className="container relative z-10 mx-auto max-w-6xl px-4">
+            <div className="mb-14 text-center max-w-3xl mx-auto" ref={servicesHeaderRef}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={isServicesHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.4 }}
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300 mb-4"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Impacto Real en tu Negocio
+              </motion.div>
+
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+                className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl text-slate-900 dark:text-white"
               >
-                Beneficios para <span className="text-indigo-600 dark:text-indigo-400">tu negocio</span>
+                Beneficios diseñados para hacer <span className="text-cyan-600 dark:text-cyan-400">crecer tu negocio</span>
               </motion.h2>
+
               <motion.p
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-slate-600 dark:text-slate-300"
+                transition={{ delay: 0.15 }}
+                className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300"
               >
-                Pensado para barberias, salones, spas, consultorios y consultoras que quieren mas clientes y mejor atencion.
+                Automatiza la atención y convierte cada mensaje en una cita confirmada, sin saturar a tu equipo ni perder clientes por demoras.
               </motion.p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+            {/* Bento Grid Asimétrico */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12">
+              {/* CARD 1: 7 cols - Atención 24/7 y Conversión en Vivo */}
               <motion.div
-                initial={{ opacity: 0, x: isMobile ? 0 : -36 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: isMobile ? 0.1 : 0.35 }}
-                transition={{ duration: isMobile ? 0.35 : 0.55, ease: "easeOut" }}
-                className={isMobile ? 'will-change-[opacity,transform]' : ''}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
               >
-                <Card className="h-full rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-md shadow-[0_8px_24px_rgba(2,6,23,0.08)] transition-shadow hover:shadow-[0_12px_30px_rgba(2,6,23,0.14)] dark:border-slate-700 dark:bg-slate-900/75 dark:shadow-[0_8px_24px_rgba(2,6,23,0.38)] dark:hover:shadow-[0_12px_30px_rgba(2,6,23,0.5)]">
-                  <CardHeader>
-                    <CardTitle className="text-slate-900 dark:text-white">Resultados que se sienten en el dia a dia</CardTitle>
-                    <CardDescription className="text-slate-600 dark:text-slate-300">
-                      Mas citas, mejor seguimiento y una imagen profesional en cada contacto.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent ref={benefitsResultsRef} className="grid gap-3 sm:grid-cols-3">
-                    {[
-                      {
-                        title: "+Citas",
-                        label: "Agenda",
-                        description: "Mas reservas desde web y WhatsApp",
-                      },
-                      {
-                        title: "+Rapida",
-                        label: "Atencion",
-                        description: "Respuestas claras sin perder clientes",
-                      },
-                      {
-                        title: "+Confianza",
-                        label: "Reputacion",
-                        description: "Tu marca se ve seria y profesional",
-                      },
-                    ].map((benefit, index) => (
-                      <motion.div
-                        key={benefit.label}
-                        initial={{ opacity: 0, x: isMobile ? 0 : -24 }}
-                        animate={isBenefitsResultsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: isMobile ? 0 : -24 }}
-                        transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut", delay: index * (isMobile ? 0.06 : 0.12) }}
-                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-800 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_rgba(2,6,23,0.3)]"
-                      >
-                        <p className="text-xs uppercase tracking-wide text-indigo-600 dark:text-cyan-300">{benefit.label}</p>
-                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{benefit.title}</p>
-                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{benefit.description}</p>
-                      </motion.div>
-                    ))}
-                  </CardContent>
-                </Card>
+                <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-br from-cyan-500/15 to-indigo-500/10 blur-3xl pointer-events-none" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300">
+                      <Zap className="h-3.5 w-3.5" />
+                      Disponibilidad Total
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Respuesta Inmediata
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Atención que nunca duerme: Convierte mensajes en ventas
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    El 68% de las consultas ocurren fuera de horario comercial. Tu agente IA responde en menos de 2 segundos, califica al cliente y asegura la cita en el acto.
+                  </p>
+                </div>
+
+                {/* Widget Gráfico: Simulación interactiva de WhatsApp */}
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 shadow-inner dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5 dark:border-slate-800/60">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        Agente Kinexting en línea
+                      </span>
+                    </div>
+                    <span className="rounded-md bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold text-cyan-600 dark:text-cyan-400">
+                      Latencia: 1.2s
+                    </span>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    {/* Mensaje del cliente */}
+                    <div className="flex justify-end">
+                      <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-slate-200 px-3.5 py-2 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+                        <p>Hola, ¿tienen espacio para mañana en la tarde? Quiero agendar un servicio.</p>
+                        <span className="mt-1 block text-right text-[9px] text-slate-400">10:42 PM</span>
+                      </div>
+                    </div>
+
+                    {/* Mensaje del agente */}
+                    <div className="flex justify-start">
+                      <div className="max-w-[90%] rounded-2xl rounded-tl-xs bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 px-3.5 py-2 text-slate-900 dark:text-slate-100">
+                        <p>
+                          ¡Hola! Claro que sí. Tenemos espacios a las <strong>4:00 PM</strong> y <strong>5:30 PM</strong>. ¿Te reservo a las 4:00 PM?
+                        </p>
+                        <div className="mt-2 flex items-center justify-between gap-2 border-t border-cyan-500/15 pt-1.5">
+                          <span className="rounded-md bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-700 dark:text-cyan-300">
+                            ✓ Confirmar 4:00 PM
+                          </span>
+                          <span className="text-[9px] text-slate-400">10:42 PM · Doble check</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-slate-200/50 pt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      +45% citas captadas fuera de horario
+                    </span>
+                    <span>WhatsApp API Oficial</span>
+                  </div>
+                </div>
               </motion.div>
 
-              <div ref={benefitsListRef} className="space-y-3">
-                {[
-                  {
-                    title: "1. Te encuentran y te escriben mas",
-                    description: "Tu negocio aparece claro, confiable y con llamada a la accion directa.",
-                  },
-                  {
-                    title: "2. Atiendes mejor sin saturarte",
-                    description: "Menos tiempo en tareas repetidas y mas foco en tus clientes.",
-                  },
-                  {
-                    title: "3. Te recomiendan con mas facilidad",
-                    description: "Una experiencia profesional mejora opiniones y retorno de clientes.",
-                  },
-                ].map((benefit, index) => (
-                  <motion.div
-                    key={benefit.title}
-                    initial={{ opacity: 0, y: isMobile ? 10 : 24 }}
-                    animate={isBenefitsListInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 10 : 24 }}
-                    transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut", delay: index * (isMobile ? 0.06 : 0.12) }}
-                    className="rounded-2xl border border-slate-200 bg-white/85 p-4 backdrop-blur-md shadow-[0_6px_16px_rgba(2,6,23,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:shadow-[0_6px_16px_rgba(2,6,23,0.3)]"
-                  >
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{benefit.title}</p>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{benefit.description}</p>
-                  </motion.div>
-                ))}
-              </div>
+              {/* CARD 2: 5 cols - Agenda Automatizada & Cero Inasistencias */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
+              >
+                <div className="absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-500/15 to-purple-500/10 blur-3xl pointer-events-none" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Agenda Blindada
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Auto-Sync
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Agenda sincronizada y cero inasistencias
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    Sincronización directa con Google Calendar y recordatorios preventivos automáticos vía WhatsApp para reducir cancelaciones de último minuto.
+                  </p>
+                </div>
+
+                {/* Widget Gráfico: Tarjeta de Cita y Calendario */}
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300">
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          Cita Confirmada
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Mañana · 4:00 PM (45 min)
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                      Sincronizada
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2 border-t border-slate-200/60 pt-3 text-xs dark:border-slate-800/60">
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>Recordatorio programado:</span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-100">2 horas antes</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>Tasa de asistencia:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">+80% cumplimiento</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* CARD 3: 5 cols - Ahorro de Tiempo y Foco Operativo */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
+              >
+                <div className="absolute -top-20 -left-20 h-52 w-52 rounded-full bg-gradient-to-br from-emerald-500/15 to-cyan-500/10 blur-3xl pointer-events-none" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                      <Clock className="h-3.5 w-3.5" />
+                      Eficiencia Operativa
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Foco en tu Servicio
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Tu equipo enfocado en atender, no en contestar lo mismo
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    Filtra automáticamente las preguntas repetitivas de precios, servicios, dirección y formas de pago, liberando decenas de horas semanales.
+                  </p>
+                </div>
+
+                {/* Widget Gráfico: Métricas de Ahorro de Tiempo */}
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="text-3xl font-black text-slate-900 dark:text-white">
+                        ~20 hrs
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400"> / semana liberadas</span>
+                    </div>
+                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                      87% consultas resueltas
+                    </span>
+                  </div>
+
+                  {/* Barra de progreso de automatización */}
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                    <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600" />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-1.5 pt-1 text-[10px]">
+                    <span className="rounded-md bg-slate-200/70 px-2 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      ✓ Precios y menús
+                    </span>
+                    <span className="rounded-md bg-slate-200/70 px-2 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      ✓ Ubicación y Waze
+                    </span>
+                    <span className="rounded-md bg-slate-200/70 px-2 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      ✓ Formas de pago
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* CARD 4: 7 cols - Precisión Empresarial y Tono de Marca */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
+              >
+                <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-bl from-cyan-500/15 to-blue-500/10 blur-3xl pointer-events-none" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Cero Alucinaciones
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Datos Verificados
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Entrenado con tu negocio: Respuestas exactas y tono profesional
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    El agente aprende tus políticas de cancelación, catálogo de servicios, precios y promociones. Tus clientes reciben información 100% veraz y coherente con tu identidad de marca.
+                  </p>
+                </div>
+
+                {/* Widget Gráfico: Matriz de Conocimiento y Confiabilidad */}
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white p-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          Catálogo de Precios
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Sincronizado al 100%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white p-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          Políticas y Cancelaciones
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Reglas de negocio claras
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white p-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          Horarios y Sucursales
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Ubicación y disponibilidad
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white p-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          Tono de Marca Exclusivo
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Cálido y ejecutivo
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-slate-200/50 pt-2 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-500" />
+                      Índice de precisión conversacional
+                    </span>
+                    <span className="font-black text-cyan-600 dark:text-cyan-400">
+                      99.8%
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>

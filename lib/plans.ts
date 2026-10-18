@@ -78,21 +78,56 @@ export const PLAN_CATEGORY: Record<PlanId, PlanCategory> = {
   "a-medida": "both",
 }
 
-const PLAN_COPY: Record<PlanId, { description: string; differences: string[] }> = {
+const PLAN_COPY: Record<PlanId, { description: string; features: string[]; differences: string[] }> = {
   asistente: {
     description: "Asistente virtual con IA para automatizar conversaciones y atención al cliente.",
-    differences: [],
+    features: [
+      "Agente conversacional de IA 24/7",
+      "Integración directa con WhatsApp",
+      "Respuestas automáticas a dudas frecuentes",
+      "Captación y registro de prospectos",
+      "Puesta en marcha guiada",
+    ],
+    differences: [
+      "Gestión de citas y sincronización de calendario",
+      "Soporte técnico especializado con IA",
+    ],
   },
   recepcionista: {
     description: "Recepcionista digital que gestiona llamadas, citas y mensajes automáticamente.",
-    differences: [],
+    features: [
+      "Agente recepcionista con IA multicanal",
+      "Gestión y confirmación de citas en tiempo real",
+      "Sincronización con Google Calendar y WhatsApp",
+      "Recordatorios automáticos para evitar inasistencias",
+      "Panel de control y registro de conversaciones",
+      "Soporte prioritario 24/7",
+    ],
+    differences: [
+      "Resolución técnica avanzada de incidencias",
+    ],
   },
   "soporte-tecnico": {
     description: "Soporte técnico automatizado con IA para resolver incidencias 24/7.",
+    features: [
+      "Agente de soporte técnico avanzado con IA",
+      "Resolución de dudas técnicas complejas",
+      "Entrenamiento con la documentación de tu empresa",
+      "Escalamiento inteligente a agentes humanos",
+      "Métricas de atención y analítica",
+      "Soporte técnico prioritario dedicado",
+    ],
     differences: [],
   },
   "a-medida": {
     description: "Solución personalizada adaptada a las necesidades específicas de tu negocio.",
+    features: [
+      "Agentes de IA ilimitados a medida",
+      "Integraciones con CRM, ERP y bases de datos",
+      "Flujos conversacionales y acciones personalizadas",
+      "Gerente de cuenta técnico y SLA dedicado",
+      "Soporte corporativo 24/7",
+    ],
     differences: [],
   },
 }
@@ -111,23 +146,46 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     return {
       id: catalogPlan.id,
       category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "both",
-      title: catalogPlan.title || catalogPlan.id,
+      title: catalogPlan.title || "A Medida",
       period: "trimestral",
       description: staticCopy?.description || catalogPlan.description || "",
-      features: Array.isArray(catalogPlan.features) ? catalogPlan.features : [],
+      features:
+        Array.isArray(catalogPlan.features) && catalogPlan.features.length > 0
+          ? catalogPlan.features
+          : staticCopy?.features || [],
       differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
-      buttonText: "Cotizar",
+      buttonText: "Cotizar por WhatsApp",
       hidePrice: true,
+      recommended: true,
     }
   }
 
-  const quarterlyPrice = catalogPlan.prices?.quarterly?.amount
-  const semiannualPrice = catalogPlan.prices?.semiannual?.amount
-  const annualPrice = catalogPlan.prices?.annual?.amount
+  const rawQuarterly = catalogPlan.prices?.quarterly?.amount
+  const rawSemiannual = catalogPlan.prices?.semiannual?.amount
+  const rawAnnual = catalogPlan.prices?.annual?.amount
 
-  if (typeof quarterlyPrice !== "number" || typeof semiannualPrice !== "number" || typeof annualPrice !== "number") {
+  // Fallbacks para que ningún plan se descarte si algún periodo fue derivado
+  const basePrice =
+    typeof rawQuarterly === "number"
+      ? rawQuarterly
+      : typeof rawAnnual === "number"
+      ? Math.round(rawAnnual / 4)
+      : typeof rawSemiannual === "number"
+      ? Math.round(rawSemiannual / 2)
+      : null
+
+  if (basePrice === null) {
     return null
   }
+
+  const quarterlyPrice = typeof rawQuarterly === "number" ? rawQuarterly : basePrice
+  const semiannualPrice = typeof rawSemiannual === "number" ? rawSemiannual : basePrice * 2
+  const annualPrice = typeof rawAnnual === "number" ? rawAnnual : Math.round(basePrice * 4 * 0.85)
+
+  const features =
+    Array.isArray(catalogPlan.features) && catalogPlan.features.length > 0
+      ? catalogPlan.features
+      : staticCopy?.features || []
 
   return {
     id: catalogPlan.id,
@@ -140,7 +198,7 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     },
     period: "trimestral",
     description: staticCopy?.description || catalogPlan.description || "",
-    features: Array.isArray(catalogPlan.features) ? catalogPlan.features : [],
+    features,
     differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
     buttonText: catalogPlan.buttonText || `Elegir ${catalogPlan.title || catalogPlan.id}`,
     cheap: Boolean(catalogPlan.flags?.cheap),
