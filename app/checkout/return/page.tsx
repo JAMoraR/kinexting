@@ -43,16 +43,16 @@ type SessionDetails = {
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  asistente: "Agente Asistente IA",
-  recepcionista: "Agente Recepcionista IA",
-  "soporte-tecnico": "Agente Soporte Técnico IA",
-  "a-medida": "Solución Empresarial a Medida",
+  asistente: "Plan Asistente",
+  recepcionista: "Plan Omnicanal",
+  "soporte-tecnico": "Plan Web App",
+  "a-medida": "Plan Chatbot + Web App",
 }
 
 const BILLING_LABELS: Record<string, string> = {
   quarterly: "Trimestral",
-  semiannual: "Semestral",
   annual: "Anual",
+  monthly: "Trimestral",
 }
 
 const formatCurrency = (amount: number, currency = "mxn") => {

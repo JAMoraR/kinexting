@@ -9,13 +9,13 @@ export type PlanId = "asistente" | "recepcionista" | "soporte-tecnico" | "a-medi
 
 export type PlanCategory = "chatbot" | "both"
 
-export type BillingCycle = "quarterly" | "semiannual" | "annual"
+export type BillingCycle = "quarterly" | "annual"
 
 export type Plan = {
   id: PlanId
   category: PlanCategory
   title: string
-  price?: { quarterly: number; semiannual: number; annual: number }
+  price?: { quarterly?: number; annual?: number }
   period: string
   description: string
   features: string[]
@@ -50,7 +50,6 @@ export type CatalogPlan = {
   }
   prices?: {
     quarterly?: CatalogPrice | null
-    semiannual?: CatalogPrice | null
     annual?: CatalogPrice | null
   }
 }
@@ -61,7 +60,7 @@ export type CatalogExtra = {
   name?: string
   description?: string
   prices?: {
-    monthly?: CatalogPrice | null
+    quarterly?: CatalogPrice | null
     annual?: CatalogPrice | null
   }
 }
@@ -72,16 +71,16 @@ export type PricingCatalogResponse = {
 }
 
 export const PLAN_TITLES: Record<PlanId, string> = {
-  asistente: "Plan Esencial",
+  asistente: "Plan Asistente",
   recepcionista: "Plan Omnicanal",
-  "soporte-tecnico": "Plan Soporte Avanzado",
-  "a-medida": "Solución Enterprise",
+  "soporte-tecnico": "Plan Web App",
+  "a-medida": "Plan Chatbot + Web App",
 }
 
 export const PLAN_CATEGORY: Record<PlanId, PlanCategory> = {
   asistente: "chatbot",
-  recepcionista: "both",
-  "soporte-tecnico": "chatbot",
+  recepcionista: "chatbot",
+  "soporte-tecnico": "both",
   "a-medida": "both",
 }
 
@@ -98,18 +97,18 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
       "Bandeja de mensajería para WhatsApp",
       "Gestión de empleados, turnos y asignación de chats",
       "Analíticas en tiempo real y tiempos de respuesta",
-      "Metas y objetivos (semanales, mensuales, anuales o plazo indeterminado)",
+      "Metas y objetivos (semanales, mensuales, anuales)",
     ],
     differences: [
-      "Chatbot Web integrable con webhook en web existente",
-      "Redes sociales (Instagram DMs, TikTok, Facebook Messenger)",
-      "Bandeja unificada omnicanal de redes sociales",
+      "Redes sociales (Instagram, TikTok, Facebook)",
+      "Chatbot Web integrable con webhook",
+      "Plataforma Web App dedicada",
     ],
   },
   recepcionista: {
-    description: "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web con Webhook + CRM Todo-en-Uno.",
+    description: "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web + CRM Todo-en-Uno.",
     features: [
-      "Todo lo incluido en el Plan Esencial",
+      "Todo lo incluido en el Plan Asistente",
       "Automatización de WhatsApp Business API",
       "Automatización de mensajes directos en Instagram (DMs)",
       "Automatización de Facebook Messenger",
@@ -120,82 +119,58 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
       "Metas multicanal por colaborador y por negocio",
       "Soporte prioritario y puesta en marcha guiada",
     ],
-    differences: [],
+    differences: [
+      "Plataforma Web App dedicada",
+    ],
   },
   "soporte-tecnico": {
-    description: "Soporte técnico y resolución de incidencias con IA para empresas con requerimientos operativos intensivos.",
+    description: "Plataforma Web App completa para tu negocio: portal web de clientes, panel de gestión y CRM Todo-en-Uno.",
     features: [
-      "Agente de soporte técnico avanzado con IA",
-      "Resolución de dudas técnicas complejas 24/7",
-      "Entrenamiento con documentación y manuales extensos",
-      "Escalamiento inteligente a agentes humanos",
-      "CRM Todo-en-Uno con módulo de tickets y analíticas",
-      "Soporte técnico prioritario dedicado",
+      "Plataforma Web App personalizada para tu negocio",
+      "Portal web para clientes con gestión de citas y pedidos",
+      "Panel de administración y CRM Todo-en-Uno",
+      "Gestión avanzada de inventario, catálogo y servicios",
+      "Integración de pagos en línea con Stripe",
+      "Dominio personalizado y hosting de alta velocidad",
+      "Analíticas avanzadas de conversión y métricas comerciales",
+      "Soporte técnico prioritario y copias de seguridad continuas",
     ],
-    differences: [],
+    differences: [
+      "Automatización omnicanal en redes sociales",
+    ],
   },
   "a-medida": {
-    description: "Solución personalizada y arquitectura a medida adaptada a las necesidades específicas de tu empresa.",
+    description: "Solución Integral definitiva: Chatbot Omnicanal con IA en WhatsApp y redes sociales + Web App completa y CRM.",
     features: [
-      "Agentes de IA y canales ilimitados a medida",
-      "Integraciones profundas con CRM externo, ERP y bases de datos",
-      "Flujos conversacionales y webhooks bidireccionales a medida",
-      "Gerente de cuenta técnico y SLA corporativo",
-      "Soporte corporativo prioritario 24/7",
+      "Solución Integral: Chatbot Omnicanal + Web App completa",
+      "Automatización en WhatsApp, Instagram, TikTok y Facebook",
+      "Chatbot Web integrable con webhook en tiempo real",
+      "Plataforma Web App dedicada con portal de clientes",
+      "Sistema CRM Todo-en-Uno completo para citas, empleados y metas",
+      "Catálogo digital de productos y servicios con cobro integrado",
+      "Flujos personalizados y webhooks bidireccionales",
+      "Onboarding técnico asistido y soporte prioritario 24/7",
     ],
     differences: [],
   },
 }
 
 export const buildPlanLink = (planId: PlanId, billing: BillingCycle) => {
-  if (planId === "a-medida") {
-    return buildWhatsAppLink()
-  }
   return `/checkout?plan=${planId}&billing=${billing}`
 }
 
 export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
   const staticCopy = PLAN_COPY[catalogPlan.id]
 
-  if (catalogPlan.id === "a-medida") {
-    return {
-      id: catalogPlan.id,
-      category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "both",
-      title: catalogPlan.title || "A Medida",
-      period: "trimestral",
-      description: staticCopy?.description || catalogPlan.description || "",
-      features:
-        Array.isArray(catalogPlan.features) && catalogPlan.features.length > 0
-          ? catalogPlan.features
-          : staticCopy?.features || [],
-      differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
-      buttonText: "Cotizar por WhatsApp",
-      hidePrice: true,
-      recommended: true,
-    }
-  }
-
   const rawQuarterly = catalogPlan.prices?.quarterly?.amount
-  const rawSemiannual = catalogPlan.prices?.semiannual?.amount
   const rawAnnual = catalogPlan.prices?.annual?.amount
 
-  // Fallbacks para que ningún plan se descarte si algún periodo fue derivado
-  const basePrice =
-    typeof rawQuarterly === "number"
-      ? rawQuarterly
-      : typeof rawAnnual === "number"
-      ? Math.round(rawAnnual / 4)
-      : typeof rawSemiannual === "number"
-      ? Math.round(rawSemiannual / 2)
-      : null
-
-  if (basePrice === null) {
-    return null
+  if (typeof rawQuarterly !== "number" && typeof rawAnnual !== "number") {
+    if (!catalogPlan.title && !staticCopy) return null
   }
 
-  const quarterlyPrice = typeof rawQuarterly === "number" ? rawQuarterly : basePrice
-  const semiannualPrice = typeof rawSemiannual === "number" ? rawSemiannual : basePrice * 2
-  const annualPrice = typeof rawAnnual === "number" ? rawAnnual : Math.round(basePrice * 4 * 0.85)
+  const quarterlyPrice = typeof rawQuarterly === "number" ? rawQuarterly : (rawAnnual ? Math.round(rawAnnual / (4 * 0.85)) : 0)
+  const annualPrice = typeof rawAnnual === "number" ? rawAnnual : Math.round(quarterlyPrice * 4 * 0.85)
 
   const features =
     Array.isArray(catalogPlan.features) && catalogPlan.features.length > 0
@@ -210,10 +185,9 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     title: displayTitle,
     price: {
       quarterly: quarterlyPrice,
-      semiannual: semiannualPrice,
       annual: annualPrice,
     },
-    period: "trimestral",
+    period: "trimestre",
     description: staticCopy?.description || catalogPlan.description || "",
     features,
     differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
@@ -228,9 +202,6 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
 export const mapCatalogPlansToPlans = (catalogPlans: CatalogPlan[] | undefined): Plan[] => {
   const sortByPrice = (items: Plan[]) =>
     [...items].sort((a, b) => {
-      if (a.id === "a-medida" && b.id !== "a-medida") return 1
-      if (b.id === "a-medida" && a.id !== "a-medida") return -1
-
       const quarterlyDiff = (a.price?.quarterly ?? 0) - (b.price?.quarterly ?? 0)
       if (quarterlyDiff !== 0) return quarterlyDiff
 

@@ -94,7 +94,7 @@ export default function Home() {
   const footerRef = useRef<HTMLElement>(null)
   const isFooterInView = useInView(footerRef, { once: true, margin: "-120px" })
 
-  const [billingCycle, setBillingCycle] = useState<"quarterly" | "semiannual" | "annual">("quarterly")
+  const [billingCycle, setBillingCycle] = useState<"quarterly" | "annual">("quarterly")
   const [planType, setPlanType] = useState<"chatbot" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
   const [isPricingLoading, setIsPricingLoading] = useState(true)
@@ -143,10 +143,8 @@ export default function Home() {
     const category = plan.category || PLAN_CATEGORY[plan.id as PlanId] || "chatbot"
     return category === "chatbot" || category === "both"
   }).sort((a, b) => {
-    if (a.id === "a-medida" && b.id !== "a-medida") return 1
-    if (b.id === "a-medida" && a.id !== "a-medida") return -1
-    const currentPriceA = billingCycle === "quarterly" ? (a.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (a.price?.semiannual ?? 0) : (a.price?.annual ?? 0)
-    const currentPriceB = billingCycle === "quarterly" ? (b.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (b.price?.semiannual ?? 0) : (b.price?.annual ?? 0)
+    const currentPriceA = billingCycle === "quarterly" ? (a.price?.quarterly ?? 0) : (a.price?.annual ?? 0)
+    const currentPriceB = billingCycle === "quarterly" ? (b.price?.quarterly ?? 0) : (b.price?.annual ?? 0)
     return currentPriceA - currentPriceB
   })
 
@@ -177,7 +175,7 @@ export default function Home() {
   const handleServiceClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     type: "chatbot" | "all",
-    cycle?: "quarterly" | "semiannual" | "annual"
+    cycle?: "quarterly" | "annual"
   ) => {
     e.preventDefault();
 
@@ -252,7 +250,7 @@ export default function Home() {
       category: "CANALES DE ATENCIÓN CON IA",
       rows: [
         {
-          label: "WhatsApp Business API Oficial",
+          label: "WhatsApp",
           values: [true, true, true],
         },
         {
@@ -285,7 +283,7 @@ export default function Home() {
           values: [true, true, true],
         },
         {
-          label: "Sincronización Bidireccional Google Calendar",
+          label: "Sincronización Bidireccional con Calendario",
           values: [true, true, true],
         },
         {
@@ -701,7 +699,7 @@ export default function Home() {
 
                     <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
                       <div className="rounded-lg bg-white/5 p-2">
-                        <span className="text-[10px] text-white/60 block">Cita en Google Calendar</span>
+                        <span className="text-[10px] text-white/60 block">Cita en Calendario</span>
                         <strong className="text-white">Mañana · 4:00 PM</strong>
                       </div>
                       <div className="rounded-lg bg-white/5 p-2">
@@ -892,7 +890,7 @@ export default function Home() {
                     Agenda sincronizada y cero inasistencias
                   </h3>
                   <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    Sincronización directa con Google Calendar y recordatorios preventivos automáticos vía WhatsApp para reducir cancelaciones de último minuto.
+                    Sincronización directa con calendario y recordatorios preventivos automáticos vía WhatsApp para reducir cancelaciones de último minuto.
                   </p>
                 </div>
 
@@ -1217,7 +1215,7 @@ export default function Home() {
                       Agenda Inteligente
                     </span>
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      Google Calendar
+                      Calendario
                     </span>
                   </div>
 
@@ -1452,7 +1450,7 @@ export default function Home() {
                 animate={isPricingHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-slate-900 dark:text-white"
               >
-                1 Solo Servicio en <span className="text-indigo-600 dark:text-cyan-400">2 Niveles</span>
+                Planes y <span className="text-indigo-600 dark:text-cyan-400">Precios Transparentes</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
@@ -1461,30 +1459,29 @@ export default function Home() {
                 transition={{ delay: 0.15 }}
                 className="mt-3 text-base text-slate-600 dark:text-slate-300"
               >
-                Elige si deseas iniciar con automatización exclusiva en WhatsApp o la solución Omnicanal total. Ambos niveles incluyen el Sistema CRM completo sin cobro por usuario.
+                Elige el plan ideal para tu negocio. Facturación flexible trimestral o anual con 15% de ahorro. Todos los planes incluyen el Sistema CRM y puesta en marcha guiada.
               </motion.p>
             </div>
 
-            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "quarterly" | "semiannual" | "annual")} className="w-full max-w-5xl mx-auto">
+            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "quarterly" | "annual")} className="w-full max-w-7xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="flex justify-center mb-10"
               >
-                <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsList className="grid w-full max-w-xs grid-cols-2">
                   <TabsTrigger value="quarterly" className="text-xs sm:text-sm">Trimestral</TabsTrigger>
-                  <TabsTrigger value="semiannual" className="text-xs sm:text-sm">Semestral</TabsTrigger>
                   <TabsTrigger value="annual" className="text-xs sm:text-sm">
-                    Anual <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">(-20%)</span>
+                    Anual <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">(-15%)</span>
                   </TabsTrigger>
                 </TabsList>
               </motion.div>
 
               <TabsContent value={billingCycle} className="space-y-8">
                 {isPricingLoading ? (
-                  <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-                    {[0, 1].map((index) => (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
+                    {[0, 1, 2, 3].map((index) => (
                       <Card key={index} className="h-full">
                         <CardHeader className="space-y-3">
                           <Skeleton className="h-6 w-24" />
@@ -1502,82 +1499,76 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    {/* Cuadrícula de 2 Niveles Flagship */}
-                    <div ref={pricingCardsRef} className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
-                      {filteredPlans
-                        .filter((p) => p.id === "asistente" || p.id === "recepcionista")
-                        .map((plan, index) => {
-                          const entrance = getServiceCardMotion(index, 2, isMobile)
+                    <div ref={pricingCardsRef} className={`grid gap-6 ${getPricingGridClass(filteredPlans.length)} mx-auto`}>
+                      {filteredPlans.map((plan, index) => {
+                        const entrance = getServiceCardMotion(index, filteredPlans.length, isMobile)
 
-                          return (
-                            <motion.div
-                              key={plan.id}
-                              layout={!isMobile}
-                              initial="initial"
-                              whileInView="whileInView"
-                              variants={{
-                                initial: entrance.initial,
-                                whileInView: entrance.whileInView,
-                              }}
-                              transition={entrance.transition}
-                              viewport={entrance.viewport}
-                              className={`h-full ${isMobile ? "will-change-[opacity,transform]" : ""}`}
-                            >
-                              <PricingCard
-                                title={plan.title}
-                                price={
-                                  billingCycle === "quarterly"
-                                    ? (plan.price?.quarterly ?? 0)
-                                    : billingCycle === "semiannual"
-                                    ? (plan.price?.semiannual ?? 0)
-                                    : (plan.price?.annual ?? 0)
-                                }
-                                period={billingCycle === "quarterly" ? "trimestral" : billingCycle === "semiannual" ? "semestral" : "anual"}
-                                description={plan.description}
-                                features={plan.features}
-                                differences={plan.differences}
-                                buttonText={plan.buttonText}
-                                buttonLink={buildPlanLink(plan.id, billingCycle)}
-                                cheap={plan.id === "asistente"}
-                                popular={plan.id === "recepcionista"}
-                                recommended={plan.id === "recepcionista"}
-                                hidePrice={plan.hidePrice}
-                              />
-                            </motion.div>
-                          )
-                        })}
+                        return (
+                          <motion.div
+                            key={plan.id}
+                            layout={!isMobile}
+                            initial="initial"
+                            whileInView="whileInView"
+                            variants={{
+                              initial: entrance.initial,
+                              whileInView: entrance.whileInView,
+                            }}
+                            transition={entrance.transition}
+                            viewport={entrance.viewport}
+                            className={`h-full ${isMobile ? "will-change-[opacity,transform]" : ""}`}
+                          >
+                            <PricingCard
+                              title={plan.title}
+                              price={
+                                billingCycle === "annual"
+                                  ? (plan.price?.annual ?? 0)
+                                  : (plan.price?.quarterly ?? 0)
+                              }
+                              period={billingCycle === "annual" ? "año" : "trimestre"}
+                              description={plan.description}
+                              features={plan.features}
+                              differences={plan.differences}
+                              buttonText={plan.buttonText}
+                              buttonLink={buildPlanLink(plan.id, billingCycle)}
+                              cheap={plan.id === "asistente"}
+                              popular={plan.id === "recepcionista"}
+                              recommended={plan.id === "recepcionista"}
+                              highQuality={plan.id === "a-medida" || plan.id === "soporte-tecnico"}
+                              hidePrice={plan.hidePrice}
+                            />
+                          </motion.div>
+                        )
+                      })}
                     </div>
 
-                    {/* Tarjeta Solución Enterprise */}
-                    {filteredPlans.find((p) => p.id === "a-medida") && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.4 }}
-                        className="mx-auto max-w-4xl rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50"
-                      >
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                          <div className="text-left">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400">
-                              Requerimientos Especiales
-                            </span>
-                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">
-                              ¿Necesitas arquitectura a medida, múltiples sucursales o ERP dedicado?
-                            </h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                              Diseñamos soluciones personalizadas con SLA corporativo y gerente de cuenta técnico.
-                            </p>
-                          </div>
-                          <Link href={buildPlanLink("a-medida", billingCycle)} className="shrink-0">
-                            <Button variant="outline" className="border-indigo-600/40 hover:bg-indigo-50 dark:hover:bg-slate-800">
-                              Cotizar por WhatsApp
-                              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                            </Button>
-                          </Link>
+                    {/* Tarjeta Requerimientos Especiales / Enterprise */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4 }}
+                      className="mx-auto max-w-4xl rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50"
+                    >
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400">
+                            Requerimientos Especiales
+                          </span>
+                          <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                            ¿Necesitas arquitectura personalizada, múltiples sucursales o integración a ERP dedicado?
+                          </h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Diseñamos soluciones personalizadas con SLA corporativo y gerente de cuenta técnico.
+                          </p>
                         </div>
-                      </motion.div>
-                    )}
+                        <a href="https://wa.me/521234567890?text=Hola%2C%20quiero%20cotizar%20un%20plan%20a%20medida" target="_blank" rel="noopener noreferrer" className="shrink-0">
+                          <Button variant="outline" className="border-indigo-600/40 hover:bg-indigo-50 dark:hover:bg-slate-800">
+                            Cotizar por WhatsApp
+                            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                          </Button>
+                        </a>
+                      </div>
+                    </motion.div>
                   </>
                 )}
               </TabsContent>
@@ -2215,10 +2206,10 @@ export default function Home() {
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
                   <a
                     href="#pricing"
-                    onClick={(e) => handleServiceClick(e, "all", "semiannual")}
+                    onClick={(e) => handleServiceClick(e, "all", "quarterly")}
                     className="text-slate-400 hover:text-white transition-colors"
                 >
-                    Plan Semestral
+                    Plan Trimestral
                   </a>
                 </motion.li>
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -2243,22 +2234,22 @@ export default function Home() {
               <h3 className="font-bold mb-4">Empresa</h3>
               <ul className="space-y-2">
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/about" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/sobre-nosotros" className="text-slate-400 hover:text-white transition-colors">
                     Sobre nosotros
                   </Link>
                 </motion.li>
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/terms" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/terminos-de-servicio" className="text-slate-400 hover:text-white transition-colors">
                     Términos de servicio
                   </Link>
                 </motion.li>
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/privacy" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/privacidad" className="text-slate-400 hover:text-white transition-colors">
                     Política de privacidad
                   </Link>
                 </motion.li>
                 <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/cancellation" className="text-slate-400 hover:text-white transition-colors">
+                  <Link href="/legal/cancelacion-y-facturacion" className="text-slate-400 hover:text-white transition-colors">
                     Política de cancelación y facturación
                   </Link>
                 </motion.li>

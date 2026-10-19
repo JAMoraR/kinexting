@@ -43,9 +43,9 @@ export default function TermsPage() {
           <CardTitle className="text-2xl font-semibold text-foreground">Plazos de contratación</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-base leading-relaxed text-muted-foreground">
-          <p>Para efectos contractuales, los plazos mostrados como mensual y anual corresponden a 6 meses y 12 meses.</p>
+          <p>Para efectos contractuales, los plazos mostrados como trimestral y anual corresponden a 3 meses y 12 meses.</p>
           <ul className="list-disc space-y-2 pl-5">
-            <li>El plazo corto equivale a 6 meses de servicio.</li>
+            <li>El plazo trimestral equivale a 3 meses de servicio.</li>
             <li>El plazo anual equivale a 12 meses de servicio y puede incluir descuento promocional.</li>
             <li>La renovación opera conforme al plazo contratado y a la notificación previa aplicable.</li>
           </ul>

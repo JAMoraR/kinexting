@@ -41,7 +41,7 @@ export default function CancellationPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-base leading-relaxed text-muted-foreground">
           <p>
-            Esta política aplica a todos los planes contratados por periodos de 6 meses o 12 meses, expresados en la plataforma como mensual y anual.
+            Esta política aplica a todos los planes contratados por periodos de 3 meses o 12 meses, expresados en la plataforma como trimestral y anual.
           </p>
           <p>Todos los importes se entienden en moneda mexicana (MXN).</p>
         </CardContent>
@@ -62,9 +62,9 @@ export default function CancellationPage() {
             </thead>
             <tbody className="align-top text-muted-foreground">
               <tr className="border-b border-border/60">
-                <td className="py-3 pr-4">Plazo corto</td>
+                <td className="py-3 pr-4">Plazo trimestral</td>
                 <td className="py-3 pr-4">Contrato de referencia</td>
-                <td className="py-3">6 meses</td>
+                <td className="py-3">3 meses</td>
               </tr>
               <tr className="border-b border-border/60">
                 <td className="py-3 pr-4">Plazo anual</td>

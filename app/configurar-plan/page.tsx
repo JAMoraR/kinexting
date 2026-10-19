@@ -33,7 +33,6 @@ type PlanData = {
   id: PlanId
   name: string
   quarterlyPrice: number
-  semiannualPrice: number
   annualPrice: number
   features: string[]
   description: string
@@ -52,7 +51,6 @@ const toPlanesData = (plans: Plan[]) =>
       id: plan.id,
       name: plan.title,
       quarterlyPrice: plan.price?.quarterly ?? 0,
-      semiannualPrice: plan.price?.semiannual ?? 0,
       annualPrice: plan.price?.annual ?? 0,
       features: plan.features,
       description: plan.description,
@@ -169,7 +167,7 @@ export default function ConfigurarPlan() {
 
   const initialPlanId = isPlanId(planParam) ? planParam : defaultPlanId
   const initialPlan = planesData[initialPlanId] ?? null
-  const initialBilling: BillingCycle = billingParam === "semiannual" ? "semiannual" : billingParam === "annual" ? "annual" : "quarterly"
+  const initialBilling: BillingCycle = billingParam === "annual" ? "annual" : "quarterly"
 
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId>(initialPlanId)
   const [planData, setPlanData] = useState<PlanData | null>(initialPlan)
@@ -188,8 +186,8 @@ export default function ConfigurarPlan() {
       Object.values(planesData).sort((a, b) => {
         if (a.id === "a-medida" && b.id !== "a-medida") return 1
         if (b.id === "a-medida" && a.id !== "a-medida") return -1
-        const priceA = billingPeriod === "quarterly" ? a.quarterlyPrice : billingPeriod === "semiannual" ? a.semiannualPrice : a.annualPrice
-        const priceB = billingPeriod === "quarterly" ? b.quarterlyPrice : billingPeriod === "semiannual" ? b.semiannualPrice : b.annualPrice
+        const priceA = billingPeriod === "annual" ? a.annualPrice : a.quarterlyPrice
+        const priceB = billingPeriod === "annual" ? b.annualPrice : b.quarterlyPrice
         return priceA - priceB
       }),
     [planesData, billingPeriod],
@@ -272,7 +270,7 @@ export default function ConfigurarPlan() {
   }, [planParam, defaultPlanId, planesData])
 
   useEffect(() => {
-    setBillingPeriod(billingParam === "semiannual" ? "semiannual" : billingParam === "annual" ? "annual" : "quarterly")
+    setBillingPeriod(billingParam === "annual" ? "annual" : "quarterly")
   }, [billingParam])
 
   useEffect(() => {
@@ -296,14 +294,14 @@ export default function ConfigurarPlan() {
       return
     }
 
-    let price = billingPeriod === "quarterly" ? activePlanData.quarterlyPrice : billingPeriod === "semiannual" ? activePlanData.semiannualPrice : activePlanData.annualPrice
+    let price = billingPeriod === "annual" ? activePlanData.annualPrice : activePlanData.quarterlyPrice
 
     selectedExtras.forEach((extraId) => {
       const extra = extrasMap.get(extraId)
       if (extra) {
-        const eMonthly = extra.prices?.monthly?.amount ?? 0
+        const eQuarterly = extra.prices?.quarterly?.amount ?? 0
         const eAnnual = extra.prices?.annual?.amount ?? 0
-        price += billingPeriod === "quarterly" ? eMonthly : billingPeriod === "semiannual" ? (eMonthly * 6) : eAnnual
+        price += billingPeriod === "annual" ? eAnnual : eQuarterly
       }
     })
 
@@ -510,10 +508,10 @@ export default function ConfigurarPlan() {
                       {!plan.hidePrice && (
                         <>
                           <span className="text-2xl font-bold">
-                            {formatCurrency(billingPeriod === "quarterly" ? plan.quarterlyPrice : billingPeriod === "semiannual" ? plan.semiannualPrice : plan.annualPrice)}
+                            {formatCurrency(billingPeriod === "annual" ? plan.annualPrice : plan.quarterlyPrice)}
                           </span>
                           <span className="text-muted-foreground">
-                            /{billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
+                            /{billingPeriod === "annual" ? "Anual" : "Trimestral"}
                           </span>
                         </>
                       )}
@@ -555,23 +553,20 @@ export default function ConfigurarPlan() {
               <Card>
                 <CardHeader>
                   <CardTitle>Período de facturación</CardTitle>
-                  <CardDescription>Elige entre facturación mensual o anual</CardDescription>
+                  <CardDescription>Elige entre facturación trimestral o anual</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs
                     value={billingPeriod}
-                    onValueChange={(value) => setBillingPeriod(value as "quarterly" | "semiannual" | "annual")}
+                    onValueChange={(value) => setBillingPeriod(value as "quarterly" | "annual")}
                     className="w-full"
                   >
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="quarterly">
                         Trimestral
                       </TabsTrigger>
-                      <TabsTrigger value="semiannual">
-                        Semestral
-                      </TabsTrigger>
                       <TabsTrigger value="annual">
-                        Anual
+                        Anual (-15%)
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="quarterly" className="mt-4">
@@ -586,18 +581,6 @@ export default function ConfigurarPlan() {
                         </p>
                       </motion.div>
                     </TabsContent>
-                    <TabsContent value="semiannual" className="mt-4">
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <p className="text-sm text-muted-foreground">
-                          Facturación Semestral con renovación automática.
-                        </p>
-                      </motion.div>
-                    </TabsContent>
                     <TabsContent value="annual" className="mt-4">
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
@@ -606,7 +589,7 @@ export default function ConfigurarPlan() {
                         transition={{ duration: 0.3 }}
                       >
                         <p className="text-sm text-muted-foreground">
-                          Facturación Anual con renovación automática.
+                          Facturación Anual con 15% de ahorro y renovación automática.
                         </p>
                       </motion.div>
                     </TabsContent>
@@ -635,9 +618,9 @@ export default function ConfigurarPlan() {
                         <h3 className="text-sm font-semibold text-indigo-700">{section.title}</h3>
                         {section.extras.map((extra) => {
                           const isSelected = selectedExtras.includes(extra.id)
-                          const monthlyAmount = extra.prices?.monthly?.amount ?? 0
+                          const quarterlyAmount = extra.prices?.quarterly?.amount ?? 0
                           const annualAmount = extra.prices?.annual?.amount ?? 0
-                          const price = billingPeriod === "quarterly" ? monthlyAmount * 3 : billingPeriod === "semiannual" ? monthlyAmount * 6 : annualAmount
+                          const price = billingPeriod === "annual" ? annualAmount : quarterlyAmount
 
                           return (
                             <motion.div
@@ -667,7 +650,7 @@ export default function ConfigurarPlan() {
                                         <h3 className="font-medium">{extra.name || extra.id}</h3>
                                         <p className="text-sm text-muted-foreground">{extra.description || ""}</p>
                                         <p className="mt-1 text-sm font-medium text-indigo-600">
-                                          {typeof price === "number" ? `${formatCurrency(price)}/${billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}` : "Precio no disponible"}
+                                          {typeof price === "number" ? `${formatCurrency(price)}/${billingPeriod === "annual" ? "Anual" : "Trimestral"}` : "Precio no disponible"}
                                         </p>
                                       </div>
                                     </div>
@@ -789,7 +772,7 @@ export default function ConfigurarPlan() {
                       <h3 className="font-medium">
                         Plan {activePlanData?.name || ""}{" "}
                         <Badge className="ml-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
-                          {billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
+                          {billingPeriod === "annual" ? "Anual" : "Trimestral"}
                         </Badge>
                       </h3>
                       {!activePlanData?.hidePrice && (
@@ -799,11 +782,9 @@ export default function ConfigurarPlan() {
                           animate={{ opacity: 1, y: 0 }}
                           className="font-medium"
                         >
-                          {billingPeriod === "quarterly"
-                            ? `${formatCurrency(activePlanData?.quarterlyPrice ?? 0)}/Trimestral`
-                            : billingPeriod === "semiannual"
-                            ? `${formatCurrency(activePlanData?.semiannualPrice ?? 0)}/Semestral`
-                            : `${formatCurrency(activePlanData?.annualPrice ?? 0)}/Anual`}
+                          {billingPeriod === "annual"
+                            ? `${formatCurrency(activePlanData?.annualPrice ?? 0)}/Anual`
+                            : `${formatCurrency(activePlanData?.quarterlyPrice ?? 0)}/Trimestral`}
                         </motion.span>
                       )}
                       {activePlanData?.hidePrice && (
@@ -856,11 +837,9 @@ export default function ConfigurarPlan() {
                                 <span>{extra.name}</span>
                               </div>
                               <span>
-                                {billingPeriod === "quarterly"
-                                  ? `${formatCurrency(extra.prices?.monthly?.amount ?? 0)}/Trimestral`
-                                  : billingPeriod === "semiannual"
-                                  ? `${formatCurrency((extra.prices?.monthly?.amount ?? 0) * 6)}/Semestral`
-                                  : `${formatCurrency(extra.prices?.annual?.amount ?? 0)}/Anual`}
+                                {billingPeriod === "annual"
+                                  ? `${formatCurrency(extra.prices?.annual?.amount ?? 0)}/Anual`
+                                  : `${formatCurrency(extra.prices?.quarterly?.amount ?? 0)}/Trimestral`}
                               </span>
                             </motion.li>
                           )
@@ -885,7 +864,7 @@ export default function ConfigurarPlan() {
                     >
                       {formatCurrency(totalPrice)}
                       <span className="text-sm font-normal text-slate-600 dark:text-slate-300">
-                        /{billingPeriod === "quarterly" ? "Trimestral" : billingPeriod === "semiannual" ? "Semestral" : "Anual"}
+                        /{billingPeriod === "annual" ? "Anual" : "Trimestral"}
                       </span>
                     </motion.div>
                   )}

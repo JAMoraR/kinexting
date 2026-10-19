@@ -105,20 +105,57 @@ const resolvePlanId = (price) => {
   const metadataId = price.metadata?.plan_id
   if (metadataId && PLAN_IDS.has(metadataId)) return metadataId
 
-  const lookupKey = price.lookup_key ?? ""
+  const lookupKey = (price.lookup_key || "").toLowerCase()
   if (lookupKey.startsWith("plan.")) {
     const lookupParts = lookupKey.split(".")
     const inferred = lookupParts.slice(1, -1).join("-")
     if (PLAN_IDS.has(inferred)) return inferred
   }
 
+  if (
+    lookupKey.includes("a-medida") ||
+    lookupKey.includes("chatbot_webapp") ||
+    lookupKey.includes("chatbot-webapp") ||
+    lookupKey.includes("personalizado") ||
+    lookupKey.includes("tier4")
+  ) {
+    return "a-medida"
+  }
+  if (lookupKey.includes("tier1") || lookupKey.includes("asistente") || lookupKey.includes("landing")) {
+    return "asistente"
+  }
+  if (
+    lookupKey.includes("tier2") ||
+    lookupKey.includes("omnicanal") ||
+    lookupKey.includes("recepcionista") ||
+    (lookupKey.includes("chatbot") && !lookupKey.includes("web"))
+  ) {
+    return "recepcionista"
+  }
+  if (
+    lookupKey.includes("tier3") ||
+    lookupKey.includes("soporte") ||
+    lookupKey.includes("webapp") ||
+    (lookupKey.includes("web") && !lookupKey.includes("chatbot"))
+  ) {
+    return "soporte-tecnico"
+  }
+
   const productName = price.product && typeof price.product !== "string" ? price.product.name : ""
   const candidate = normalizeText(price.nickname || productName)
 
-  if (candidate.includes("asistente")) return "asistente"
-  if (candidate.includes("recepcionista")) return "recepcionista"
-  if (candidate.includes("soporte tecnico") || candidate.includes("soporte-tecnico")) return "soporte-tecnico"
-  if (candidate.includes("a medida") || candidate.includes("a-medida") || candidate.includes("personalizado")) return "a-medida"
+  if (candidate.includes("a medida") || candidate.includes("a-medida") || candidate.includes("personalizado") || candidate.includes("tier 4")) {
+    return "a-medida"
+  }
+  if (candidate.includes("asistente") || candidate.includes("tier 1") || candidate.includes("tier1")) {
+    return "asistente"
+  }
+  if (candidate.includes("recepcionista") || candidate.includes("omnicanal") || candidate.includes("tier 2") || candidate.includes("tier2")) {
+    return "recepcionista"
+  }
+  if (candidate.includes("soporte tecnico") || candidate.includes("soporte-tecnico") || candidate.includes("tier 3")) {
+    return "soporte-tecnico"
+  }
 
   return null
 }
@@ -137,7 +174,31 @@ const resolveExtraId = (price) => {
   return null
 }
 
-const getInterval = (billing) => (billing === "annual" ? "year" : "month")
+const resolvePlanPeriod = (price) => {
+  const lookupKey = (price.lookup_key || "").toLowerCase()
+  if (
+    lookupKey.includes("year") ||
+    lookupKey.includes("annual") ||
+    lookupKey.includes("anual") ||
+    lookupKey.includes("yearly")
+  ) {
+    return "annual"
+  }
+  if (
+    lookupKey.includes("quarter") ||
+    lookupKey.includes("trimest") ||
+    lookupKey.includes("_3m")
+  ) {
+    return "quarterly"
+  }
+
+  const interval = price.recurring?.interval
+  const intervalCount = price.recurring?.interval_count || 1
+
+  if (interval === "year" || (interval === "month" && intervalCount === 12)) return "annual"
+  if (interval === "month" && intervalCount === 3) return "quarterly"
+  return null
+}
 
 const isRecurringPlanPrice = (price, selectedPlanId) => {
   const interval = price.recurring?.interval
@@ -149,11 +210,12 @@ const isRecurringExtraPrice = (price, selectedExtraId) => {
   return Boolean(interval && (interval === "month" || interval === "year") && resolveExtraId(price) === selectedExtraId)
 }
 
-const pickPriceForInterval = (candidates, targetInterval) => {
-  const exact = candidates.find((price) => price.recurring?.interval === targetInterval)
-  if (exact) return exact
-
-  return candidates.find((price) => price.recurring?.interval === "month") ?? null
+const pickPriceForInterval = (candidates, billing) => {
+  if (billing === "annual") {
+    const exact = candidates.find((price) => resolvePlanPeriod(price) === "annual")
+    if (exact) return exact
+  }
+  return candidates.find((price) => resolvePlanPeriod(price) === "quarterly") ?? candidates[0] ?? null
 }
 
 const resolvePaymentMethodTypes = (preferredMethod, amount) => {
@@ -195,7 +257,7 @@ export async function POST(request) {
     }
 
     const planId = cleanText(payload?.planId, 40)
-    const billing = payload?.billing === "annual" ? "annual" : "monthly"
+    const billing = payload?.billing === "annual" ? "annual" : "quarterly"
     const extraIds = dedupeTextList(payload?.extraIds)
     const selectedDomain = cleanText(payload?.selectedDomain, 40)
     const newDomain = cleanDomain(payload?.newDomain)
@@ -300,9 +362,8 @@ export async function POST(request) {
       expand: ["data.product"],
     })
 
-    const targetInterval = getInterval(billing)
     const planCandidates = prices.data.filter((price) => isRecurringPlanPrice(price, planId))
-    const basePlanPrice = pickPriceForInterval(planCandidates, targetInterval)
+    const basePlanPrice = pickPriceForInterval(planCandidates, billing)
 
     if (!basePlanPrice?.unit_amount) {
       return NextResponse.json({ error: "Price not found for selected plan" }, { status: 400 })
@@ -314,7 +375,7 @@ export async function POST(request) {
 
     for (const extraId of extraIds) {
       const extraCandidates = prices.data.filter((price) => isRecurringExtraPrice(price, extraId))
-      const extraPrice = pickPriceForInterval(extraCandidates, targetInterval)
+      const extraPrice = pickPriceForInterval(extraCandidates, billing)
       if (extraPrice?.unit_amount) {
         totalAmount += extraPrice.unit_amount
         extraLineItems.push({

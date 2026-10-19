@@ -68,12 +68,11 @@ const isRateLimited = (clientIp) => {
 
 const requiresDomain = (planId) => planId === "a-medida"
 
-const PERIOD_SUFFIXES = ["_trimester", "_semester", "_year"]
+const PERIOD_SUFFIXES = ["_quarter", "_yearly", "_annual", "_year"]
 
 const PERIOD_SUFFIX_MAP = {
-	quarterly: "_trimester",
-	semiannual: "_semester",
-	annual: "_year",
+	quarterly: "_quarter",
+	annual: "_yearly",
 }
 
 const resolveExtraId = (price) => {
@@ -97,10 +96,10 @@ const isExtraPrice = (price, selectedExtraId) => {
 
 const pickExtraPrice = (candidates, billing) => {
 	if (billing === "annual") {
-		const exact = candidates.find((price) => price.recurring?.interval === "year")
+		const exact = candidates.find((price) => resolvePlanPeriod(price) === "annual")
 		if (exact) return exact
 	}
-	return candidates.find((price) => price.recurring?.interval === "month") ?? null
+	return candidates.find((price) => resolvePlanPeriod(price) === "quarterly") ?? candidates[0] ?? null
 }
 
 export async function POST(request) {
@@ -128,7 +127,7 @@ export async function POST(request) {
 		}
 
 		const planId = cleanText(payload?.planId, 40)
-		const billing = payload?.billing === "semiannual" ? "semiannual" : payload?.billing === "annual" ? "annual" : "quarterly"
+		const billing = payload?.billing === "annual" ? "annual" : "quarterly"
 		const extraIds = dedupeTextList(payload?.extraIds)
 		const selectedDomain = cleanText(payload?.selectedDomain, 40)
 		const newDomain = cleanDomain(payload?.newDomain)
@@ -158,9 +157,120 @@ export async function POST(request) {
 			expand: ["data.product"],
 		})
 
+const resolvePlanId = (price) => {
+	const metadataId = price.metadata?.plan_id
+	if (metadataId && PLAN_IDS.has(metadataId)) return metadataId
+
+	const lookupKey = (price.lookup_key || "").toLowerCase()
+	if (
+		lookupKey.includes("a-medida") ||
+		lookupKey.includes("chatbot_webapp") ||
+		lookupKey.includes("chatbot-webapp") ||
+		lookupKey.includes("personalizado") ||
+		lookupKey.includes("tier4")
+	) {
+		return "a-medida"
+	}
+	if (lookupKey.includes("tier1") || lookupKey.includes("asistente") || lookupKey.includes("landing")) {
+		return "asistente"
+	}
+	if (
+		lookupKey.includes("tier2") ||
+		lookupKey.includes("omnicanal") ||
+		lookupKey.includes("recepcionista") ||
+		(lookupKey.includes("chatbot") && !lookupKey.includes("web"))
+	) {
+		return "recepcionista"
+	}
+	if (
+		lookupKey.includes("tier3") ||
+		lookupKey.includes("soporte") ||
+		lookupKey.includes("webapp") ||
+		(lookupKey.includes("web") && !lookupKey.includes("chatbot"))
+	) {
+		return "soporte-tecnico"
+	}
+
+	const productName = price.product && typeof price.product !== "string" ? price.product.name.toLowerCase() : ""
+	const nickname = (price.nickname || "").toLowerCase()
+	const text = nickname + " " + productName
+
+	if (text.includes("a medida") || (text.includes("chatbot") && text.includes("web")) || text.includes("personalizado") || text.includes("tier 4")) {
+		return "a-medida"
+	}
+	if (text.includes("asistente") || text.includes("landing") || text.includes("tier 1") || text.includes("tier1")) {
+		return "asistente"
+	}
+	if (text.includes("recepcionista") || text.includes("omnicanal") || text.includes("tier 2") || text.includes("tier2") || (text.includes("chatbot") && !text.includes("web"))) {
+		return "recepcionista"
+	}
+	if (text.includes("soporte") || text.includes("tier 3") || (text.includes("web") && !text.includes("chatbot"))) {
+		return "soporte-tecnico"
+	}
+
+	return null
+}
+
+const resolvePlanPeriod = (price) => {
+	const lookupKey = (price.lookup_key || "").toLowerCase()
+	if (
+		lookupKey.includes("year") ||
+		lookupKey.includes("annual") ||
+		lookupKey.includes("anual") ||
+		lookupKey.includes("yearly")
+	) {
+		return "annual"
+	}
+	if (
+		lookupKey.includes("quarter") ||
+		lookupKey.includes("trimest") ||
+		lookupKey.includes("_3m")
+	) {
+		return "quarterly"
+	}
+
+	const interval = price.recurring?.interval
+	const intervalCount = price.recurring?.interval_count || 1
+
+	if (interval === "year" || (interval === "month" && intervalCount === 12)) return "annual"
+	if (interval === "month" && intervalCount === 3) return "quarterly"
+	return null
+}
+
 		const planSuffix = PERIOD_SUFFIX_MAP[billing]
 		const expectedLookupKey = `${planId}${planSuffix}`
-		const basePlanPrice = prices.data.find((price) => price.lookup_key === expectedLookupKey)
+		let basePlanPrice = prices.data.find((price) => {
+			const lookupKey = (price.lookup_key || "").toLowerCase()
+			return (
+				lookupKey === expectedLookupKey ||
+				lookupKey.includes(`${planId}_${billing}`) ||
+				(planId === "asistente" && lookupKey.includes("tier1") && lookupKey.includes(billing === "annual" ? "yearly" : "quarter")) ||
+				(planId === "recepcionista" && lookupKey.includes("tier2") && lookupKey.includes(billing === "annual" ? "yearly" : "quarter"))
+			)
+		})
+
+		if (!basePlanPrice) {
+			basePlanPrice = prices.data.find(
+				(price) => resolvePlanId(price) === planId && resolvePlanPeriod(price) === billing
+			)
+		}
+
+		if (!basePlanPrice && billing === "annual") {
+			basePlanPrice = prices.data.find(
+				(price) => resolvePlanId(price) === planId && resolvePlanPeriod(price) === "annual"
+			)
+		}
+
+		if (!basePlanPrice) {
+			basePlanPrice = prices.data.find(
+				(price) => resolvePlanId(price) === planId && resolvePlanPeriod(price) === "quarterly"
+			)
+		}
+
+		if (!basePlanPrice) {
+			basePlanPrice = prices.data.find((price) => resolvePlanId(price) === planId)
+		}
+
 		if (!basePlanPrice) {
 			return NextResponse.json({ error: "Price not found for selected plan" }, { status: 400 })
 		}

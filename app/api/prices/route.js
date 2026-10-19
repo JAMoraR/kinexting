@@ -12,7 +12,7 @@ const PLAN_FLAGS = {
 
 const PLAN_METADATA_FALLBACKS = {
   asistente: {
-    title: "Plan Esencial",
+    title: "Plan Asistente",
     description: "Automatización inteligente de WhatsApp con IA + Sistema CRM completo para citas, catálogo, empleados y metas.",
     features: [
       "Agente conversacional de IA 24/7 en WhatsApp",
@@ -24,25 +24,24 @@ const PLAN_METADATA_FALLBACKS = {
       "Bandeja de mensajería para WhatsApp",
       "Gestión de empleados, turnos y asignación de chats",
       "Analíticas en tiempo real y tiempos de respuesta",
-      "Metas y objetivos (semanales, mensuales, anuales o plazo indeterminado)",
+      "Metas y objetivos (semanales, mensuales, anuales)",
     ],
     differences: [
-      "Chatbot Web integrable con webhook en web existente",
-      "Redes sociales (Instagram DMs, TikTok, Facebook Messenger)",
-      "Bandeja unificada omnicanal de redes sociales",
+      "Redes sociales (Instagram, TikTok, Facebook)",
+      "Chatbot Web integrable con webhook",
+      "Plataforma Web App dedicada",
     ],
-    buttonText: "Elegir Plan Esencial",
+    buttonText: "Elegir Plan Asistente",
     defaultPrices: {
-      quarterly: { amount: 2100, currency: "mxn" },
-      semiannual: { amount: 4200, currency: "mxn" },
-      annual: { amount: 7140, currency: "mxn" },
+      quarterly: { amount: 625, currency: "mxn" },
+      annual: { amount: 2117, currency: "mxn" },
     },
   },
   recepcionista: {
     title: "Plan Omnicanal",
     description: "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web con Webhook + CRM Todo-en-Uno.",
     features: [
-      "Todo lo incluido en el Plan Esencial",
+      "Todo lo incluido en el Plan Asistente",
       "Automatización de WhatsApp Business API",
       "Automatización de mensajes directos en Instagram (DMs)",
       "Automatización de Facebook Messenger",
@@ -53,49 +52,55 @@ const PLAN_METADATA_FALLBACKS = {
       "Metas multicanal por colaborador y por negocio",
       "Soporte prioritario y puesta en marcha guiada",
     ],
-    differences: [],
+    differences: [
+      "Plataforma Web App dedicada",
+    ],
     buttonText: "Elegir Plan Omnicanal",
     defaultPrices: {
-      quarterly: { amount: 4650, currency: "mxn" },
-      semiannual: { amount: 9300, currency: "mxn" },
-      annual: { amount: 15810, currency: "mxn" },
+      quarterly: { amount: 1400, currency: "mxn" },
+      annual: { amount: 4760, currency: "mxn" },
     },
   },
   "soporte-tecnico": {
-    title: "Plan Soporte Avanzado",
-    description: "Soporte técnico y resolución de incidencias con IA para empresas con requerimientos operativos intensivos.",
+    title: "Plan Web App",
+    description: "Plataforma Web App completa para tu negocio: portal web de clientes, panel de gestión y CRM Todo-en-Uno.",
     features: [
-      "Agente de soporte técnico avanzado con IA",
-      "Resolución de dudas técnicas complejas 24/7",
-      "Entrenamiento con documentación y manuales extensos",
-      "Escalamiento inteligente a agentes humanos",
-      "CRM Todo-en-Uno con módulo de tickets y analíticas",
-      "Soporte técnico prioritario dedicado",
+      "Plataforma Web App personalizada para tu negocio",
+      "Portal web para clientes con gestión de citas y pedidos",
+      "Panel de administración y CRM Todo-en-Uno",
+      "Gestión avanzada de inventario, catálogo y servicios",
+      "Integración de pagos en línea con Stripe",
+      "Dominio personalizado y hosting de alta velocidad",
+      "Analíticas avanzadas de conversión y métricas comerciales",
+      "Soporte técnico prioritario y copias de seguridad continuas",
     ],
-    differences: [],
-    buttonText: "Elegir Soporte Avanzado",
+    differences: [
+      "Automatización omnicanal en redes sociales",
+    ],
+    buttonText: "Elegir Plan Web App",
     defaultPrices: {
-      quarterly: { amount: 5625, currency: "mxn" },
-      semiannual: { amount: 11250, currency: "mxn" },
-      annual: { amount: 19125, currency: "mxn" },
+      quarterly: { amount: 1875, currency: "mxn" },
+      annual: { amount: 6375, currency: "mxn" },
     },
   },
   "a-medida": {
-    title: "Solución Enterprise",
-    description: "Solución personalizada y arquitectura a medida adaptada a las necesidades específicas de tu empresa.",
+    title: "Plan Chatbot + Web App",
+    description: "Solución Integral definitiva: Chatbot Omnicanal con IA en WhatsApp y redes sociales + Web App completa y CRM.",
     features: [
-      "Agentes de IA y canales ilimitados a medida",
-      "Integraciones profundas con CRM externo, ERP y bases de datos",
-      "Flujos conversacionales y webhooks bidireccionales a medida",
-      "Gerente de cuenta técnico y SLA corporativo",
-      "Soporte corporativo prioritario 24/7",
+      "Solución Integral: Chatbot Omnicanal + Web App completa",
+      "Automatización en WhatsApp, Instagram, TikTok y Facebook",
+      "Chatbot Web integrable con webhook en tiempo real",
+      "Plataforma Web App dedicada con portal de clientes",
+      "Sistema CRM Todo-en-Uno completo para citas, empleados y metas",
+      "Catálogo digital de productos y servicios con cobro integrado",
+      "Flujos personalizados y webhooks bidireccionales",
+      "Onboarding técnico asistido y soporte prioritario 24/7",
     ],
     differences: [],
-    buttonText: "Cotizar por WhatsApp",
+    buttonText: "Elegir Plan Integral",
     defaultPrices: {
-      quarterly: null,
-      semiannual: null,
-      annual: { amount: 30590, currency: "mxn" },
+      quarterly: { amount: 2999, currency: "mxn" },
+      annual: { amount: 10196, currency: "mxn" },
     },
   },
 }
@@ -118,15 +123,24 @@ const resolvePlanId = (price) => {
     lookupKey.includes("a-medida") ||
     lookupKey.includes("chatbot_webapp") ||
     lookupKey.includes("chatbot-webapp") ||
-    lookupKey.includes("personalizado")
+    lookupKey.includes("personalizado") ||
+    lookupKey.includes("tier4")
   ) {
     return "a-medida"
   }
-  if (lookupKey.includes("asistente") || lookupKey.includes("landing")) return "asistente"
-  if (lookupKey.includes("recepcionista") || (lookupKey.includes("chatbot") && !lookupKey.includes("web"))) {
+  if (lookupKey.includes("tier1") || lookupKey.includes("asistente") || lookupKey.includes("landing")) {
+    return "asistente"
+  }
+  if (
+    lookupKey.includes("tier2") ||
+    lookupKey.includes("omnicanal") ||
+    lookupKey.includes("recepcionista") ||
+    (lookupKey.includes("chatbot") && !lookupKey.includes("web"))
+  ) {
     return "recepcionista"
   }
   if (
+    lookupKey.includes("tier3") ||
     lookupKey.includes("soporte") ||
     lookupKey.includes("webapp") ||
     (lookupKey.includes("web") && !lookupKey.includes("chatbot"))
@@ -138,12 +152,18 @@ const resolvePlanId = (price) => {
   const nickname = (price.nickname || "").toLowerCase()
   const text = nickname + " " + productName
 
-  if (text.includes("a medida") || (text.includes("chatbot") && text.includes("web")) || text.includes("personalizado")) {
+  if (text.includes("a medida") || (text.includes("chatbot") && text.includes("web")) || text.includes("personalizado") || text.includes("tier 4")) {
     return "a-medida"
   }
-  if (text.includes("asistente") || text.includes("landing")) return "asistente"
-  if (text.includes("recepcionista") || (text.includes("chatbot") && !text.includes("web"))) return "recepcionista"
-  if (text.includes("soporte") || (text.includes("web") && !text.includes("chatbot"))) return "soporte-tecnico"
+  if (text.includes("asistente") || text.includes("landing") || text.includes("tier 1") || text.includes("tier1")) {
+    return "asistente"
+  }
+  if (text.includes("recepcionista") || text.includes("omnicanal") || text.includes("tier 2") || text.includes("tier2") || (text.includes("chatbot") && !text.includes("web"))) {
+    return "recepcionista"
+  }
+  if (text.includes("soporte") || text.includes("tier 3") || (text.includes("web") && !text.includes("chatbot"))) {
+    return "soporte-tecnico"
+  }
 
   return null
 }
@@ -151,20 +171,26 @@ const resolvePlanId = (price) => {
 const resolvePlanPeriod = (price) => {
   const lookupKey = (price.lookup_key || "").toLowerCase()
   if (
-    lookupKey.endsWith("_year") ||
-    lookupKey.endsWith("_annual") ||
-    lookupKey.endsWith(".annual") ||
-    lookupKey.endsWith("_anual")
+    lookupKey.includes("year") ||
+    lookupKey.includes("annual") ||
+    lookupKey.includes("anual") ||
+    lookupKey.includes("yearly")
   ) {
     return "annual"
   }
-  if (lookupKey.endsWith("_semester") || lookupKey.endsWith("_semiannual")) return "semiannual"
-  if (lookupKey.endsWith("_trimester") || lookupKey.endsWith("_quarterly")) return "quarterly"
-  if (lookupKey.endsWith("_monthly") || lookupKey.endsWith(".monthly") || lookupKey.endsWith("_mes")) return "monthly"
+  if (
+    lookupKey.includes("quarter") ||
+    lookupKey.includes("trimest") ||
+    lookupKey.includes("_3m")
+  ) {
+    return "quarterly"
+  }
 
   const interval = price.recurring?.interval
-  if (interval === "year") return "annual"
-  if (interval === "month") return "monthly"
+  const intervalCount = price.recurring?.interval_count || 1
+
+  if (interval === "year" || (interval === "month" && intervalCount === 12)) return "annual"
+  if (interval === "month" && intervalCount === 3) return "quarterly"
   return null
 }
 
@@ -194,7 +220,7 @@ const ensureExtraEntry = (extrasById, extraId, price) => {
     name: price.metadata?.name || product?.name || extraId,
     description: price.metadata?.description || product?.description || "",
     prices: {
-      monthly: null,
+      quarterly: null,
       annual: null,
     },
   }
@@ -253,10 +279,8 @@ export async function GET() {
         flags: PLAN_FLAGS[planId],
         prices: {
           quarterly: null,
-          semiannual: null,
           annual: null,
         },
-        _rawPrices: {},
       })
     }
 
@@ -269,7 +293,7 @@ export async function GET() {
       const planId = resolvePlanId(price)
       const period = resolvePlanPeriod(price)
 
-      if (planId && period) {
+      if (planId && (period === "quarterly" || period === "annual")) {
         const plan = plansById.get(planId)
         if (plan) {
           const product = price.product && typeof price.product !== "string" ? price.product : null
@@ -295,11 +319,7 @@ export async function GET() {
             currency: price.currency,
           }
 
-          plan._rawPrices[period] = priceObj
-
-          if (period === "annual") plan.prices.annual = priceObj
-          if (period === "semiannual") plan.prices.semiannual = priceObj
-          if (period === "quarterly") plan.prices.quarterly = priceObj
+          plan.prices[period] = priceObj
         }
         return
       }
@@ -308,7 +328,7 @@ export async function GET() {
         const extraId = price.metadata?.extra_id
         if (extraId) {
           const extra = ensureExtraEntry(extrasById, extraId, price)
-          const targetInterval = interval === "month" ? "monthly" : "annual"
+          const targetInterval = period === "quarterly" ? "quarterly" : "annual"
           extra.prices[targetInterval] = {
             id: price.id,
             amount: Number((price.unit_amount ?? 0) / 100),
@@ -318,50 +338,13 @@ export async function GET() {
       }
     })
 
-    // Calcular derivaciones periódicas si no existen de forma explícita en Stripe
-    for (const [planId, plan] of plansById.entries()) {
-      if (planId === "a-medida") continue
-
-      const monthlyObj = plan._rawPrices["monthly"]
-      if (monthlyObj) {
-        if (!plan.prices.quarterly) {
-          plan.prices.quarterly = {
-            id: monthlyObj.id,
-            amount: monthlyObj.amount * 3,
-            currency: monthlyObj.currency,
-          }
-        }
-        if (!plan.prices.semiannual) {
-          plan.prices.semiannual = {
-            id: monthlyObj.id,
-            amount: monthlyObj.amount * 6,
-            currency: monthlyObj.currency,
-          }
-        }
-        if (!plan.prices.annual) {
-          plan.prices.annual = {
-            id: monthlyObj.id,
-            amount: Math.round(monthlyObj.amount * 12 * 0.85),
-            currency: monthlyObj.currency,
-          }
-        }
-      } else {
-        // Si no hay monthly, usar defaults de precios
-        const fallback = PLAN_METADATA_FALLBACKS[planId]
-        if (!plan.prices.quarterly) plan.prices.quarterly = fallback.defaultPrices.quarterly
-        if (!plan.prices.semiannual) plan.prices.semiannual = fallback.defaultPrices.semiannual
-        if (!plan.prices.annual) plan.prices.annual = fallback.defaultPrices.annual
-      }
-    }
-
-    const plans = Array.from(plansById.values()).map((p) => {
-      const copy = { ...p }
-      delete copy._rawPrices
-      return copy
-    })
+    // Solo devolver planes que tengan al menos un precio registrado en Stripe
+    const plans = Array.from(plansById.values()).filter(
+      (plan) => plan.prices.quarterly !== null || plan.prices.annual !== null
+    )
 
     const extras = Array.from(extrasById.values()).filter(
-      (extra) => extra.prices.monthly && extra.prices.annual
+      (extra) => extra.prices.quarterly || extra.prices.annual
     )
 
     return NextResponse.json({

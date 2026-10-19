@@ -173,7 +173,7 @@ function CheckoutContent() {
     isPlanId(planParam) ? planParam : "recepcionista"
   )
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(
-    billingParam === "annual" ? "annual" : billingParam === "semiannual" ? "semiannual" : "quarterly"
+    billingParam === "annual" ? "annual" : "quarterly"
   )
   const [selectedExtras, setSelectedExtras] = useState<string[]>(
     extrasParam.split(",").map((s) => s.trim()).filter(Boolean)
@@ -279,16 +279,15 @@ function CheckoutContent() {
   // Cálculo de precios
   const currentPlanPrice = useMemo(() => {
     if (!selectedPlan?.price) return 0
-    if (billingPeriod === "annual") return selectedPlan.price.annual
-    if (billingPeriod === "semiannual") return selectedPlan.price.semiannual
-    return selectedPlan.price.quarterly
+    if (billingPeriod === "annual") return selectedPlan.price.annual ?? 0
+    return selectedPlan.price.quarterly ?? 0
   }, [selectedPlan, billingPeriod])
 
   const extrasTotal = useMemo(() => {
     return selectedExtras.reduce((sum, extraId) => {
       const extra = catalogExtras.find((e) => e.id === extraId)
       if (!extra?.prices) return sum
-      const amount = billingPeriod === "annual" ? extra.prices.annual?.amount : extra.prices.monthly?.amount
+      const amount = billingPeriod === "annual" ? extra.prices.annual?.amount : extra.prices.quarterly?.amount
       return sum + (amount || 0)
     }, 0)
   }, [selectedExtras, catalogExtras, billingPeriod])
@@ -548,7 +547,7 @@ function CheckoutContent() {
                         <button
                           type="button"
                           onClick={() => setBillingPeriod("quarterly")}
-                          className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                          className={`rounded-lg px-3.5 py-1 text-xs font-semibold transition ${
                             billingPeriod === "quarterly"
                               ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
                               : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
@@ -558,19 +557,8 @@ function CheckoutContent() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setBillingPeriod("semiannual")}
-                          className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
-                            billingPeriod === "semiannual"
-                              ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                          }`}
-                        >
-                          Semestral
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => setBillingPeriod("annual")}
-                          className={`relative rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                          className={`relative rounded-lg px-3.5 py-1 text-xs font-semibold transition ${
                             billingPeriod === "annual"
                               ? "bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-sm"
                               : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
@@ -578,7 +566,7 @@ function CheckoutContent() {
                         >
                           Anual
                           <span className="ml-1 rounded-sm bg-white/20 px-1 py-0.2 text-[9px] font-bold uppercase">
-                            -20%
+                            -15%
                           </span>
                         </button>
                       </div>
@@ -597,8 +585,6 @@ function CheckoutContent() {
                           const price =
                             billingPeriod === "annual"
                               ? plan.price?.annual ?? 0
-                              : billingPeriod === "semiannual"
-                              ? plan.price?.semiannual ?? 0
                               : plan.price?.quarterly ?? 0
 
                           const isEsencial = plan.id === "asistente"
@@ -680,7 +666,7 @@ function CheckoutContent() {
                               </div>
 
                               <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-3 dark:border-slate-800/80">
-                                <span className="text-xs font-medium text-slate-400">Inversión ({billingPeriod})</span>
+                                <span className="text-xs font-medium text-slate-400">Inversión ({billingPeriod === "annual" ? "anual" : "trimestral"})</span>
                                 {plan.hidePrice ? (
                                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                                     A cotizar
@@ -1250,7 +1236,7 @@ function CheckoutContent() {
                         {selectedPlan?.title || PLAN_LABELS[selectedPlanId] || "Plan de IA"}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        Facturación {billingPeriod === "annual" ? "Anual (-20%)" : billingPeriod === "semiannual" ? "Semestral" : "Trimestral"}
+                        Facturación {billingPeriod === "annual" ? "Anual (-15%)" : "Trimestral"}
                       </p>
                     </div>
                     <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
