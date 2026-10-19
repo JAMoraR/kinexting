@@ -71,62 +71,77 @@ export type PricingCatalogResponse = {
   extras?: CatalogExtra[]
 }
 
+export const PLAN_TITLES: Record<PlanId, string> = {
+  asistente: "Plan Esencial",
+  recepcionista: "Plan Omnicanal",
+  "soporte-tecnico": "Plan Soporte Avanzado",
+  "a-medida": "Solución Enterprise",
+}
+
 export const PLAN_CATEGORY: Record<PlanId, PlanCategory> = {
   asistente: "chatbot",
-  recepcionista: "chatbot",
+  recepcionista: "both",
   "soporte-tecnico": "chatbot",
   "a-medida": "both",
 }
 
 const PLAN_COPY: Record<PlanId, { description: string; features: string[]; differences: string[] }> = {
   asistente: {
-    description: "Asistente virtual con IA para automatizar conversaciones y atención al cliente.",
+    description: "Automatización inteligente de WhatsApp con IA + Sistema CRM completo para citas, catálogo, empleados y metas.",
     features: [
-      "Agente conversacional de IA 24/7",
-      "Integración directa con WhatsApp",
-      "Respuestas automáticas a dudas frecuentes",
-      "Captación y registro de prospectos",
-      "Puesta en marcha guiada",
+      "Agente conversacional de IA 24/7 en WhatsApp",
+      "Sistema CRM Todo-en-Uno incluido (sin costo por usuario)",
+      "Agenda y confirmación de citas en tiempo real",
+      "Sincronización bidireccional con Google Calendar",
+      "Catálogo digital de productos y servicios con links de cobro",
+      "Módulo de promociones, cupones y ofertas",
+      "Bandeja de mensajería para WhatsApp",
+      "Gestión de empleados, turnos y asignación de chats",
+      "Analíticas en tiempo real y tiempos de respuesta",
+      "Metas y objetivos (semanales, mensuales, anuales o plazo indeterminado)",
     ],
     differences: [
-      "Gestión de citas y sincronización de calendario",
-      "Soporte técnico especializado con IA",
+      "Chatbot Web integrable con webhook en web existente",
+      "Redes sociales (Instagram DMs, TikTok, Facebook Messenger)",
+      "Bandeja unificada omnicanal de redes sociales",
     ],
   },
   recepcionista: {
-    description: "Recepcionista digital que gestiona llamadas, citas y mensajes automáticamente.",
+    description: "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web con Webhook + CRM Todo-en-Uno.",
     features: [
-      "Agente recepcionista con IA multicanal",
-      "Gestión y confirmación de citas en tiempo real",
-      "Sincronización con Google Calendar y WhatsApp",
-      "Recordatorios automáticos para evitar inasistencias",
-      "Panel de control y registro de conversaciones",
-      "Soporte prioritario 24/7",
+      "Todo lo incluido en el Plan Esencial",
+      "Automatización de WhatsApp Business API",
+      "Automatización de mensajes directos en Instagram (DMs)",
+      "Automatización de Facebook Messenger",
+      "Automatización de mensajes directos en TikTok",
+      "Chatbot Web integrable vía Webhook en tu web existente",
+      "Bandeja unificada omnicanal (todos los chats en un solo inbox)",
+      "Atribución y analíticas comparativas por canal",
+      "Metas multicanal por colaborador y por negocio",
+      "Soporte prioritario y puesta en marcha guiada",
     ],
-    differences: [
-      "Resolución técnica avanzada de incidencias",
-    ],
+    differences: [],
   },
   "soporte-tecnico": {
-    description: "Soporte técnico automatizado con IA para resolver incidencias 24/7.",
+    description: "Soporte técnico y resolución de incidencias con IA para empresas con requerimientos operativos intensivos.",
     features: [
       "Agente de soporte técnico avanzado con IA",
-      "Resolución de dudas técnicas complejas",
-      "Entrenamiento con la documentación de tu empresa",
+      "Resolución de dudas técnicas complejas 24/7",
+      "Entrenamiento con documentación y manuales extensos",
       "Escalamiento inteligente a agentes humanos",
-      "Métricas de atención y analítica",
+      "CRM Todo-en-Uno con módulo de tickets y analíticas",
       "Soporte técnico prioritario dedicado",
     ],
     differences: [],
   },
   "a-medida": {
-    description: "Solución personalizada adaptada a las necesidades específicas de tu negocio.",
+    description: "Solución personalizada y arquitectura a medida adaptada a las necesidades específicas de tu empresa.",
     features: [
-      "Agentes de IA ilimitados a medida",
-      "Integraciones con CRM, ERP y bases de datos",
-      "Flujos conversacionales y acciones personalizadas",
-      "Gerente de cuenta técnico y SLA dedicado",
-      "Soporte corporativo 24/7",
+      "Agentes de IA y canales ilimitados a medida",
+      "Integraciones profundas con CRM externo, ERP y bases de datos",
+      "Flujos conversacionales y webhooks bidireccionales a medida",
+      "Gerente de cuenta técnico y SLA corporativo",
+      "Soporte corporativo prioritario 24/7",
     ],
     differences: [],
   },
@@ -136,7 +151,7 @@ export const buildPlanLink = (planId: PlanId, billing: BillingCycle) => {
   if (planId === "a-medida") {
     return buildWhatsAppLink()
   }
-  return `/configurar-plan?plan=${planId}&billing=${billing}`
+  return `/checkout?plan=${planId}&billing=${billing}`
 }
 
 export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
@@ -187,10 +202,12 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
       ? catalogPlan.features
       : staticCopy?.features || []
 
+  const displayTitle = catalogPlan.title || PLAN_TITLES[catalogPlan.id] || catalogPlan.id
+
   return {
     id: catalogPlan.id,
     category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "chatbot",
-    title: catalogPlan.title || catalogPlan.id,
+    title: displayTitle,
     price: {
       quarterly: quarterlyPrice,
       semiannual: semiannualPrice,
@@ -200,7 +217,7 @@ export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
     description: staticCopy?.description || catalogPlan.description || "",
     features,
     differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
-    buttonText: catalogPlan.buttonText || `Elegir ${catalogPlan.title || catalogPlan.id}`,
+    buttonText: catalogPlan.buttonText || `Elegir ${displayTitle}`,
     cheap: Boolean(catalogPlan.flags?.cheap),
     popular: Boolean(catalogPlan.flags?.popular),
     recommended: Boolean(catalogPlan.flags?.recommended),

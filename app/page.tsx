@@ -18,10 +18,16 @@ import {
   Clock,
   Database,
   Globe,
+  Inbox,
+  Layers,
   MessageSquare,
+  Send,
   ServerIcon,
   ShieldCheck,
+  Smartphone,
   Sparkles,
+  Tag,
+  Target,
   TrendingUp,
   User,
   Users,
@@ -39,10 +45,6 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import ThemeToggle from "@/components/theme-toggle"
 import { COMPANY_NAME, buildPlanLink, mapCatalogPlansToPlans, PLAN_CATEGORY, type Plan, type PlanId, type PricingCatalogResponse } from "@/lib/plans"
 import Image from "next/image"
-import FullWhiteLogo from "@/public/logos/fullWhite.png"
-import FullBlackLogo from "@/public/logos/fullBlack.png"
-import MinimalBlackLogo from "@/public/logos/minimalBlack.png"
-import MinimalWhiteLogo from "@/public/logos/minimalWhite.png"
 
 export default function Home() {
   const clientsAccessUrl = process.env.NODE_ENV === "production" ? "https://clientes.kinexting.com" : "http://localhost:3001"
@@ -51,12 +53,16 @@ export default function Home() {
   const pricingRef = useRef<HTMLElement>(null)
   const comparisonRef = useRef<HTMLElement>(null)
   const servicesRef = useRef<HTMLElement>(null)
+  const crmRef = useRef<HTMLElement>(null)
   const faqRef = useRef<HTMLElement>(null)
   const contactRef = useRef<HTMLElement>(null)
 
   // Referencias para animaciones
   const heroRef = useRef<HTMLDivElement>(null)
   const isHeroInView = useInView(heroRef, { once: true })
+
+  const crmHeaderRef = useRef<HTMLDivElement>(null)
+  const isCrmHeaderInView = useInView(crmHeaderRef, { once: true, margin: "-100px" })
 
   const pricingHeaderRef = useRef<HTMLDivElement>(null)
   const isPricingHeaderInView = useInView(pricingHeaderRef, { once: true, margin: "-100px" })
@@ -239,61 +245,89 @@ export default function Home() {
     viewport: { once: true, amount: mobile ? 0.1 : 0.35 },
   })
 
-  const comparisonPlans = ["Asistente", "Recepcionista", "Soporte Técnico", "Personalizado"] as const
+  const comparisonPlans = ["Plan Esencial (Nivel 1)", "Plan Omnicanal (Nivel 2)", "Solución Enterprise"] as const
 
   const comparisonRows = [
     {
-      category: "CAPACIDAD Y CONSUMO DE IA",
+      category: "CANALES DE ATENCIÓN CON IA",
       rows: [
         {
-          label: "Mensajes Incluidos",
-          values: ["+1,000 mensajes/mes", "+1,500 mensajes/mes", "+2,000 mensajes/mes", "A medida"],
+          label: "WhatsApp Business API Oficial",
+          values: [true, true, true],
         },
         {
-          label: "Análisis de Multimedia (Fotos, Audios, Archivos)",
-          values: [true, true, true, true],
+          label: "Chatbot Web (Integrable con Webhook en web existente)",
+          values: [false, true, true],
         },
         {
-          label: "Historial de Memoria",
-          values: ["10 mensajes", "10 mensajes", "Contexto Extendido", "A medida"],
+          label: "Instagram DMs y Comentarios",
+          values: [false, true, true],
+        },
+        {
+          label: "Facebook Messenger",
+          values: [false, true, true],
+        },
+        {
+          label: "Mensajería Directa en TikTok",
+          values: [false, true, true],
+        },
+        {
+          label: "Bandeja Unificada de Conversaciones",
+          values: ["Solo WhatsApp", "Todas las Redes + Web", "A Medida"],
         },
       ],
     },
     {
-      category: "CANALES Y FUNCIONALIDADES CORE",
+      category: "SISTEMA CRM INTEGRADO (SIN COSTO POR USUARIO)",
       rows: [
         {
-          label: "Despliegue en Canales (WhatsApp / Messenger / Tiktok / Instagram)",
-          values: [true, true, true, true],
+          label: "Gestión y Agenda de Citas 24/7",
+          values: [true, true, true],
         },
         {
-          label: "Base de Conocimientos / FAQs Comerciales",
-          values: [true, true, true, true],
+          label: "Sincronización Bidireccional Google Calendar",
+          values: [true, true, true],
         },
         {
-          label: "Agendamiento Activo de Citas e Integración con Calendarios",
-          values: [false, true, false, true],
+          label: "Recordatorios Preventivos de Citas por WhatsApp",
+          values: [true, true, true],
         },
         {
-          label: "Validación de Horarios en Tiempo Real",
-          values: [true, true, true, true],
+          label: "Catálogo Digital de Servicios y Productos",
+          values: [true, true, true],
         },
         {
-          label: "Entrenamiento Masivo (Manuales, Políticas y PDFs Extensos)",
-          values: [false, false, true, true],
+          label: "Módulo de Promociones, Campañas y Cupones",
+          values: [true, true, true],
         },
         {
-          label: "Levantamiento de Tickets y Canalización con Agentes Humanos",
-          values: [true, true, true, true],
+          label: "Gestión de Empleados, Turnos y Permisos",
+          values: [true, true, true],
+        },
+        {
+          label: "Analíticas en Tiempo Real y Tiempos de Respuesta",
+          values: [true, true, true],
+        },
+        {
+          label: "Metas y Objetivos (Semanales, Mensuales, Anuales, Indeterminadas)",
+          values: [true, true, true],
         },
       ],
     },
     {
-      category: "SOPORTE",
+      category: "SOPORTE Y PUESTA EN MARCHA",
       rows: [
+        {
+          label: "Puesta en Marcha y Entrenamiento Inicial",
+          values: ["Guiada", "Prioritaria", "Arquitecto Dedicado"],
+        },
         {
           label: "Soporte Técnico",
-          values: ["24/7 Estándar", "24/7 Estandar", "24/7 Estandar", "24/7 Dedicado"],
+          values: ["24/7 Estándar", "24/7 Prioritario", "SLA Dedicado 24/7"],
+        },
+        {
+          label: "Usuarios y Colaboradores en CRM",
+          values: ["Ilimitados", "Ilimitados", "Ilimitados"],
         },
       ],
     },
@@ -319,7 +353,7 @@ export default function Home() {
             {isMobile ? (
               <>
                 <Image
-                  src={MinimalBlackLogo}
+                  src="/logos/minimalBlack.png"
                   alt={COMPANY_NAME}
                   width={28}
                   height={28}
@@ -327,7 +361,7 @@ export default function Home() {
                   priority
                 />
                 <Image
-                  src={MinimalWhiteLogo}
+                  src="/logos/minimalWhite.png"
                   alt={COMPANY_NAME}
                   width={28}
                   height={28}
@@ -346,7 +380,7 @@ export default function Home() {
             ) : (
               <>
                 <Image
-                  src={FullBlackLogo}
+                  src="/logos/fullBlack.png"
                   alt={COMPANY_NAME}
                   width={130}
                   height={32}
@@ -354,7 +388,7 @@ export default function Home() {
                   priority
                 />
                 <Image
-                  src={FullWhiteLogo}
+                  src="/logos/fullWhite.png"
                   alt={COMPANY_NAME}
                   width={130}
                   height={32}
@@ -368,11 +402,11 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <Link
                 href="#services"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                 onClick={(e) => {
                   e.preventDefault()
                   scrollToSection(servicesRef)
@@ -384,27 +418,43 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
             >
               <Link
-                href="#pricing"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
+                href="#crm"
+                className="text-sm font-medium hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                 onClick={(e) => {
                   e.preventDefault()
-                  scrollToSection(pricingRef)
+                  scrollToSection(crmRef)
                 }}
               >
-                Servicios
+                CRM Todo-en-Uno
               </Link>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              <Link
+                href="#pricing"
+                className="text-sm font-medium hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection(pricingRef)
+                }}
+              >
+                Planes
+              </Link>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
             >
               <Link
                 href="#comparison"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                 onClick={(e) => {
                   e.preventDefault()
                   scrollToSection(comparisonRef)
@@ -416,16 +466,16 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
             >
               <Link
                 href="#faq"
-                className="text-sm font-medium hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                 onClick={(e) => {
                   e.preventDefault()
                   scrollToSection(faqRef)
                 }}
-                >
+              >
                 FAQ
               </Link>
             </motion.div>
@@ -455,8 +505,10 @@ export default function Home() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link href="/configurar-plan">
-                <Button className="bg-indigo-600 hover:bg-indigo-700">Comenzar</Button>
+              <Link href="/checkout">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400">
+                  Comenzar
+                </Button>
               </Link>
             </motion.div>
             {/* PENDIENTE: Acceso a clientes actuales
@@ -501,7 +553,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                 >
                   <Badge className="bg-white/10 text-white hover:bg-white/20 border-none">
-                    Para negocios de servicios
+                    Automatización con IA + Sistema CRM
                   </Badge>
                 </motion.div>
                 <motion.h1
@@ -510,11 +562,9 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
                 >
-                  Llena tu agenda con
+                  Llena tu agenda y controla tu negocio con
                   <br />
-                    <span className="text-cyan-300 [text-shadow:0_2px_10px_rgba(34,211,238,0.45)]"> más citas</span>
-                  <br />
-                  y menos esfuerzo
+                  <span className="text-cyan-300 [text-shadow:0_2px_10px_rgba(34,211,238,0.45)]"> IA y CRM Todo-en-Uno</span>
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 30 }}
@@ -522,7 +572,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="max-w-[600px] text-white/90 md:text-xl"
                 >
-                  Sitio web, automatización y atención inteligente para barberias, salones, spas, consultorios y consultoras.
+                  Automatiza tu atención en WhatsApp y Redes Sociales con Inteligencia Artificial. Centraliza citas, catálogo, empleados, analíticas y metas en una plataforma diseñada para hacer crecer tu facturación.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
@@ -538,26 +588,24 @@ export default function Home() {
                         scrollToSection(pricingRef)
                       }}
                     >
-                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
-                        Ver servicios
+                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold">
+                        Ver Planes
                       </Button>
                     </Link>
                   </motion.div>
-                  {/* PENDIENTE: Prueba gratuita
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
-                      href="#pricing"
+                      href="#crm"
                       onClick={(e) => {
                         e.preventDefault()
-                        window.location.href = 'http://localhost:3001/'
+                        scrollToSection(crmRef)
                       }}
                     >
                       <Button size="lg" className="border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">
-                        Prueba gratuita
+                        Explorar CRM
                       </Button>
                     </Link>
                   </motion.div>
-                  */}
                 </motion.div>
               </div>
               <motion.div
@@ -566,15 +614,21 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="relative mx-auto max-w-[500px]"
               >
-                <div className="relative rounded-xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur elev-3">
-                  <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-                    <div className="flex gap-1">
-                      <div className="h-3 w-3 rounded-full bg-red-500" />
-                      <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                      <div className="h-3 w-3 rounded-full bg-green-500" />
+                <div className="relative rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur elev-3">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="h-3 w-3 rounded-full bg-red-500" />
+                        <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                        <div className="h-3 w-3 rounded-full bg-green-500" />
+                      </div>
+                      <span className="text-[11px] font-medium text-white/70">Atención Multicanal con IA</span>
                     </div>
-                    <div className="flex-1 text-center text-xs text-white/60">chatbot en vivo</div>
+                    <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                      WhatsApp + Redes
+                    </span>
                   </div>
+
                   <div className="mt-3 space-y-1.5 text-xs text-white/90 sm:space-y-2 sm:text-sm">
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -585,8 +639,8 @@ export default function Home() {
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
                         <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
-                        Hola, tienen cita hoy para corte y barba?
+                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                        Hola, ¿tienen disponibilidad mañana en la tarde y qué costo tiene?
                       </div>
                     </motion.div>
                     <motion.div
@@ -598,9 +652,8 @@ export default function Home() {
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
                         <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2 py-1.5 leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
-                        <span className="block text-right">Si, te puedo agendar a las 5:30 pm o 6:00 pm. Cual</span>
-                        <span className="block text-left">prefieres?</span>
+                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                        ¡Hola! Claro, el servicio tiene un costo de <strong>$450 MXN</strong>. Tenemos espacio disponible a las <strong>4:00 PM</strong> o <strong>5:30 PM</strong>. ¿Cuál te acomoda mejor?
                       </div>
                     </motion.div>
                     <motion.div
@@ -612,8 +665,8 @@ export default function Home() {
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
                         <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
-                        6:00 pm por favor.
+                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                        A las 4:00 PM por favor.
                       </div>
                     </motion.div>
                     <motion.div
@@ -625,33 +678,37 @@ export default function Home() {
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
                         <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
-                        Listo, tu cita quedo confirmada para hoy 6:00 pm.
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.95, duration: 0.2 }}
-                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
-                    >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
-                        <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      </span>
-                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
-                        Wow, que facil fue. Gracias.
+                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                        ✓ ¡Listo! Tu cita quedó confirmada para mañana a las 4:00 PM. Te enviamos recordatorio 2 horas antes.
                       </div>
                     </motion.div>
                   </div>
 
+                  {/* Widget CRM Live Sync */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 1.1, duration: 0.25 }}
-                    className="mt-3 rounded-xl border border-cyan-200/60 bg-gradient-to-r from-cyan-400/40 to-indigo-400/35 px-2.5 py-2 text-base text-cyan-50 shadow-[0_0_0_1px_rgba(103,232,249,0.35),0_14px_28px_rgba(14,165,233,0.3)] backdrop-blur-sm sm:px-3 sm:text-base"
+                    transition={{ delay: 1.0, duration: 0.25 }}
+                    className="mt-3 rounded-xl border border-cyan-200/50 bg-slate-950/70 p-3 text-xs text-white shadow-lg backdrop-blur-sm"
                   >
-                    <span className="mb-1 inline-flex rounded-full border border-cyan-100/35 bg-cyan-200/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-50">Empieza hoy</span>
-                    <p>Asi de simple puede ser para tu negocio. Adquiere nuestros servicios y convierte mensajes en citas.</p>
+                    <div className="flex items-center justify-between border-b border-white/10 pb-1.5 text-[11px]">
+                      <span className="flex items-center gap-1.5 font-bold text-cyan-300">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Sincronizado con CRM Kinexting
+                      </span>
+                      <span className="text-[10px] text-white/60">Tiempo real</span>
+                    </div>
+
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                      <div className="rounded-lg bg-white/5 p-2">
+                        <span className="text-[10px] text-white/60 block">Cita en Google Calendar</span>
+                        <strong className="text-white">Mañana · 4:00 PM</strong>
+                      </div>
+                      <div className="rounded-lg bg-white/5 p-2">
+                        <span className="text-[10px] text-white/60 block">Meta Semanal Negocio</span>
+                        <strong className="text-emerald-400">85% completado (34/40)</strong>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
                 <motion.div
@@ -1033,51 +1090,401 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing Section */}
+        {/* CRM Todo-en-Uno Section */}
+        <section
+          id="crm"
+          ref={crmRef}
+          className="relative overflow-hidden py-20 md:py-32 bg-slate-900 text-white dark:bg-[#070d1a] border-t border-slate-800"
+        >
+          {/* Luces de fondo */}
+          <div className="absolute top-1/3 left-1/4 w-[500px] h-[300px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-10 right-1/4 w-[450px] h-[300px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+          <div className="container relative z-10 mx-auto max-w-6xl px-4">
+            <div className="mb-14 text-center max-w-3xl mx-auto" ref={crmHeaderRef}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={isCrmHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.4 }}
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4"
+              >
+                <Layers className="h-3.5 w-3.5" />
+                Sistema de Gestión Integral
+              </motion.div>
+
+              <motion.h2
+                variants={fadeInUpVariants}
+                initial="hidden"
+                animate={isCrmHeaderInView ? "visible" : "hidden"}
+                className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl text-white"
+              >
+                El CRM Todo-en-Uno que impulsa <span className="text-cyan-400">tu operación diaria</span>
+              </motion.h2>
+
+              <motion.p
+                variants={fadeInUpVariants}
+                initial="hidden"
+                animate={isCrmHeaderInView ? "visible" : "hidden"}
+                transition={{ delay: 0.15 }}
+                className="mt-4 text-base sm:text-lg text-slate-300"
+              >
+                Sin costos adicionales por usuario. Controla citas, catálogo, empleados, promociones y objetivos desde una sola plataforma conectada en tiempo real a tus conversaciones.
+              </motion.p>
+            </div>
+
+            {/* Grid Bento de Módulos CRM */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12">
+              {/* MODULO 1: Bandeja Unificada (7 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-7"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+                      <Inbox className="h-3.5 w-3.5" />
+                      Bandeja Unificada
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Omnicanal
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-white">
+                    Todos tus chats en una sola bandeja
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Centraliza mensajes de WhatsApp, Instagram, TikTok, Facebook y Chatbot Web. Tu equipo atiende sin saltar de app en app ni perder prospectos.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Selector de Canales y Chat Activo */}
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                  <div className="flex flex-wrap gap-1.5 border-b border-slate-800 pb-3 text-xs">
+                    <span className="rounded-lg bg-cyan-500/20 px-2.5 py-1 font-bold text-cyan-300 border border-cyan-500/30">
+                      Todos (29)
+                    </span>
+                    <span className="rounded-lg bg-white/5 px-2.5 py-1 text-slate-400">
+                      WhatsApp (16)
+                    </span>
+                    <span className="rounded-lg bg-white/5 px-2.5 py-1 text-slate-400">
+                      Instagram (8)
+                    </span>
+                    <span className="rounded-lg bg-white/5 px-2.5 py-1 text-slate-400">
+                      TikTok (3)
+                    </span>
+                    <span className="rounded-lg bg-white/5 px-2.5 py-1 text-slate-400">
+                      Web (2)
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
+                        IG
+                      </div>
+                      <div>
+                        <p className="font-bold text-white">@andrea.castillo</p>
+                        <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
+                          "¿Tienen cita para mañana a las 5?"
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                      ✓ Atendido por IA
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MODULO 2: Agenda y Citas 24/7 (5 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 lg:col-span-5"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Agenda Inteligente
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Google Calendar
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                    Citas y reservas sin inasistencias
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Sincronización en tiempo real y recordatorios preventivos automáticos vía WhatsApp para asegurar la llegada del cliente.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Citas */}
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-2.5 text-xs">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="font-semibold text-white">Recordatorios automáticos</span>
+                    <span className="text-emerald-400 font-bold">Activo 24/7</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span>Aviso 24 horas antes:</span>
+                    <span className="text-white font-medium">WhatsApp automatizado</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span>Aviso 2 horas antes:</span>
+                    <span className="text-white font-medium">Confirmación en 1 clic</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MODULO 3: Catálogo de Servicios y Productos (5 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-5"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                      <Tag className="h-3.5 w-3.5" />
+                      Catálogo Digital
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Cobro Inmediato
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                    Servicios, precios y cobros en el chat
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Muestra tu oferta actualizada y comparte links de pago directos para que los clientes paguen o dejen anticipos al reservar.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Servicio Card */}
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-white">Corte & Tratamiento VIP</p>
+                      <p className="text-[11px] text-slate-400">Duración: 50 min</p>
+                    </div>
+                    <span className="text-sm font-extrabold text-cyan-400">$650 MXN</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[11px] text-slate-400">
+                    <span>Link Stripe / Transferencia</span>
+                    <span className="text-emerald-400 font-semibold">✓ Listo para enviar</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MODULO 4: Promociones y Campañas (7 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-purple-500/40 lg:col-span-7"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Marketing & Fidelización
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Cupones y Difusión
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-white">
+                    Promociones y campañas segmentadas
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Crea códigos de descuento por temporada y reactiva a clientes que no han agendado en las últimas semanas con mensajes directos.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Campaña Activa */}
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-md bg-purple-500/20 px-2 py-0.5 text-xs font-bold text-purple-300">
+                        CUPÓN: PROMO20
+                      </span>
+                      <span className="text-xs text-slate-300">-20% en segunda cita</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-400 font-bold">Activo</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-300">
+                    <span>Clientes reactivados: <strong>38 citas</strong></span>
+                    <span className="text-cyan-400 font-semibold">+18.5% tasa de retorno</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MODULO 5: Gestión de Empleados y Turnos (6 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-6"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+                      <Users className="h-3.5 w-3.5" />
+                      Equipo de Trabajo
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Sin costo por usuario
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                    Gestión de empleados y asignación de turnos
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Asigna conversaciones automáticamente por especialidad o turno rotativo. Supervisa las conversaciones y el desempeño de tus colaboradores.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Lista de colaboradores */}
+                <div className="mt-6 space-y-2 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
+                        DR
+                      </div>
+                      <span className="font-semibold text-white">Dr. Daniel Ramos (Especialista)</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-400 font-bold">En turno</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-[10px]">
+                        CR
+                      </div>
+                      <span className="font-semibold text-white">Carlos Rivera (Atención)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">3 chats activos</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MODULO 6: Analíticas y Metas (Semanales, Mensuales, Anuales) (6 cols) */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                whileHover={isMobile ? undefined : { y: -4 }}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-6"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                      <Target className="h-3.5 w-3.5" />
+                      Metas y Analíticas
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      En Tiempo Real
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                    Metas semanales, mensuales y anuales
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    Define objetivos de facturación, citas y tiempos de respuesta. Monitorea el progreso con cada conversación atendida.
+                  </p>
+                </div>
+
+                {/* Micro-UI: Metas */}
+                <div className="mt-6 space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+                  <div>
+                    <div className="flex items-center justify-between text-slate-300 mb-1">
+                      <span>Meta Semanal: 40 Citas</span>
+                      <strong className="text-cyan-400">34 / 40 (85%)</strong>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full w-[85%] rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-slate-300 mb-1">
+                      <span>Meta Mensual: $120,000 MXN</span>
+                      <strong className="text-emerald-400">$104,500 MXN (87%)</strong>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section - 1 Servicio en 2 Niveles Flagship */}
         <section id="pricing" ref={pricingRef} className="border-t border-slate-200/80 bg-white py-16 md:py-24 dark:border-slate-800 dark:bg-slate-950">
           <div className="container">
-            <div className="text-center mb-4" ref={pricingHeaderRef}>
+            <div className="text-center mb-6 max-w-3xl mx-auto" ref={pricingHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isPricingHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-slate-900 dark:text-white"
               >
-                Nuestros <span className="text-indigo-600">Servicios</span>
+                1 Solo Servicio en <span className="text-indigo-600 dark:text-cyan-400">2 Niveles</span>
               </motion.h2>
+              <motion.p
+                variants={fadeInUpVariants}
+                initial="hidden"
+                animate={isPricingHeaderInView ? "visible" : "hidden"}
+                transition={{ delay: 0.15 }}
+                className="mt-3 text-base text-slate-600 dark:text-slate-300"
+              >
+                Elige si deseas iniciar con automatización exclusiva en WhatsApp o la solución Omnicanal total. Ambos niveles incluyen el Sistema CRM completo sin cobro por usuario.
+              </motion.p>
             </div>
-            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "quarterly" | "semiannual" | "annual")} className="w-full max-w-6xl mx-auto">
+
+            <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "quarterly" | "semiannual" | "annual")} className="w-full max-w-5xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="flex justify-center"
+                className="flex justify-center mb-10"
               >
                 <TabsList className="grid w-full max-w-md grid-cols-3">
                   <TabsTrigger value="quarterly" className="text-xs sm:text-sm">Trimestral</TabsTrigger>
                   <TabsTrigger value="semiannual" className="text-xs sm:text-sm">Semestral</TabsTrigger>
-                  <TabsTrigger value="annual" className="text-xs sm:text-sm">Anual</TabsTrigger>
+                  <TabsTrigger value="annual" className="text-xs sm:text-sm">
+                    Anual <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">(-20%)</span>
+                  </TabsTrigger>
                 </TabsList>
               </motion.div>
-              {/*
-              <Tabs value={planType} onValueChange={(value) => setPlanType(value as "chatbot" | "all")} className="w-full max-w-6xl mx-auto">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isPricingHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="flex justify-center mb-8"
-                >
-                  <TabsList className="grid w-full max-w-md grid-cols-2">
-                    <TabsTrigger value="chatbot" className="text-xs sm:text-sm">Chatbot</TabsTrigger>
-                    <TabsTrigger value="all" className="text-xs sm:text-sm">Todo</TabsTrigger>
-                  </TabsList>
-                </motion.div>
-              </Tabs>
-              */}
-              <TabsContent value={billingCycle} className="space-y-4">
+
+              <TabsContent value={billingCycle} className="space-y-8">
                 {isPricingLoading ? (
-                  <div className={`grid gap-6 mx-auto w-full ${getPricingGridClass(4)}`}>
-                    {[0, 1, 2, 3].map((index) => (
+                  <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+                    {[0, 1].map((index) => (
                       <Card key={index} className="h-full">
                         <CardHeader className="space-y-3">
                           <Skeleton className="h-6 w-24" />
@@ -1094,45 +1501,84 @@ export default function Home() {
                     ))}
                   </div>
                 ) : (
-                  <div ref={pricingCardsRef} className={`grid gap-6 mx-auto w-full ${getPricingGridClass(filteredPlans.length)}`}>
-                    <AnimatePresence mode="popLayout">
-                      {filteredPlans.map((plan, index) => {
-                        const entrance = getServiceCardMotion(index, filteredPlans.length, isMobile)
+                  <>
+                    {/* Cuadrícula de 2 Niveles Flagship */}
+                    <div ref={pricingCardsRef} className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+                      {filteredPlans
+                        .filter((p) => p.id === "asistente" || p.id === "recepcionista")
+                        .map((plan, index) => {
+                          const entrance = getServiceCardMotion(index, 2, isMobile)
 
-                        return (
-                          <motion.div
-                            key={plan.id}
-                            layout={!isMobile}
-                            initial="initial"
-                            whileInView="whileInView"
-                            variants={{
-                              initial: entrance.initial,
-                              whileInView: entrance.whileInView
-                            }}
-                            transition={entrance.transition}
-                            viewport={entrance.viewport}
-                            className={`h-full ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
-                          >
-                            <PricingCard
-                              title={plan.title}
-                              price={billingCycle === "quarterly" ? (plan.price?.quarterly ?? 0) : billingCycle === "semiannual" ? (plan.price?.semiannual ?? 0) : (plan.price?.annual ?? 0)}
-                              period={billingCycle === "quarterly" ? "trimestral" : billingCycle === "semiannual" ? "semestral" : "anual"}
-                              description={plan.description}
-                              features={plan.features}
-                              differences={plan.differences}
-                              buttonText={plan.buttonText}
-                              buttonLink={buildPlanLink(plan.id, billingCycle)}
-                              cheap={plan.cheap}
-                              popular={plan.popular}
-                              recommended={plan.recommended}
-                              highQuality={plan.highQuality}
-                              hidePrice={plan.hidePrice}
-                            />
-                          </motion.div>
-                        )
-                      })}
-                    </AnimatePresence>
-                  </div>
+                          return (
+                            <motion.div
+                              key={plan.id}
+                              layout={!isMobile}
+                              initial="initial"
+                              whileInView="whileInView"
+                              variants={{
+                                initial: entrance.initial,
+                                whileInView: entrance.whileInView,
+                              }}
+                              transition={entrance.transition}
+                              viewport={entrance.viewport}
+                              className={`h-full ${isMobile ? "will-change-[opacity,transform]" : ""}`}
+                            >
+                              <PricingCard
+                                title={plan.title}
+                                price={
+                                  billingCycle === "quarterly"
+                                    ? (plan.price?.quarterly ?? 0)
+                                    : billingCycle === "semiannual"
+                                    ? (plan.price?.semiannual ?? 0)
+                                    : (plan.price?.annual ?? 0)
+                                }
+                                period={billingCycle === "quarterly" ? "trimestral" : billingCycle === "semiannual" ? "semestral" : "anual"}
+                                description={plan.description}
+                                features={plan.features}
+                                differences={plan.differences}
+                                buttonText={plan.buttonText}
+                                buttonLink={buildPlanLink(plan.id, billingCycle)}
+                                cheap={plan.id === "asistente"}
+                                popular={plan.id === "recepcionista"}
+                                recommended={plan.id === "recepcionista"}
+                                hidePrice={plan.hidePrice}
+                              />
+                            </motion.div>
+                          )
+                        })}
+                    </div>
+
+                    {/* Tarjeta Solución Enterprise */}
+                    {filteredPlans.find((p) => p.id === "a-medida") && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4 }}
+                        className="mx-auto max-w-4xl rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50"
+                      >
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                          <div className="text-left">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400">
+                              Requerimientos Especiales
+                            </span>
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                              ¿Necesitas arquitectura a medida, múltiples sucursales o ERP dedicado?
+                            </h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              Diseñamos soluciones personalizadas con SLA corporativo y gerente de cuenta técnico.
+                            </p>
+                          </div>
+                          <Link href={buildPlanLink("a-medida", billingCycle)} className="shrink-0">
+                            <Button variant="outline" className="border-indigo-600/40 hover:bg-indigo-50 dark:hover:bg-slate-800">
+                              Cotizar por WhatsApp
+                              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </>
                 )}
               </TabsContent>
             </Tabs>
@@ -1149,7 +1595,7 @@ export default function Home() {
                 animate={isComparisonHeaderInView ? "visible" : "hidden"}
                 className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
               >
-                Comparación de <span className="text-indigo-600">Servicios</span>
+                Comparación de <span className="text-cyan-400">Niveles</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
@@ -1158,7 +1604,7 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
                 className="mx-auto mt-4 max-w-[700px] text-slate-300"
               >
-                Compara nuestros servicios para encontrar el que mejor se adapte a tus necesidades.
+                Compara las capacidades de cada nivel para elegir la solución perfecta para tu negocio.
               </motion.p>
             </div>
             <motion.div
@@ -1255,29 +1701,29 @@ export default function Home() {
               <FaqAccordion
                 items={[
                   {
-                    question: "¿Esto tambien funciona para mi tipo de negocio?",
+                    question: "¿Qué diferencia existe entre el Plan Esencial y el Plan Omnicanal?",
                     answer:
-                      "Si atiendes clientes por cita o mensaje, si. Esta solucion esta pensada para barberias, salones, spas, consultorios y consultoras que necesitan mas visibilidad, mas contacto y mejor seguimiento.",
+                      "El Plan Esencial (Nivel 1) automatiza tu atención exclusivamente en WhatsApp e incluye el Sistema CRM completo. El Plan Omnicanal (Nivel 2) expande esa misma inteligencia a todas tus redes sociales (Instagram DMs, TikTok, Facebook Messenger) y añade un Chatbot Web integrable vía Webhook en tu sitio web existente, unificando todos los mensajes en una sola bandeja para tu equipo.",
                   },
                   {
-                    question: "¿En cuanto tiempo puedo empezar a recibir clientes?",
+                    question: "¿Cómo se integra el Chatbot Web en mi página web existente?",
                     answer:
-                      "En la mayoria de los casos puedes salir rapido con una version inicial y luego optimizar. El objetivo es que empieces a captar contactos cuanto antes.",
+                      "Es sumamente rápido: te proporcionamos un webhook o un snippet de código de una sola línea listo para incrustar en cualquier plataforma (WordPress, Webflow, Shopify, React, HTML). No necesitas cambiar de servidor ni rehacer tu sitio web actual.",
                   },
                   {
-                    question: "¿Me ayudan con WhatsApp, formularios y seguimiento?",
+                    question: "¿El sistema CRM tiene algún costo adicional por usuario o empleado?",
                     answer:
-                      "Si. Se puede conectar todo para que los mensajes lleguen de forma clara y no se pierdan oportunidades. La idea es que cada uno de tus clientes tenga una ruta sencilla para agendar o pedir informacion.",
+                      "No. A diferencia de otros CRMs tradicionales que cobran una tarifa por cada usuario, en Kinexting el CRM viene 100% incluido en ambos niveles. Puedes dar de alta a todos los colaboradores de tu equipo, asignar turnos y gestionar citas sin pagar licencias adicionales.",
                   },
                   {
-                    question: "¿Puedo usar mi dominio actual o mis redes actuales?",
+                    question: "¿Cómo funcionan las metas (semanales, mensuales, anuales o plazo indeterminado)?",
                     answer:
-                      "Claro. Si ya tienes dominio o presencia en redes, se integra. No necesitas empezar desde cero para mejorar tu presencia digital.",
+                      "Puedes definir objetivos estratégicos de facturación, citas concretadas o tiempos de respuesta para tu negocio, asignándoles horizontes semanales, mensuales, anuales o de plazo abierto. El CRM actualiza el progreso en vivo con cada interacción y venta cerrada.",
                   },
                   {
-                    question: "¿Que pasa si no tengo fotos, textos o estructura?",
+                    question: "¿Tengo que cambiar mi número de WhatsApp o mis cuentas de redes actuales?",
                     answer:
-                      "No hay problema. Te guiamos con una estructura clara para mostrar servicios, precios, ubicacion y formas de contacto. Avanzas aunque no tengas todo listo desde el dia uno.",
+                      "No. Conectamos directamente tu número actual a través de la API Oficial de WhatsApp y vinculamos tus cuentas de Instagram, Facebook y TikTok. Conservas tus seguidores, tus chats históricos y tu identidad de marca intacta.",
                   },
                 ]}
               />
@@ -1351,8 +1797,8 @@ export default function Home() {
                         scrollToSection(pricingRef)
                       }}
                     >
-                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white">
-                        Ver servicios
+                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold">
+                        Ver Planes
                       </Button>
                     </Link>
                   </motion.div>
@@ -1631,7 +2077,7 @@ export default function Home() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Image
-                  src={MinimalWhiteLogo}
+                  src="/logos/minimalWhite.png"
                   alt={COMPANY_NAME}
                   width={28}
                   height={28}

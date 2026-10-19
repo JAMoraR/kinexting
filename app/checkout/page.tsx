@@ -107,10 +107,10 @@ const TEAM_SIZES = [
 ]
 
 const PLAN_LABELS: Record<string, string> = {
-  asistente: "Agente Asistente IA",
-  recepcionista: "Agente Recepcionista IA",
-  "soporte-tecnico": "Agente Soporte Técnico IA",
-  "a-medida": "Solución a Medida",
+  asistente: "Plan Esencial (WhatsApp + CRM)",
+  recepcionista: "Plan Omnicanal (WhatsApp + Redes Sociales + Webhook + CRM)",
+  "soporte-tecnico": "Plan Soporte Avanzado",
+  "a-medida": "Solución Enterprise",
 }
 
 const PLAN_IDS: PlanId[] = ["asistente", "recepcionista", "soporte-tecnico", "a-medida"]
@@ -536,10 +536,10 @@ function CheckoutContent() {
                     <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                          1. Configura tu Agente de IA
+                          1. Selecciona tu Nivel de Solución
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Selecciona la capacidad y el ciclo de facturación ideal para tu negocio.
+                          Elige entre automatización en WhatsApp o solución Omnicanal completa. Ambos niveles incluyen el Sistema CRM.
                         </p>
                       </div>
 
@@ -601,6 +601,9 @@ function CheckoutContent() {
                               ? plan.price?.semiannual ?? 0
                               : plan.price?.quarterly ?? 0
 
+                          const isEsencial = plan.id === "asistente"
+                          const isOmnicanal = plan.id === "recepcionista"
+
                           return (
                             <div
                               key={plan.id}
@@ -613,24 +616,56 @@ function CheckoutContent() {
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
                                     <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                                       {plan.title}
                                     </h3>
-                                    {plan.popular && (
+                                    {isOmnicanal && (
                                       <span className="rounded-md bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold text-cyan-600 dark:text-cyan-400">
-                                        Popular
+                                        Más Completo
                                       </span>
                                     )}
-                                    {plan.recommended && (
-                                      <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
-                                        Empresarial
+                                    {isEsencial && (
+                                      <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                        Nivel 1
                                       </span>
                                     )}
                                   </div>
                                   <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
                                     {plan.description}
                                   </p>
+
+                                  {/* Canales incluidos */}
+                                  <div className="mt-3 flex flex-wrap gap-1.5">
+                                    {isEsencial && (
+                                      <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                        WhatsApp Business
+                                      </span>
+                                    )}
+                                    {isOmnicanal && (
+                                      <>
+                                        <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                          WhatsApp
+                                        </span>
+                                        <span className="rounded-md bg-pink-500/10 px-2 py-0.5 text-[10px] font-semibold text-pink-700 dark:text-pink-300">
+                                          Instagram DMs
+                                        </span>
+                                        <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300">
+                                          Facebook
+                                        </span>
+                                        <span className="rounded-md bg-slate-900/10 px-2 py-0.5 text-[10px] font-semibold text-slate-800 dark:bg-white/10 dark:text-slate-200">
+                                          TikTok
+                                        </span>
+                                        <span className="rounded-md bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300">
+                                          Webhook Web
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  <div className="mt-2 text-[11px] font-medium text-cyan-700 dark:text-cyan-300">
+                                    ✓ Incluye Sistema CRM Todo-en-Uno
+                                  </div>
                                 </div>
 
                                 <div
