@@ -1459,7 +1459,7 @@ export default function Home() {
                 transition={{ delay: 0.15 }}
                 className="mt-3 text-base text-slate-600 dark:text-slate-300"
               >
-                Elige el plan ideal para tu negocio. Facturación flexible trimestral o anual con 15% de ahorro. Todos los planes incluyen el Sistema CRM y puesta en marcha guiada.
+                Elige el plan ideal para tu negocio. Facturación flexible trimestral o anual con 14% de ahorro. Todos los planes incluyen el Sistema CRM y puesta en marcha guiada.
               </motion.p>
             </div>
 
@@ -1473,7 +1473,7 @@ export default function Home() {
                 <TabsList className="grid w-full max-w-xs grid-cols-2">
                   <TabsTrigger value="quarterly" className="text-xs sm:text-sm">Trimestral</TabsTrigger>
                   <TabsTrigger value="annual" className="text-xs sm:text-sm">
-                    Anual <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">(-15%)</span>
+                    Anual <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">(-14%)</span>
                   </TabsTrigger>
                 </TabsList>
               </motion.div>
