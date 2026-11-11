@@ -4,13 +4,14 @@ import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowLeft, ArrowUpRight, BookOpen, CheckCircle2, ChevronRight, FileText, HelpCircle, Shield, Sparkles } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, BookOpen, CheckCircle2, ChevronRight, FileText, HelpCircle, Menu, Shield, Sparkles } from "lucide-react"
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import ThemeToggle from "@/components/theme-toggle"
 
 export type LegalTocItem = {
@@ -93,7 +94,7 @@ export default function LegalLayout({
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link href="/" className="hidden sm:inline-flex">
               <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
@@ -102,10 +103,55 @@ export default function LegalLayout({
               </Button>
             </Link>
             <Link href="/checkout">
-              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold text-xs">
+              <Button size="sm" className="h-9 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold text-xs">
                 Comenzar
               </Button>
             </Link>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 md:hidden" aria-label="Abrir menú legal">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[min(85vw,320px)] flex flex-col justify-between">
+                <div>
+                  <SheetHeader className="text-left pb-4 border-b border-border/70">
+                    <SheetTitle className="text-base font-bold">Documentos y Enlaces</SheetTitle>
+                  </SheetHeader>
+                  <nav className="mt-4 flex flex-col gap-1">
+                    <Link
+                      href="/"
+                      className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70"
+                    >
+                      Volver al inicio
+                    </Link>
+                    {legalNavLinks.map((item) => {
+                      const isActive = pathname === item.href
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                            isActive
+                              ? "bg-primary/10 text-primary font-semibold"
+                              : "text-foreground hover:bg-muted/70 font-medium"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      )
+                    })}
+                  </nav>
+                </div>
+                <div className="border-t border-border/70 pt-4">
+                  <Link href="/checkout" className="block">
+                    <Button className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 font-semibold">
+                      Comenzar ahora
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>

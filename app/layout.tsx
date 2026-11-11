@@ -1,7 +1,13 @@
 import { Analytics } from "@vercel/analytics/next"
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://kinexting.com'),
@@ -91,7 +97,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning className="scroll-smooth">
       <Analytics />
-      <body>
+      <body className="overflow-x-hidden antialiased selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:bg-cyan-500/20 dark:selection:text-cyan-300">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {children}
         </ThemeProvider>

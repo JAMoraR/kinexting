@@ -10,6 +10,7 @@ import {
   Clock,
   Cpu,
   Layers,
+  Menu,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -22,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import ThemeToggle from "@/components/theme-toggle"
 
 export const metadata: Metadata = {
@@ -173,7 +175,7 @@ export default function AboutPage() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link href="/" className="hidden sm:inline-flex">
               <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
@@ -182,18 +184,59 @@ export default function AboutPage() {
               </Button>
             </Link>
             <Link href="/checkout">
-              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold text-xs">
+              <Button size="sm" className="h-9 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold text-xs">
                 Comenzar
               </Button>
             </Link>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 md:hidden" aria-label="Abrir menú de navegación">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[min(85vw,320px)] flex flex-col justify-between">
+                <div>
+                  <SheetHeader className="text-left pb-4 border-b border-border/70">
+                    <SheetTitle className="text-base font-bold">Navegación</SheetTitle>
+                  </SheetHeader>
+                  <nav className="mt-4 flex flex-col gap-1">
+                    <Link href="/" className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70">
+                      Inicio
+                    </Link>
+                    <Link href="/#services" className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70">
+                      Beneficios
+                    </Link>
+                    <Link href="/#crm" className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70">
+                      CRM Todo-en-Uno
+                    </Link>
+                    <Link href="/#pricing" className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70">
+                      Planes
+                    </Link>
+                    <Link href="/#faq" className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/70">
+                      FAQ
+                    </Link>
+                    <span className="flex min-h-[44px] items-center rounded-xl bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary">
+                      Sobre nosotros
+                    </span>
+                  </nav>
+                </div>
+                <div className="border-t border-border/70 pt-4">
+                  <Link href="/checkout" className="block">
+                    <Button className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 font-semibold">
+                      Comenzar ahora
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-primary/[0.05] via-background to-background py-16 md:py-24">
+      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-primary/[0.05] via-background to-background py-12 sm:py-16 md:py-24">
         <div className="container relative z-10">
-          <div className="max-w-4xl space-y-6">
+          <div className="max-w-4xl space-y-5 sm:space-y-6">
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border-none font-semibold">
                 Nuestra Empresa
@@ -209,15 +252,15 @@ export default function AboutPage() {
               En Kinexting desarrollamos soluciones de inteligencia artificial aplicada y software de gestión diseñado específicamente para negocios de servicios. Resolvemos el caos de los mensajes dispersos y agendas descoordinadas, brindando una experiencia ágil para tus clientes y control total para tu equipo.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/#pricing">
-                <Button className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+              <Link href="/#pricing" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold gap-2">
                   Ver nuestros planes
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/checkout">
-                <Button variant="outline" className="font-medium">
+              <Link href="/checkout" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto h-11 font-medium">
                   Solicitar contratación
                 </Button>
               </Link>
@@ -378,27 +421,27 @@ export default function AboutPage() {
       </section>
 
       {/* Mission & Vision Bento */}
-      <section className="container py-16 md:py-20">
+      <section className="container py-12 sm:py-16 md:py-20">
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="rounded-2xl border-border/70 bg-gradient-to-br from-card via-card to-primary/[0.03] p-8 shadow-sm">
+          <Card className="rounded-2xl border-border/70 bg-gradient-to-br from-card via-card to-primary/[0.03] p-5 sm:p-8 shadow-sm">
             <div className="space-y-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
                 <Target className="h-5 w-5" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Nuestra Misión</h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">Nuestra Misión</h3>
+              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
                 Democratizar el acceso a inteligencia artificial de nivel empresarial y sistemas de gestión avanzados para negocios de servicios, eliminando fricciones operativas y permitiendo a emprendedores y directores enfocarse en entregar valor y expandir su negocio.
               </p>
             </div>
           </Card>
 
-          <Card className="rounded-2xl border-border/70 bg-gradient-to-br from-card via-card to-cyan-500/[0.03] p-8 shadow-sm">
+          <Card className="rounded-2xl border-border/70 bg-gradient-to-br from-card via-card to-cyan-500/[0.03] p-5 sm:p-8 shadow-sm">
             <div className="space-y-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Nuestra Visión</h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">Nuestra Visión</h3>
+              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
                 Convertirnos en el estándar tecnológico de referencia en el mundo hispanohablante para la automatización comercial omnicanal y gestión operativa B2B, reconocidos por la calidad de nuestros agentes de IA, la estabilidad de la plataforma y la cercanía de nuestro soporte.
               </p>
             </div>
@@ -441,29 +484,29 @@ export default function AboutPage() {
       </section>
 
       {/* Contractual and Billing Commitment */}
-      <section className="container py-16 md:py-20">
-        <div className="rounded-2xl border border-border/70 bg-gradient-to-r from-card via-card/90 to-background p-8 md:p-12 shadow-sm">
+      <section className="container py-12 sm:py-16 md:py-20">
+        <div className="rounded-2xl border border-border/70 bg-gradient-to-r from-card via-card/90 to-background p-5 sm:p-8 md:p-12 shadow-sm">
           <div className="grid gap-8 md:grid-cols-3 items-center">
             <div className="md:col-span-2 space-y-4">
               <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none font-semibold">
                 Compromiso y Transparencia Contractual
               </Badge>
-              <h3 className="text-2xl font-bold text-foreground md:text-3xl">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground md:text-3xl">
                 Contratos estructurados por 3 y 12 meses, sin sorpresas
               </h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
+              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
                 Ofrecemos planes trimestrales y anuales en pesos mexicanos (MXN) para dar certidumbre a tu presupuesto. Cada condición de cancelación, soporte y renovación está documentada en nuestras políticas oficiales para darte absoluta tranquilidad jurídica y operativa.
               </p>
-              <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground pt-2">
-                <Link href="/legal/terminos-de-servicio" className="text-primary hover:underline flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-muted-foreground pt-2">
+                <Link href="/legal/terminos-de-servicio" className="text-primary hover:underline flex items-center gap-1 py-1">
                   Términos de servicio <ArrowRight className="h-3 w-3" />
                 </Link>
-                <span>·</span>
-                <Link href="/legal/cancelacion-y-facturacion" className="text-primary hover:underline flex items-center gap-1">
+                <span className="hidden sm:inline">·</span>
+                <Link href="/legal/cancelacion-y-facturacion" className="text-primary hover:underline flex items-center gap-1 py-1">
                   Política de cancelación <ArrowRight className="h-3 w-3" />
                 </Link>
-                <span>·</span>
-                <Link href="/legal/privacidad" className="text-primary hover:underline flex items-center gap-1">
+                <span className="hidden sm:inline">·</span>
+                <Link href="/legal/privacidad" className="text-primary hover:underline flex items-center gap-1 py-1">
                   Privacidad de datos <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -471,12 +514,12 @@ export default function AboutPage() {
 
             <div className="flex flex-col gap-3 justify-center">
               <Link href="/#pricing">
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold">
+                <Button className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold">
                   Explorar planes
                 </Button>
               </Link>
               <Link href="mailto:hola@kinexting.com">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full h-11">
                   Contactar al equipo
                 </Button>
               </Link>
@@ -486,22 +529,22 @@ export default function AboutPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-t border-border/70 bg-gradient-to-b from-card to-background py-16 md:py-20 text-center">
+      <section className="border-t border-border/70 bg-gradient-to-b from-card to-background py-12 sm:py-16 md:py-20 text-center">
         <div className="container max-w-3xl space-y-6">
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight md:text-4xl text-foreground">
             ¿Listo para llevar la atención y gestión de tu empresa al siguiente nivel?
           </h2>
-          <p className="text-base text-muted-foreground md:text-lg">
+          <p className="text-sm sm:text-base text-muted-foreground md:text-lg">
             Comienza hoy mismo con nuestra pasarela guiada o agenda una demostración con nuestro equipo técnico.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link href="/checkout">
-              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold px-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-2">
+            <Link href="/checkout" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto h-12 sm:h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold px-8">
                 Comenzar ahora
               </Button>
             </Link>
-            <Link href="/#faq">
-              <Button size="lg" variant="outline">
+            <Link href="/#faq" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-11">
                 Preguntas frecuentes
               </Button>
             </Link>
