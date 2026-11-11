@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T23:10:00Z",
+  "title": "Design System: Kinexting",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Electric Indigo",
+        "canonical": "#4f46e5",
+        "tonalRamp": ["#1e1b4b", "#312e81", "#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#a5b4fc", "#e0e7ff"]
+      },
+      "cyber-cyan": {
+        "role": "accent",
+        "displayName": "Reactive Cyber Cyan",
+        "canonical": "#38bdf8",
+        "tonalRamp": ["#082f49", "#0c4a6e", "#0369a1", "#0284c7", "#0ea5e9", "#38bdf8", "#7dd3fc", "#e0f2fe"]
+      },
+      "obsidian-bg": {
+        "role": "neutral",
+        "displayName": "Obsidian Night",
+        "canonical": "#060c18",
+        "tonalRamp": ["#020617", "#060c18", "#0b1222", "#0f172a", "#1e293b", "#334155", "#64748b", "#cbd5e1"]
+      },
+      "pure-white": {
+        "role": "neutral",
+        "displayName": "Pure Canvas White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9", "#f8fafc", "#ffffff", "#ffffff"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headline titles with maximum visual presence." },
+      "headline": { "displayName": "Headline", "purpose": "Primary section titles (Planes, CRM, Sobre nosotros)." },
+      "title": { "displayName": "Title", "purpose": "Bento card headers, plan titles, and modal headers." },
+      "body": { "displayName": "Body", "purpose": "Standard narrative copy, operational specs, and legal paragraphs." },
+      "label": { "displayName": "Label", "purpose": "Badges, pill tags, button texts, and table columns." }
+    },
+    "shadows": [
+      { "name": "elev-1", "value": "0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 22px rgba(15, 23, 42, 0.1)", "purpose": "Default rest elevation for cards and containers." },
+      { "name": "elev-2", "value": "0 2px 6px rgba(15, 23, 42, 0.08), 0 14px 34px rgba(15, 23, 42, 0.14)", "purpose": "Floating panels, highlighted pricing cards, and active dropdowns." },
+      { "name": "elev-3", "value": "0 4px 12px rgba(15, 23, 42, 0.1), 0 22px 52px rgba(15, 23, 42, 0.2)", "purpose": "Critical overlays, checkout modals, and top-layer dialogs." },
+      { "name": "elev-interactive", "value": "0 6px 18px rgba(15, 23, 42, 0.12), 0 18px 38px rgba(14, 165, 233, 0.2)", "purpose": "Interactive hover state with subtle cyan light spill." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Standard elastic ease-out for hover and micro-lifts." },
+      { "name": "duration-fast", "value": "200ms", "purpose": "Button and badge hover transitions." },
+      { "name": "duration-medium", "value": "350ms", "purpose": "Card expansion, modal reveals, and accordion unfolding." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1400px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botón de acción principal institucional en modo claro y acciones de base.",
+      "html": "<button class=\"ds-btn-primary\"><svg class=\"ds-btn-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M5 12h14M12 5l7 7-7 7\"/></svg><span>Comenzar Ahora</span></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #4f46e5; color: #ffffff; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 600; height: 40px; padding: 0 20px; border-radius: 6px; border: none; cursor: pointer; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 6px 16px rgba(15, 23, 42, 0.08); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease; } .ds-btn-primary:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12), 0 12px 28px rgba(15, 23, 42, 0.14); } .ds-btn-primary:active { transform: translateY(0); } .ds-btn-icon { width: 16px; height: 16px; }"
+    },
+    {
+      "name": "Cyber Cyan CTA Button",
+      "kind": "button",
+      "refersTo": "button-cyan",
+      "description": "Llamada a la acción de máxima reflectividad para modo oscuro y cabecera.",
+      "html": "<button class=\"ds-btn-cyan\"><span>Comenzar</span></button>",
+      "css": ".ds-btn-cyan { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #38bdf8; color: #0f172a; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 700; height: 40px; padding: 0 20px; border-radius: 6px; border: none; cursor: pointer; box-shadow: 0 1px 2px rgba(2, 6, 23, 0.6), 0 10px 24px rgba(2, 6, 23, 0.45); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease; } .ds-btn-cyan:hover { background-color: #22d3ee; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(2, 6, 23, 0.6), 0 18px 38px rgba(14, 165, 233, 0.28); } .ds-btn-cyan:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Outline Secondary Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Botón secundario para exploración alternativa o cancelación.",
+      "html": "<button class=\"ds-btn-outline\"><span>Ver Planes</span></button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; background-color: transparent; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; height: 40px; padding: 0 16px; border-radius: 6px; border: 1px solid #334155; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; } .ds-btn-outline:hover { background-color: rgba(51, 65, 85, 0.3); border-color: #64748b; color: #ffffff; }"
+    },
+    {
+      "name": "Status Badge Pill",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "Insignia compacta de estado y categoría tecnológica.",
+      "html": "<div class=\"ds-badge-pill\"><span class=\"ds-badge-dot\"></span><span>Automatización con IA</span></div>",
+      "css": ".ds-badge-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background-color: rgba(79, 70, 229, 0.12); color: #818cf8; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 600; border: 1px solid rgba(99, 102, 241, 0.25); } .ds-badge-dot { width: 6px; height: 6px; border-radius: 9999px; background-color: #38bdf8; box-shadow: 0 0 6px #38bdf8; }"
+    },
+    {
+      "name": "Bento Feature Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Contenedor interactivo para mostrar capacidades de la plataforma CRM e IA.",
+      "html": "<div class=\"ds-card-bento\"><div class=\"ds-card-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M3 9h18M9 21V9\"/></svg></div><h3 class=\"ds-card-title\">CRM Todo-en-Uno</h3><p class=\"ds-card-desc\">Centraliza citas, catálogo de servicios, colaboradores y métricas de rendimiento en un único panel operativo.</p></div>",
+      "css": ".ds-card-bento { background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px rgba(2, 6, 23, 0.6), 0 12px 30px rgba(2, 6, 23, 0.45); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease; } .ds-card-bento:hover { transform: translateY(-2px); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6), 0 22px 44px rgba(8, 47, 73, 0.35); } .ds-card-icon { width: 40px; height: 40px; border-radius: 10px; background-color: rgba(56, 189, 248, 0.1); color: #38bdf8; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; } .ds-card-icon svg { width: 20px; height: 20px; } .ds-card-title { font-family: Inter, system-ui, sans-serif; font-size: 18px; font-weight: 700; color: #e2e8f0; margin: 0 0 8px 0; } .ds-card-desc { font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0; }"
+    },
+    {
+      "name": "Form Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo de captura para pasarela de contacto y onboarding.",
+      "html": "<input class=\"ds-input-field\" type=\"text\" placeholder=\"Nombre de tu empresa\" />",
+      "css": ".ds-input-field { width: 100%; height: 40px; padding: 0 12px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; font-size: 14px; outline: none; box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08), 0 1px 2px rgba(2, 6, 23, 0.6); transition: border-color 0.2s ease, box-shadow 0.2s ease; } .ds-input-field:focus { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(148, 163, 184, 0.08); } .ds-input-field::placeholder { color: #64748b; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cybernetic Kinetic Command",
+    "overview": "Kinexting es una plataforma tecnológica B2B de alto rendimiento que combina automatización conversacional mediante agentes autónomos de Inteligencia Artificial (WhatsApp y redes sociales) con un sistema centralizado de gestión operativa CRM. Su lenguaje visual transmite precisión técnica, inmediatez y solvencia corporativa: una cabina de mando sobria y fluida donde negocios de servicios resuelven la captación y operación de sus clientes sin fricción.\n\nEl sistema se estructura sobre un lienzo nocturno de obsidiana profunda (#060c18) iluminado por sutiles gradientes radiales y acentos cromáticos de alta energía: índigo eléctrico (#4f46e5) para afirmar autoridad institucional y cian reactivo (#38bdf8) para enfocar la mirada en decisiones críticas de conversión y estado en tiempo real.\n\nSe rechaza categóricamente el desorden visual, las tarjetas homogéneas repetitivas tipo plantilla genérica, los gradientes multicolores estridentes sobre párrafos de texto y las sombras duras de bloque sin desenfoque.",
+    "keyCharacteristics": [
+      "Lienzo Bicolor Adaptativo: Autoridad sobria y pulcra en modo claro; atmósfera inmersiva tipo consola cibernética en modo oscuro.",
+      "Jerarquía Guiada por Tensión Cromática: Fondos oscuros de baja saturación combinados con destellos calculados de cian y zafiro.",
+      "Modularidad Asimétrica: Grillas tipo Bento y paneles analíticos que reflejan variedad funcional en lugar de mosaicos repetitivos.",
+      "Micro-Respuestas Táctiles: Elevaciones elásticas en hover (-translate-y-0.5), desenfoques de vidrio en barras de navegación y retroalimentación de estado visible en menos de 200ms."
+    ],
+    "rules": [
+      {
+        "name": "The 10% Cyan Halo Rule",
+        "body": "El cian reactivo (#38bdf8) nunca debe cubrir más del 10% de la superficie visual de una pantalla. Su función es actuar como baliza de atención inmediata (CTAs de conversión, métricas destacadas y halos de hover); nunca como fondo plano masivo de sección.",
+        "section": "colors"
+      },
+      {
+        "name": "The Obsidian Depth Rule",
+        "body": "En modo oscuro nunca se utiliza negro puro (#000000) como fondo de componentes. La profundidad se construye mediante escalones tonales controlados: base obsidiana (#060c18), tarjeta elevada (#0f172a) y borde atenuado (#334155).",
+        "section": "colors"
+      },
+      {
+        "name": "The Balanced Heading Rule",
+        "body": "Los encabezados de 2 o más líneas deben mantener un equilibrio visual sin huérfanas ni desbordamientos abruptos; se prohíbe el uso de texto degradado sobre títulos largos de más de una oración. El realce se genera por peso tipográfico y acento de una sola palabra clave.",
+        "section": "typography"
+      },
+      {
+        "name": "The Functional Monospace Rule",
+        "body": "Las fuentes monoespaciadas se reservan de forma estricta para datos computacionales (tokens, identificadores de Stripe, payloads de webhooks, números de versión). Nunca se usan como artificio cosmético en párrafos o etiquetas de marketing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ambient Glow Rule",
+        "body": "Los destellos de color solo existen en respuesta a un estado (hover en tarjeta, botón activo o scrollbar). En reposo, las superficies descansan en su color base sin halos permanentes distractores.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Micro-Lift Rule",
+        "body": "Todo elemento interactivo principal (botones de acción y tarjetas clickeables) debe elevarse exactamente 2px (-translate-y-0.5) al situar el cursor, con una duración de 200ms y curva ease-out.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do respetar la regla del 10% de Cian: utiliza #38bdf8 únicamente en puntos focales de interacción y conversión.",
+      "Do mantener el radio de curvatura consistente: 6px–8px para controles y 12px–16px para tarjetas.",
+      "Do incluir soporte impecable para ambos temas (claro y oscuro) en cualquier nueva vista o componente.",
+      "Do utilizar elevaciones elásticas sutiles (-translate-y-0.5 con 200ms ease-out) en elementos interactivos principales.",
+      "Do limitar el ancho de párrafos a un máximo de 75 caracteres para optimizar la ergonomía de lectura.",
+      "Do formular precios y periodos contractuales estrictamente en MXN y plazos de 3 meses (trimestral) o 12 meses (anual)."
+    ],
+    "donts": [
+      "Don't utilizar negro puro #000000 como fondo de tarjetas o componentes; utiliza la escala de obsidiana (#060c18 y #0f172a).",
+      "Don't aplicar gradientes de color multicolores sobre cuerpos extensos de texto.",
+      "Don't emplear sombras duras sin desenfoque (box-shadow: 4px 4px 0px); rompen la estética fluida y tecnológica del sistema.",
+      "Don't crear tarjetas repetitivas de igual tamaño con sólo un ícono y una frase; diseña composiciones modulares con peso visual variado.",
+      "Don't sobrecargar las pantallas con bordes coloreados gruesos (border-l-4 o superiores) como sustituto de una buena jerarquía tipográfica.",
+      "Don't usar fuentes monoespaciadas para textos publicitarios o párrafos de venta; resérvalas únicamente para datos de código o parámetros técnicos."
+    ]
+  }
+}

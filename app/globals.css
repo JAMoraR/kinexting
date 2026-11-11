@@ -33,6 +33,10 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .dark {
@@ -82,10 +86,6 @@
       radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.2), transparent 26%),
       radial-gradient(circle at 86% 2%, rgba(14, 165, 233, 0.14), transparent 24%),
       radial-gradient(circle at 50% 120%, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 1));
-  }
-
-  .dark * {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
 
   header.sticky {
@@ -158,8 +158,15 @@
   }
 
   *::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 6px;
+    height: 6px;
+  }
+
+  @media (min-width: 768px) {
+    *::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
   }
 
   *::-webkit-scrollbar-track {
@@ -212,13 +219,23 @@
   }
 
   .elev-interactive {
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.2s var(--ease-out), transform 0.16s var(--ease-out);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 10px 24px rgba(15, 23, 42, 0.11);
   }
 
-  .elev-interactive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12), 0 20px 42px rgba(15, 23, 42, 0.16);
+  @media (hover: hover) and (pointer: fine) {
+    .elev-interactive:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12), 0 20px 42px rgba(15, 23, 42, 0.16);
+    }
+
+    .dark .elev-interactive:hover {
+      box-shadow: 0 4px 12px rgba(2, 6, 23, 0.66), 0 22px 46px rgba(8, 47, 73, 0.42);
+    }
+  }
+
+  .elev-interactive:active {
+    transform: scale(0.985);
   }
 
   .dark .elev-1 {
@@ -237,8 +254,28 @@
     box-shadow: 0 1px 3px rgba(2, 6, 23, 0.62), 0 12px 28px rgba(2, 6, 23, 0.5);
   }
 
-  .dark .elev-interactive:hover {
-    box-shadow: 0 4px 12px rgba(2, 6, 23, 0.66), 0 22px 46px rgba(8, 47, 73, 0.42);
+  .pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .px-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.15s !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   .dark .bg-slate-50,

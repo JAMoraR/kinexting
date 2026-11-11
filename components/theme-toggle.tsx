@@ -16,7 +16,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="outline" size="icon" aria-label="Cambiar tema" className="h-9 w-9">
+      <Button variant="outline" size="icon" aria-label="Cambiar tema" className="h-10 w-10 sm:h-9 sm:w-9 shrink-0">
         <Sun className="h-4 w-4" />
       </Button>
     )
@@ -30,7 +30,7 @@ export default function ThemeToggle() {
       variant="outline"
       size="icon"
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      className="h-9 w-9"
+      className="h-10 w-10 sm:h-9 sm:w-9 shrink-0 active:scale-95 transition-transform duration-150"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

@@ -14,6 +14,8 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ExternalLink,
+  FileText,
   Globe,
   HelpCircle,
   Lock,
@@ -30,12 +32,15 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 import ThemeToggle from "@/components/theme-toggle"
 import {
   COMPANY_NAME,
   buildWhatsAppLink,
   mapCatalogPlansToPlans,
   PLAN_CATEGORY,
+  MASTER_EXTRAS,
   type BillingCycle,
   type CatalogExtra,
   type Plan,
@@ -59,8 +64,7 @@ const loadFlags = async () => {
   }
 }
 
-const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
-const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
+const initialPublishableKey = (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "").trim()
 
 type CheckoutStep = "solution" | "business" | "payment"
 
@@ -135,16 +139,16 @@ const isValidPhone = (phone: string) => PHONE_REGEX.test(phone.trim())
 const isValidRfc = (rfc: string) => RFC_REGEX.test(rfc.trim().toUpperCase())
 
 const stepTransitionVariants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.24, ease: "easeOut" as const },
+    transition: { duration: 0.24, ease: [0.23, 1, 0.32, 1] as const },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    transition: { duration: 0.16, ease: "easeIn" as const },
+    y: -6,
+    transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] as const },
   },
 }
 
@@ -213,6 +217,28 @@ function CheckoutContent() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isInitializingStripe, setIsInitializingStripe] = useState(false)
   const [stripeInitError, setStripeInitError] = useState<string | null>(null)
+  const [serverPublishableKey, setServerPublishableKey] = useState<string>("")
+
+  const activePublishableKey = (serverPublishableKey || initialPublishableKey).trim()
+  const stripePromise = useMemo(() => {
+    return activePublishableKey ? loadStripe(activePublishableKey) : null
+  }, [activePublishableKey])
+
+  const isSecretLive = Boolean(clientSecret?.startsWith("cs_live_"))
+  const isSecretTest = Boolean(clientSecret?.startsWith("cs_test_"))
+  const isKeyLive = Boolean(activePublishableKey.startsWith("pk_live_"))
+  const isKeyTest = Boolean(activePublishableKey.startsWith("pk_test_"))
+  const hasModeMismatch = Boolean((isSecretLive && isKeyTest) || (isSecretTest && isKeyLive))
+
+  // Aceptación legal y consentimiento en Paso 3 (Activación)
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [cancellationAccepted, setCancellationAccepted] = useState(false)
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false)
+  const legalSectionRef = useRef<HTMLDivElement>(null)
+
+  const areLegalAgreementsAccepted = termsAccepted && privacyAccepted && cancellationAccepted
+  const acceptedLegalCount = (termsAccepted ? 1 : 0) + (privacyAccepted ? 1 : 0) + (cancellationAccepted ? 1 : 0)
 
   const allCountries = useMemo(() => getCountryPhoneData(), [])
   const filteredCountries = useMemo(() => filterCountries(countrySearch), [countrySearch])
@@ -224,16 +250,24 @@ function CheckoutContent() {
     const fetchCatalog = async () => {
       try {
         const response = await fetch("/api/prices", { cache: "no-store" })
-        if (!response.ok) return
+        if (!response.ok) {
+          if (isMounted) {
+            setPlans(mapCatalogPlansToPlans([]))
+            setCatalogExtras(MASTER_EXTRAS)
+          }
+          return
+        }
 
         const payload = (await response.json()) as PricingCatalogResponse
         if (!isMounted) return
 
         const mappedPlans = mapCatalogPlansToPlans(payload.plans)
         setPlans(mappedPlans)
-        setCatalogExtras(Array.isArray(payload.extras) ? payload.extras : [])
+        setCatalogExtras(
+          Array.isArray(payload.extras) && payload.extras.length > 0 ? payload.extras : MASTER_EXTRAS
+        )
 
-        if (isPlanId(planParam)) {
+        if (isPlanId(planParam) && mappedPlans.some((p) => p.id === planParam)) {
           setSelectedPlanId(planParam)
         } else if (mappedPlans.length > 0) {
           const popular = mappedPlans.find((p) => p.popular) || mappedPlans[0]
@@ -241,6 +275,10 @@ function CheckoutContent() {
         }
       } catch (err) {
         console.error("Error al obtener catálogo:", err)
+        if (isMounted) {
+          setPlans(mapCatalogPlansToPlans([]))
+          setCatalogExtras(MASTER_EXTRAS)
+        }
       } finally {
         if (isMounted) {
           setIsCatalogLoading(false)
@@ -370,6 +408,10 @@ function CheckoutContent() {
               email: invoice.email.trim().toLowerCase(),
             }
           : { enabled: false },
+        newsletter: newsletterOptIn,
+        termsAccepted,
+        privacyAccepted,
+        cancellationAccepted,
       }
 
       const response = await fetch("/api/checkout/embedded", {
@@ -384,6 +426,10 @@ function CheckoutContent() {
 
       if (!response.ok || !data.clientSecret) {
         throw new Error(data.error || "No fue posible inicializar la pasarela de pago")
+      }
+
+      if (data.publishableKey && typeof data.publishableKey === "string") {
+        setServerPublishableKey(data.publishableKey.trim())
       }
 
       setClientSecret(data.clientSecret)
@@ -431,14 +477,14 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 text-slate-900 transition-colors duration-300 dark:bg-[#060c18] dark:text-slate-100 sm:py-12">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-slate-50 py-6 px-4 text-slate-900 transition-colors duration-300 dark:bg-[#060c18] dark:text-slate-100 sm:py-12 pb-safe">
+      <div className="container mx-auto max-w-6xl px-0 sm:px-4">
         {/* Barra superior de navegación */}
-        <header className="mb-8 flex flex-col gap-4 border-b border-slate-200/80 pb-5 dark:border-slate-800/80 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-6 sm:mb-8 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4 sm:pb-5 dark:border-slate-800/80">
           <div className="flex items-center gap-3">
             <Link
               href="/configurar-plan"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Configurar planes
@@ -452,17 +498,17 @@ function CheckoutContent() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 sm:justify-end">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-              <Lock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Cifrado bancario SSL 256 bits</span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">
+              <Lock className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden xs:inline sm:inline">Cifrado SSL 256 bits</span>
             </div>
             <ThemeToggle />
           </div>
         </header>
 
         {/* Stepper moderno de progreso */}
-        <nav aria-label="Progreso de contratación" className="mb-10">
+        <nav aria-label="Progreso de contratación" className="mb-6 sm:mb-10">
           <div className="grid grid-cols-3 gap-2 sm:gap-6">
             {STEPS.map((step) => {
               const isActive = currentStep === step.id
@@ -474,7 +520,7 @@ function CheckoutContent() {
                   type="button"
                   onClick={() => handleStepClick(step.id)}
                   disabled={!isDone && !isActive && step.id === "payment" && !completedSteps.has("business")}
-                  className={`group relative flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all sm:p-4 ${
+                  className={`group relative flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3 rounded-2xl border p-2.5 sm:p-4 text-center sm:text-left transition-all ${
                     isActive
                       ? "border-cyan-500/60 bg-white shadow-lg shadow-cyan-500/10 dark:border-cyan-500/40 dark:bg-slate-900/90 dark:shadow-cyan-950/20"
                       : isDone
@@ -483,7 +529,7 @@ function CheckoutContent() {
                   }`}
                 >
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-all sm:h-9 sm:w-9 ${
+                    className={`flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-all ${
                       isActive
                         ? "bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white shadow-md shadow-cyan-500/25"
                         : isDone
@@ -491,12 +537,12 @@ function CheckoutContent() {
                         : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                     }`}
                   >
-                    {isDone ? <Check className="h-4 w-4" /> : step.number}
+                    {isDone ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : step.number}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <p
-                      className={`truncate text-xs font-bold sm:text-sm ${
+                      className={`text-[11px] sm:text-sm font-bold leading-tight ${
                         isActive
                           ? "text-slate-900 dark:text-slate-100"
                           : isDone
@@ -504,7 +550,8 @@ function CheckoutContent() {
                           : "text-slate-500 dark:text-slate-400"
                       }`}
                     >
-                      {step.title}
+                      <span className="sm:hidden">{step.id === "business" ? "Negocio" : step.title}</span>
+                      <span className="hidden sm:inline">{step.title}</span>
                     </p>
                     <p className="hidden truncate text-[11px] text-slate-500 dark:text-slate-400 sm:block">
                       {step.subtitle}
@@ -516,8 +563,28 @@ function CheckoutContent() {
           </div>
         </nav>
 
+        {/* Barra compacta de Resumen en Móvil (lg:hidden) */}
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-cyan-500/30 bg-white/90 px-4 py-3 shadow-sm backdrop-blur dark:border-cyan-500/25 dark:bg-slate-900/90 lg:hidden">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+              Resumen ({billingPeriod === "annual" ? "Anual" : "Trimestral"})
+            </p>
+            <p className="truncate text-xs font-bold text-slate-900 dark:text-slate-100">
+              {selectedPlan?.title || PLAN_LABELS[selectedPlanId] || "Plan de IA"}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="block font-mono text-base font-black text-slate-900 dark:text-slate-100">
+              {formatCurrency(grandTotal * 1.16)}
+            </span>
+            <span className="block text-[10px] text-slate-500 dark:text-slate-400">
+              IVA 16% incluido
+            </span>
+          </div>
+        </div>
+
         {/* Layout principal: Columna de formulario (izquierda) + Resumen de Orden B2B (derecha) */}
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-12">
           {/* Contenedor dinámico de pasos */}
           <div className="lg:col-span-7 xl:col-span-8">
             <AnimatePresence mode="wait">
@@ -531,10 +598,10 @@ function CheckoutContent() {
                   exit="exit"
                   className="space-y-6"
                 >
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
-                    <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
+                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                           1. Selecciona tu Nivel de Solución
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -543,11 +610,11 @@ function CheckoutContent() {
                       </div>
 
                       {/* Selector de Ciclo de Facturación */}
-                      <div className="mt-3 inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-950 sm:mt-0">
+                      <div className="inline-flex w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-950">
                         <button
                           type="button"
                           onClick={() => setBillingPeriod("quarterly")}
-                          className={`rounded-lg px-3.5 py-1 text-xs font-semibold transition ${
+                          className={`flex-1 sm:flex-initial rounded-lg px-3.5 py-2 sm:py-1.5 text-xs font-semibold transition ${
                             billingPeriod === "quarterly"
                               ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
                               : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
@@ -558,7 +625,7 @@ function CheckoutContent() {
                         <button
                           type="button"
                           onClick={() => setBillingPeriod("annual")}
-                          className={`relative rounded-lg px-3.5 py-1 text-xs font-semibold transition ${
+                          className={`relative flex-1 sm:flex-initial rounded-lg px-3.5 py-2 sm:py-1.5 text-xs font-semibold transition ${
                             billingPeriod === "annual"
                               ? "bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-sm"
                               : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
@@ -594,7 +661,7 @@ function CheckoutContent() {
                             <div
                               key={plan.id}
                               onClick={() => setSelectedPlanId(plan.id)}
-                              className={`group relative cursor-pointer rounded-2xl border p-5 transition-all ${
+                              className={`group relative cursor-pointer rounded-2xl border p-4 sm:p-5 transition-all ${
                                 isSelected
                                   ? "border-cyan-500 bg-cyan-500/5 shadow-md shadow-cyan-500/10 dark:border-cyan-400 dark:bg-cyan-500/10"
                                   : "border-slate-200/90 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
@@ -683,10 +750,10 @@ function CheckoutContent() {
                       </div>
                     )}
 
-                    <div className="mt-8 flex justify-end">
+                    <div className="mt-6 sm:mt-8 flex justify-end">
                       <Button
                         onClick={handleGoToBusiness}
-                        className="h-11 bg-gradient-to-r from-cyan-500 to-indigo-600 font-semibold text-white shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-indigo-500"
+                        className="w-full sm:w-auto h-11 bg-gradient-to-r from-cyan-500 to-indigo-600 font-semibold text-white shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-indigo-500 active:scale-[0.98]"
                       >
                         Continuar a Datos del Negocio
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -706,9 +773,9 @@ function CheckoutContent() {
                   exit="exit"
                   className="space-y-6"
                 >
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
                     <div className="mb-6">
-                      <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                      <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                         2. Datos del Negocio y Contacto Principal
                       </h2>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -717,7 +784,7 @@ function CheckoutContent() {
                     </div>
 
                     {/* Sección A: Contacto del responsable */}
-                    <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40">
                       <div className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
                         <User className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         <span>Titular / Responsable de la Cuenta</span>
@@ -731,6 +798,7 @@ function CheckoutContent() {
                           </label>
                           <input
                             type="text"
+                            autoComplete="name"
                             value={contactName}
                             onChange={(e) => {
                               setContactName(e.target.value)
@@ -739,7 +807,7 @@ function CheckoutContent() {
                               }
                             }}
                             placeholder="Ej. Lic. Carlos Mendoza Reyes"
-                            className={`h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none transition dark:bg-slate-900 ${
+                            className={`h-11 w-full rounded-xl border bg-white px-3.5 text-base sm:text-sm outline-none transition dark:bg-slate-900 ${
                               formErrors.contactName
                                 ? "border-red-500 ring-2 ring-red-500/20"
                                 : "border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:focus:border-cyan-400"
@@ -758,15 +826,17 @@ function CheckoutContent() {
                           <div className="relative">
                             <input
                               type="email"
+                              inputMode="email"
+                              autoComplete="email"
                               value={contactEmail}
                               onChange={(e) => {
                                 setContactEmail(e.target.value)
                                 if (formErrors.contactEmail) {
-                                setFormErrors((prev) => ({ ...prev, contactEmail: "" }))
+                                  setFormErrors((prev) => ({ ...prev, contactEmail: "" }))
                                 }
                               }}
                               placeholder="contacto@tuempresa.com"
-                              className={`h-11 w-full rounded-xl border bg-white pl-9 pr-3.5 text-sm outline-none transition dark:bg-slate-900 ${
+                              className={`h-11 w-full rounded-xl border bg-white pl-9 pr-3.5 text-base sm:text-sm outline-none transition dark:bg-slate-900 ${
                                 formErrors.contactEmail
                                   ? "border-red-500 ring-2 ring-red-500/20"
                                   : "border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:focus:border-cyan-400"
@@ -808,16 +878,16 @@ function CheckoutContent() {
                               </button>
 
                               {showCountryPicker && (
-                                <div className="absolute top-12 left-0 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900">
+                                <div className="absolute top-12 left-0 z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900">
                                   <div className="relative mb-2">
                                     <input
                                       type="text"
                                       value={countrySearch}
                                       onChange={(e) => setCountrySearch(e.target.value)}
                                       placeholder="Buscar país o prefijo..."
-                                      className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-950"
+                                      className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-base sm:text-xs outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-950"
                                     />
-                                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                                    <Search className="absolute left-2.5 top-3 h-3.5 w-3.5 text-slate-400" />
                                   </div>
 
                                   <div className="max-h-52 overflow-y-auto">
@@ -832,7 +902,7 @@ function CheckoutContent() {
                                             setShowCountryPicker(false)
                                             setCountrySearch("")
                                           }}
-                                          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                                          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 sm:py-1.5 text-left text-xs transition hover:bg-slate-100 dark:hover:bg-slate-800"
                                         >
                                           {FlagComp ? (
                                             <FlagComp className="h-3 w-4.5 rounded-xs shrink-0" />
@@ -856,6 +926,8 @@ function CheckoutContent() {
                             {/* Input de número */}
                             <input
                               type="tel"
+                              inputMode="tel"
+                              autoComplete="tel"
                               value={contactPhone}
                               onChange={(e) => {
                                 setContactPhone(e.target.value)
@@ -864,7 +936,7 @@ function CheckoutContent() {
                                 }
                               }}
                               placeholder="55 1234 5678"
-                              className={`h-11 flex-1 rounded-xl border bg-white px-3.5 text-sm outline-none transition dark:bg-slate-900 ${
+                              className={`h-11 min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-base sm:text-sm outline-none transition dark:bg-slate-900 ${
                                 formErrors.contactPhone
                                   ? "border-red-500 ring-2 ring-red-500/20"
                                   : "border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:focus:border-cyan-400"
@@ -879,7 +951,7 @@ function CheckoutContent() {
                     </div>
 
                     {/* Sección B: Identidad del negocio */}
-                    <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div className="mt-4 space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40">
                       <div className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
                         <Building2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         <span>Información de la Empresa</span>
@@ -893,6 +965,7 @@ function CheckoutContent() {
                           </label>
                           <input
                             type="text"
+                            autoComplete="organization"
                             value={businessInfo.businessName}
                             onChange={(e) => {
                               setBusinessInfo((prev) => ({ ...prev, businessName: e.target.value }))
@@ -901,7 +974,7 @@ function CheckoutContent() {
                               }
                             }}
                             placeholder="Ej. Clínica Dental Sonrisas / Salón Élite"
-                            className={`h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none transition dark:bg-slate-900 ${
+                            className={`h-11 w-full rounded-xl border bg-white px-3.5 text-base sm:text-sm outline-none transition dark:bg-slate-900 ${
                               formErrors.businessName
                                 ? "border-red-500 ring-2 ring-red-500/20"
                                 : "border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:focus:border-cyan-400"
@@ -920,7 +993,7 @@ function CheckoutContent() {
                           <select
                             value={businessInfo.businessType}
                             onChange={(e) => setBusinessInfo((prev) => ({ ...prev, businessType: e.target.value }))}
-                            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+                            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base sm:text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
                           >
                             {BUSINESS_SECTORS.map((sector) => (
                               <option key={sector} value={sector}>
@@ -938,7 +1011,7 @@ function CheckoutContent() {
                           <select
                             value={businessInfo.teamSize}
                             onChange={(e) => setBusinessInfo((prev) => ({ ...prev, teamSize: e.target.value }))}
-                            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+                            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base sm:text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
                           >
                             {TEAM_SIZES.map((size) => (
                               <option key={size} value={size}>
@@ -956,6 +1029,7 @@ function CheckoutContent() {
                           <div className="relative">
                             <input
                               type="text"
+                              autoComplete="address-level2"
                               value={businessInfo.city}
                               onChange={(e) => {
                                 setBusinessInfo((prev) => ({ ...prev, city: e.target.value }))
@@ -964,7 +1038,7 @@ function CheckoutContent() {
                                 }
                               }}
                               placeholder="Ej. Monterrey / CDMX"
-                              className={`h-11 w-full rounded-xl border bg-white pl-9 pr-3.5 text-sm outline-none transition dark:bg-slate-900 ${
+                              className={`h-11 w-full rounded-xl border bg-white pl-9 pr-3.5 text-base sm:text-sm outline-none transition dark:bg-slate-900 ${
                                 formErrors.city
                                   ? "border-red-500 ring-2 ring-red-500/20"
                                   : "border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:focus:border-cyan-400"
@@ -983,10 +1057,11 @@ function CheckoutContent() {
                           <div className="relative">
                             <input
                               type="text"
+                              inputMode="url"
                               value={businessInfo.website}
                               onChange={(e) => setBusinessInfo((prev) => ({ ...prev, website: e.target.value }))}
                               placeholder="instagram.com/tu_marca o web"
-                              className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+                              className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 text-base sm:text-sm outline-none transition focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
                             />
                             <Globe className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           </div>
@@ -995,11 +1070,11 @@ function CheckoutContent() {
                     </div>
 
                     {/* Sección C: Facturación Fiscal CFDI 4.0 */}
-                    <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Receipt className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                          <div>
+                    <div className="mt-4 space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Receipt className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
+                          <div className="min-w-0">
                             <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
                               ¿Requieres Factura Fiscal (CFDI)?
                             </p>
@@ -1009,7 +1084,7 @@ function CheckoutContent() {
                           </div>
                         </div>
 
-                        <label className="relative inline-flex cursor-pointer items-center">
+                        <label className="relative inline-flex shrink-0 cursor-pointer items-center">
                           <input
                             type="checkbox"
                             checked={invoice.enabled}
@@ -1026,6 +1101,7 @@ function CheckoutContent() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
                             className="grid gap-3 pt-2 sm:grid-cols-2"
                           >
                             <div className="space-y-1">
@@ -1038,7 +1114,7 @@ function CheckoutContent() {
                                 onChange={(e) => setInvoice((prev) => ({ ...prev, rfc: e.target.value.toUpperCase() }))}
                                 placeholder="XAXX010101000"
                                 maxLength={13}
-                                className={`h-10 w-full rounded-xl border bg-white px-3 text-xs outline-none transition uppercase dark:bg-slate-900 ${
+                                className={`h-11 w-full rounded-xl border bg-white px-3 text-base sm:text-xs outline-none transition uppercase dark:bg-slate-900 ${
                                   formErrors.rfc ? "border-red-500" : "border-slate-300 focus:border-cyan-500 dark:border-slate-700"
                                 }`}
                               />
@@ -1051,10 +1127,11 @@ function CheckoutContent() {
                               </label>
                               <input
                                 type="email"
+                                inputMode="email"
                                 value={invoice.email}
                                 onChange={(e) => setInvoice((prev) => ({ ...prev, email: e.target.value }))}
                                 placeholder="facturacion@empresa.com"
-                                className={`h-10 w-full rounded-xl border bg-white px-3 text-xs outline-none transition dark:bg-slate-900 ${
+                                className={`h-11 w-full rounded-xl border bg-white px-3 text-base sm:text-xs outline-none transition dark:bg-slate-900 ${
                                   formErrors.invoiceEmail ? "border-red-500" : "border-slate-300 focus:border-cyan-500 dark:border-slate-700"
                                 }`}
                               />
@@ -1072,7 +1149,7 @@ function CheckoutContent() {
                                 value={invoice.businessName}
                                 onChange={(e) => setInvoice((prev) => ({ ...prev, businessName: e.target.value }))}
                                 placeholder="Nombre o Razón Social registrada ante el SAT"
-                                className={`h-10 w-full rounded-xl border bg-white px-3 text-xs outline-none transition dark:bg-slate-900 ${
+                                className={`h-11 w-full rounded-xl border bg-white px-3 text-base sm:text-xs outline-none transition dark:bg-slate-900 ${
                                   formErrors.invoiceBusinessName ? "border-red-500" : "border-slate-300 focus:border-cyan-500 dark:border-slate-700"
                                 }`}
                               />
@@ -1086,7 +1163,7 @@ function CheckoutContent() {
                     </div>
 
                     {/* Botones de navegación del paso 2 */}
-                    <div className="mt-8 flex items-center justify-between gap-3">
+                    <div className="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <Button
                         type="button"
                         variant="outline"
@@ -1100,7 +1177,7 @@ function CheckoutContent() {
                       <Button
                         type="button"
                         onClick={handleGoToPayment}
-                        className="h-11 bg-gradient-to-r from-cyan-500 to-indigo-600 font-semibold text-white shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-indigo-500"
+                        className="h-11 bg-gradient-to-r from-cyan-500 to-indigo-600 font-semibold text-white shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-indigo-500 active:scale-[0.98]"
                       >
                         Continuar al Pago Seguro
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -1120,10 +1197,10 @@ function CheckoutContent() {
                   exit="exit"
                   className="space-y-6"
                 >
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
                     <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                           3. Activación y Pago Seguro
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1142,54 +1219,341 @@ function CheckoutContent() {
                       </Button>
                     </div>
 
-                    {/* Contenedor del Embed Oficial de Stripe */}
-                    <div className="min-h-[460px] rounded-2xl border border-slate-200/90 bg-white p-2 dark:border-slate-800 dark:bg-slate-950/70">
-                      {isInitializingStripe ? (
-                        <div className="flex min-h-[420px] flex-col items-center justify-center text-center p-6">
-                          <div className="relative mb-4">
-                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-500 dark:border-slate-800 dark:border-t-cyan-400" />
-                            <Lock className="absolute inset-0 m-auto h-5 w-5 text-cyan-500" />
+                    {/* SECCIÓN OBLIGATORIA DE CONSENTIMIENTO Y ACUERDOS LEGALES */}
+                    <div
+                      ref={legalSectionRef}
+                      className="mb-6 rounded-2xl border border-slate-200/90 bg-slate-50/70 p-4.5 dark:border-slate-800 dark:bg-slate-950/60 sm:p-6"
+                    >
+                      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-3.5 dark:border-slate-800/80">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-cyan-500/10 dark:text-cyan-400">
+                            <FileText className="h-4.5 w-4.5" />
                           </div>
-                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                            Cargando pasarela bancaria segura...
-                          </p>
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            Estableciendo túnel cifrado con Stripe para {businessInfo.businessName || "tu negocio"}.
-                          </p>
-                        </div>
-                      ) : stripeInitError ? (
-                        <div className="flex min-h-[360px] flex-col items-center justify-center p-6 text-center">
-                          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400">
-                            <ShieldCheck className="h-6 w-6" />
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                              Acuerdos Legales de Contratación
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              Revisa y acepta los 3 documentos obligatorios para desbloquear la pasarela de pago.
+                            </p>
                           </div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                            No se pudo inicializar la pasarela de pago
-                          </p>
-                          <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
-                            {stripeInitError}
-                          </p>
-                          <Button
-                            onClick={initStripeEmbedded}
-                            className="mt-5 h-9 bg-cyan-600 px-4 text-xs font-semibold text-white hover:bg-cyan-500"
-                          >
-                            Reintentar conexión
-                          </Button>
                         </div>
-                      ) : !clientSecret || !stripePromise ? (
-                        <div className="flex min-h-[360px] items-center justify-center p-6 text-center text-sm text-slate-500">
-                          Esperando credenciales de Stripe...
-                        </div>
-                      ) : (
-                        <EmbeddedCheckoutProvider
-                          stripe={stripePromise}
-                          options={{ clientSecret }}
+
+                        {areLegalAgreementsAccepted ? (
+                          <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 sm:self-auto">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            3 de 3 aceptadas (Listo)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 sm:self-auto">
+                            <Lock className="h-3 w-3" />
+                            {acceptedLegalCount} de 3 obligatorias aceptadas
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        {/* Casilla 1: Términos de servicio */}
+                        <div
+                          onClick={() => setTermsAccepted(!termsAccepted)}
+                          className={cn(
+                            "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-all duration-200 select-none",
+                            termsAccepted
+                              ? "border-indigo-500/40 bg-indigo-500/[0.04] dark:border-cyan-500/40 dark:bg-cyan-500/[0.05]"
+                              : "border-slate-200/90 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
+                          )}
                         >
-                          <EmbeddedCheckout className="w-full min-h-[480px] rounded-xl overflow-hidden" />
-                        </EmbeddedCheckoutProvider>
+                          <Checkbox
+                            id="terms-accepted"
+                            checked={termsAccepted}
+                            onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 space-y-0.5 text-xs">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label htmlFor="terms-accepted" className="cursor-pointer font-semibold text-slate-900 dark:text-slate-100">
+                                Acepto los{" "}
+                                <a
+                                  href="/legal/terminos-de-servicio"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700 hover:underline dark:text-cyan-400 dark:hover:text-cyan-300"
+                                >
+                                  Términos de servicio
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </label>
+                              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                                Obligatorio
+                              </span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                              Contratación por periodos de 3 o 12 meses (según tu ciclo elegido), condiciones de prestación del servicio, propiedad intelectual y responsabilidades de uso.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Casilla 2: Política de privacidad */}
+                        <div
+                          onClick={() => setPrivacyAccepted(!privacyAccepted)}
+                          className={cn(
+                            "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-all duration-200 select-none",
+                            privacyAccepted
+                              ? "border-indigo-500/40 bg-indigo-500/[0.04] dark:border-cyan-500/40 dark:bg-cyan-500/[0.05]"
+                              : "border-slate-200/90 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
+                          )}
+                        >
+                          <Checkbox
+                            id="privacy-accepted"
+                            checked={privacyAccepted}
+                            onCheckedChange={(checked) => setPrivacyAccepted(Boolean(checked))}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 space-y-0.5 text-xs">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label htmlFor="privacy-accepted" className="cursor-pointer font-semibold text-slate-900 dark:text-slate-100">
+                                Acepto la{" "}
+                                <a
+                                  href="/legal/privacidad"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700 hover:underline dark:text-cyan-400 dark:hover:text-cyan-300"
+                                >
+                                  Política de privacidad
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </label>
+                              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                                Obligatorio
+                              </span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                              Tratamiento confidencial de la información comercial de tu empresa, resguardo de bases de datos de clientes y medidas de seguridad y cifrado.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Casilla 3: Política de cancelación y facturación */}
+                        <div
+                          onClick={() => setCancellationAccepted(!cancellationAccepted)}
+                          className={cn(
+                            "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-all duration-200 select-none",
+                            cancellationAccepted
+                              ? "border-indigo-500/40 bg-indigo-500/[0.04] dark:border-cyan-500/40 dark:bg-cyan-500/[0.05]"
+                              : "border-slate-200/90 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
+                          )}
+                        >
+                          <Checkbox
+                            id="cancellation-accepted"
+                            checked={cancellationAccepted}
+                            onCheckedChange={(checked) => setCancellationAccepted(Boolean(checked))}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 space-y-0.5 text-xs">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label htmlFor="cancellation-accepted" className="cursor-pointer font-semibold text-slate-900 dark:text-slate-100">
+                                Acepto la{" "}
+                                <a
+                                  href="/legal/cancelacion-y-facturacion"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700 hover:underline dark:text-cyan-400 dark:hover:text-cyan-300"
+                                >
+                                  Política de cancelación y facturación
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </label>
+                              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                                Obligatorio
+                              </span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                              Aviso de cancelación previo de al menos 48 horas a la renovación, penalización fija de $350 MXN más 30% variable por cancelación anticipada y ajuste retroactivo en planes anuales.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Separador */}
+                        <div className="my-2 border-t border-slate-200/80 dark:border-slate-800/80" />
+
+                        {/* Casilla 4: Boletín informativo (OPCIONAL) */}
+                        <div
+                          onClick={() => setNewsletterOptIn(!newsletterOptIn)}
+                          className={cn(
+                            "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-all duration-200 select-none",
+                            newsletterOptIn
+                              ? "border-cyan-500/40 bg-cyan-500/[0.04] dark:border-cyan-500/40 dark:bg-cyan-500/[0.05]"
+                              : "border-slate-200/80 bg-white/70 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700"
+                          )}
+                        >
+                          <Checkbox
+                            id="newsletter-opt-in"
+                            checked={newsletterOptIn}
+                            onCheckedChange={(checked) => setNewsletterOptIn(Boolean(checked))}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 space-y-0.5 text-xs">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label htmlFor="newsletter-opt-in" className="cursor-pointer font-semibold text-slate-900 dark:text-slate-100">
+                                Suscribirme al boletín informativo gratuito de Kinexting
+                              </label>
+                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                Opcional
+                              </span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                              Notificaciones periódicas sobre nuevos planes, lanzamientos de características de IA, actualizaciones del CRM y mejoras de servicio. Cero spam y cancelación con un solo clic.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Estado / Banner indicativo sobre el formulario de pago */}
+                    {areLegalAgreementsAccepted ? (
+                      <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-800 dark:text-emerald-300">
+                        <div className="flex items-center gap-2.5 font-medium">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>Acuerdos legales aceptados. El formulario seguro de Stripe está habilitado para ingresar tu tarjeta.</span>
+                        </div>
+                        <span className="hidden sm:inline-flex rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                          Habilitado
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 dark:text-amber-300">
+                        <div className="flex items-center gap-2.5 font-medium">
+                          <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                          <span>Campos de pago bloqueados: debes marcar las 3 casillas obligatorias arriba para activar el formulario.</span>
+                        </div>
+                        <span className="hidden sm:inline-flex rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                          Bloqueado ({acceptedLegalCount}/3)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Contenedor del Embed Oficial de Stripe */}
+                    <div className="relative min-h-[460px] rounded-2xl border border-slate-200/90 bg-white p-2 dark:border-slate-800 dark:bg-slate-950/70 overflow-hidden">
+                      {/* Capa de contenido de Stripe */}
+                      <div
+                        className={cn(
+                          "w-full transition-all duration-300",
+                          !areLegalAgreementsAccepted && "pointer-events-none select-none opacity-20 filter blur-[1.5px] grayscale-[40%]"
+                        )}
+                        aria-hidden={!areLegalAgreementsAccepted}
+                      >
+                        {isInitializingStripe ? (
+                          <div className="flex min-h-[420px] flex-col items-center justify-center text-center p-6">
+                            <div className="relative mb-4">
+                              <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-500 dark:border-slate-800 dark:border-t-cyan-400" />
+                              <Lock className="absolute inset-0 m-auto h-5 w-5 text-cyan-500" />
+                            </div>
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                              Cargando pasarela bancaria segura...
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              Estableciendo túnel cifrado con Stripe para {businessInfo.businessName || "tu negocio"}.
+                            </p>
+                          </div>
+                        ) : stripeInitError ? (
+                          <div className="flex min-h-[360px] flex-col items-center justify-center p-6 text-center">
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400">
+                              <ShieldCheck className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                              No se pudo inicializar la pasarela de pago
+                            </p>
+                            <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
+                              {stripeInitError}
+                            </p>
+                            <Button
+                              onClick={initStripeEmbedded}
+                              className="mt-5 h-9 bg-cyan-600 px-4 text-xs font-semibold text-white hover:bg-cyan-500"
+                            >
+                              Reintentar conexión
+                            </Button>
+                          </div>
+                        ) : !activePublishableKey ? (
+                          <div className="flex min-h-[360px] flex-col items-center justify-center p-6 text-center">
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                              <Lock className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                              Falta configurar la clave pública de Stripe
+                            </p>
+                            <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
+                              Configura NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY en tu entorno para habilitar el formulario de pago seguro.
+                            </p>
+                          </div>
+                        ) : hasModeMismatch ? (
+                          <div className="flex min-h-[360px] flex-col items-center justify-center p-6 text-center">
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                              <ShieldCheck className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                              Discrepancia entre entornos de Stripe
+                            </p>
+                            <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                              La sesión de pago fue generada en modo <strong>{isSecretLive ? "Producción (Live)" : "Pruebas (Test)"}</strong>, pero el navegador está configurado con una clave pública de <strong>{isKeyLive ? "Producción (pk_live)" : "Pruebas (pk_test)"}</strong>. Ambas claves deben ser del mismo modo en tu archivo <code>.env</code>.
+                            </p>
+                          </div>
+                        ) : !clientSecret || !stripePromise ? (
+                          <div className="flex min-h-[360px] flex-col items-center justify-center p-6 text-center">
+                            <div className="mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-500 dark:border-slate-800 dark:border-t-cyan-400" />
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              Estableciendo conexión segura con Stripe...
+                            </p>
+                          </div>
+                        ) : (
+                          <EmbeddedCheckoutProvider
+                            stripe={stripePromise}
+                            options={{ clientSecret }}
+                          >
+                            <EmbeddedCheckout className="w-full min-h-[480px] rounded-xl overflow-hidden" />
+                          </EmbeddedCheckoutProvider>
+                        )}
+                      </div>
+
+                      {/* Overlay de Bloqueo cuando no se han aceptado los 3 acuerdos */}
+                      {!areLegalAgreementsAccepted && !isInitializingStripe && !stripeInitError && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-2xl bg-slate-900/65 backdrop-blur-[2px] p-6 text-center dark:bg-slate-950/75 animate-in fade-in duration-200">
+                          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/30 shadow-lg shadow-amber-500/10">
+                            <Lock className="h-7 w-7" />
+                          </div>
+                          <h3 className="text-base font-bold text-white sm:text-lg">
+                            Formulario de Pago Bloqueado
+                          </h3>
+                          <p className="mt-1.5 max-w-md text-xs sm:text-sm text-slate-200 dark:text-slate-300 leading-relaxed">
+                            Antes de ingresar los datos de tu tarjeta, debes aceptar los <strong>Términos de servicio</strong>, la <strong>Política de privacidad</strong> y la <strong>Política de cancelación y facturación</strong> en las casillas obligatorias arriba.
+                          </p>
+
+                          <div className="mt-4 flex flex-col sm:flex-row items-center gap-3">
+                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+                              {acceptedLegalCount} de 3 aceptadas (faltan {3 - acceptedLegalCount})
+                            </span>
+
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => {
+                                setTermsAccepted(true)
+                                setPrivacyAccepted(true)
+                                setCancellationAccepted(true)
+                              }}
+                              className="h-8 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs"
+                            >
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Aceptar las 3 obligatorias
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800/80">
+                    <div className="mt-6 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800/80">
                       <Button
                         type="button"
                         variant="outline"
@@ -1200,8 +1564,8 @@ function CheckoutContent() {
                         Modificar información
                       </Button>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                      <div className="flex items-center justify-center sm:justify-end gap-2 text-xs text-slate-400 dark:text-slate-500">
+                        <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
                         <span>Transacción respaldada por Stripe Inc.</span>
                       </div>
                     </div>
@@ -1239,9 +1603,14 @@ function CheckoutContent() {
                         Facturación {billingPeriod === "annual" ? "Anual (-15%)" : "Trimestral"}
                       </p>
                     </div>
-                    <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
-                      {formatCurrency(currentPlanPrice)}
-                    </span>
+                    <div className="text-right">
+                      <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100 block">
+                        {formatCurrency(currentPlanPrice)}
+                      </span>
+                      <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block">
+                        + IVA (16%)
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1266,41 +1635,41 @@ function CheckoutContent() {
                   </div>
                 )}
 
-                {/* Desglose de totales */}
+                {/* Desglose de totales con IVA desglosado */}
                 <div className="mt-5 space-y-2.5 border-t border-slate-100 pt-4 text-xs dark:border-slate-800">
                   <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>Subtotal solución base</span>
-                    <span className="font-medium text-slate-800 dark:text-slate-200">
-                      {formatCurrency(currentPlanPrice)}
+                    <span>Subtotal neto (sin IVA)</span>
+                    <span className="font-mono font-medium text-slate-800 dark:text-slate-200">
+                      {formatCurrency(grandTotal)}
                     </span>
                   </div>
 
                   {extrasTotal > 0 && (
                     <div className="flex justify-between text-slate-500 dark:text-slate-400">
                       <span>Módulos extras</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                      <span className="font-mono font-medium text-slate-800 dark:text-slate-200">
                         {formatCurrency(extrasTotal)}
                       </span>
                     </div>
                   )}
 
                   <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>Impuestos y tasas</span>
-                    <span className="font-medium text-slate-800 dark:text-slate-200">
-                      Calculados en checkout
+                    <span>IVA Trasladado (16%)</span>
+                    <span className="font-mono font-medium text-cyan-600 dark:text-cyan-400">
+                      +{formatCurrency(grandTotal * 0.16)}
                     </span>
                   </div>
 
                   <div className="flex items-baseline justify-between border-t border-slate-200/80 pt-3 dark:border-slate-800">
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      Total a pagar
+                      Total a pagar (con IVA)
                     </span>
                     <div className="text-right">
-                      <span className="text-2xl font-black text-slate-900 dark:text-slate-100">
-                        {formatCurrency(grandTotal)}
+                      <span className="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono">
+                        {formatCurrency(grandTotal * 1.16)}
                       </span>
                       <span className="block text-[10px] text-slate-400 dark:text-slate-500">
-                        Moneda en Pesos Mexicanos (MXN)
+                        Pesos Mexicanos (MXN) • IVA 16% incluido al cobro
                       </span>
                     </div>
                   </div>

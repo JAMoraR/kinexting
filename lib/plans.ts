@@ -28,7 +28,7 @@ export type Plan = {
   hidePrice?: boolean
 }
 
-type CatalogPrice = {
+export type CatalogPrice = {
   id: string
   amount: number
   currency: string
@@ -68,6 +68,7 @@ export type CatalogExtra = {
 export type PricingCatalogResponse = {
   plans?: CatalogPlan[]
   extras?: CatalogExtra[]
+  currency?: string
 }
 
 export const PLAN_TITLES: Record<PlanId, string> = {
@@ -84,9 +85,38 @@ export const PLAN_CATEGORY: Record<PlanId, PlanCategory> = {
   "a-medida": "both",
 }
 
-const PLAN_COPY: Record<PlanId, { description: string; features: string[]; differences: string[] }> = {
+export const PLAN_FLAGS: Record<
+  PlanId,
+  { cheap?: boolean; popular?: boolean; recommended?: boolean; highQuality?: boolean }
+> = {
+  asistente: { cheap: true },
+  recepcionista: { popular: true },
+  "soporte-tecnico": { highQuality: true },
+  "a-medida": { recommended: true },
+}
+
+export type MasterPlanDefinition = {
+  id: PlanId
+  category: PlanCategory
+  title: string
+  description: string
+  features: string[]
+  differences: string[]
+  buttonText: string
+  flags: { cheap?: boolean; popular?: boolean; recommended?: boolean; highQuality?: boolean }
+  defaultPrices: {
+    quarterly: { amount: number; currency: string }
+    annual: { amount: number; currency: string }
+  }
+}
+
+export const MASTER_PLANS: Record<PlanId, MasterPlanDefinition> = {
   asistente: {
-    description: "Automatización inteligente de WhatsApp con IA + Sistema CRM completo para citas, catálogo, empleados y metas.",
+    id: "asistente",
+    category: "chatbot",
+    title: "Plan Asistente",
+    description:
+      "Automatización inteligente de WhatsApp con IA + Sistema CRM completo para citas, catálogo, empleados y metas.",
     features: [
       "Agente conversacional de IA 24/7 en WhatsApp",
       "Sistema CRM Todo-en-Uno incluido (sin costo por usuario)",
@@ -104,9 +134,19 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
       "Chatbot Web integrable con webhook",
       "Plataforma Web App dedicada",
     ],
+    buttonText: "Elegir Plan Asistente",
+    flags: { cheap: true },
+    defaultPrices: {
+      quarterly: { amount: 651, currency: "mxn" },
+      annual: { amount: 2464, currency: "mxn" },
+    },
   },
   recepcionista: {
-    description: "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web + CRM Todo-en-Uno.",
+    id: "recepcionista",
+    category: "chatbot",
+    title: "Plan Omnicanal",
+    description:
+      "Automatización omnicanal total: WhatsApp, Instagram, TikTok, Facebook y Chatbot Web + CRM Todo-en-Uno.",
     features: [
       "Todo lo incluido en el Plan Asistente",
       "Automatización de WhatsApp Business API",
@@ -122,9 +162,19 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
     differences: [
       "Plataforma Web App dedicada",
     ],
+    buttonText: "Elegir Plan Omnicanal",
+    flags: { popular: true },
+    defaultPrices: {
+      quarterly: { amount: 1400, currency: "mxn" },
+      annual: { amount: 4760, currency: "mxn" },
+    },
   },
   "soporte-tecnico": {
-    description: "Plataforma Web App completa para tu negocio: portal web de clientes, panel de gestión y CRM Todo-en-Uno.",
+    id: "soporte-tecnico",
+    category: "both",
+    title: "Plan Web App",
+    description:
+      "Plataforma Web App completa para tu negocio: portal web de clientes, panel de gestión y CRM Todo-en-Uno.",
     features: [
       "Plataforma Web App personalizada para tu negocio",
       "Portal web para clientes con gestión de citas y pedidos",
@@ -138,9 +188,19 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
     differences: [
       "Automatización omnicanal en redes sociales",
     ],
+    buttonText: "Elegir Plan Web App",
+    flags: { highQuality: true },
+    defaultPrices: {
+      quarterly: { amount: 1875, currency: "mxn" },
+      annual: { amount: 6375, currency: "mxn" },
+    },
   },
   "a-medida": {
-    description: "Solución Integral definitiva: Chatbot Omnicanal con IA en WhatsApp y redes sociales + Web App completa y CRM.",
+    id: "a-medida",
+    category: "both",
+    title: "Plan Chatbot + Web App",
+    description:
+      "Solución Integral definitiva: Chatbot Omnicanal con IA en WhatsApp y redes sociales + Web App completa y CRM.",
     features: [
       "Solución Integral: Chatbot Omnicanal + Web App completa",
       "Automatización en WhatsApp, Instagram, TikTok y Facebook",
@@ -152,72 +212,156 @@ const PLAN_COPY: Record<PlanId, { description: string; features: string[]; diffe
       "Onboarding técnico asistido y soporte prioritario 24/7",
     ],
     differences: [],
+    buttonText: "Elegir Plan Integral",
+    flags: { recommended: true },
+    defaultPrices: {
+      quarterly: { amount: 2999, currency: "mxn" },
+      annual: { amount: 10196, currency: "mxn" },
+    },
   },
 }
+
+export const MASTER_EXTRAS: CatalogExtra[] = [
+  {
+    id: "extra-whatsapp-business-api",
+    name: "Línea WhatsApp Business API Adicional",
+    category: "chatbot",
+    description: "Conecta un número telefónico adicional con su propio agente conversacional de IA y bandeja independiente.",
+    prices: {
+      quarterly: { id: "default_extra_whatsapp_q", amount: 350, currency: "mxn" },
+      annual: { id: "default_extra_whatsapp_a", amount: 1190, currency: "mxn" },
+    },
+  },
+  {
+    id: "extra-web-widget",
+    name: "Chatbot Web Integrable",
+    category: "chatbot",
+    description: "Widget interactivo flotante integrable con 1 línea de código en tu sitio web existente o WordPress.",
+    prices: {
+      quarterly: { id: "default_extra_widget_q", amount: 250, currency: "mxn" },
+      annual: { id: "default_extra_widget_a", amount: 850, currency: "mxn" },
+    },
+  },
+  {
+    id: "extra-soporte-dedicado",
+    name: "Soporte Técnico Prioritario 24/7 con SLA 1h",
+    category: "general",
+    description: "Atención prioritaria de ingeniería por canal privado dedicado y garantía de resolución ágil.",
+    prices: {
+      quarterly: { id: "default_extra_soporte_q", amount: 450, currency: "mxn" },
+      annual: { id: "default_extra_soporte_a", amount: 1530, currency: "mxn" },
+    },
+  },
+  {
+    id: "extra-dominio-hosting-pro",
+    name: "Dominio .com / .mx + CDN y Hosting Pro",
+    category: "web",
+    description: "Registro y gestión de tu dominio comercial con certificado SSL wildcard y hosting Edge de alto rendimiento.",
+    prices: {
+      quarterly: { id: "default_extra_dominio_q", amount: 200, currency: "mxn" },
+      annual: { id: "default_extra_dominio_a", amount: 680, currency: "mxn" },
+    },
+  },
+  {
+    id: "extra-integracion-custom",
+    name: "Integración de Webhooks y APIs Personalizadas",
+    category: "combo",
+    description: "Sincronización bidireccional en tiempo real con tu ERP, CRM externo, sistema contable o base de datos.",
+    prices: {
+      quarterly: { id: "default_extra_custom_q", amount: 600, currency: "mxn" },
+      annual: { id: "default_extra_custom_a", amount: 2040, currency: "mxn" },
+    },
+  },
+]
 
 export const buildPlanLink = (planId: PlanId, billing: BillingCycle) => {
   return `/checkout?plan=${planId}&billing=${billing}`
 }
 
-export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan | null => {
-  const staticCopy = PLAN_COPY[catalogPlan.id]
+/**
+ * Convierte un CatalogPlan de la API en el formato de visualización Plan.
+ */
+export const mapCatalogPlanToPlan = (catalogPlan: CatalogPlan): Plan => {
+  const master = MASTER_PLANS[catalogPlan.id] || MASTER_PLANS.asistente
 
   const rawQuarterly = catalogPlan.prices?.quarterly?.amount
   const rawAnnual = catalogPlan.prices?.annual?.amount
 
-  if (typeof rawQuarterly !== "number" && typeof rawAnnual !== "number") {
-    if (!catalogPlan.title && !staticCopy) return null
-  }
+  // Si Stripe proveyó precios válidos los usamos; si no, recurrimos al precio base del catálogo
+  const quarterlyPrice =
+    typeof rawQuarterly === "number" && rawQuarterly > 0
+      ? rawQuarterly
+      : typeof rawAnnual === "number" && rawAnnual > 0
+      ? Math.round(rawAnnual / (4 * 0.85))
+      : master.defaultPrices.quarterly.amount
 
-  const quarterlyPrice = typeof rawQuarterly === "number" ? rawQuarterly : (rawAnnual ? Math.round(rawAnnual / (4 * 0.85)) : 0)
-  const annualPrice = typeof rawAnnual === "number" ? rawAnnual : Math.round(quarterlyPrice * 4 * 0.85)
+  const annualPrice =
+    typeof rawAnnual === "number" && rawAnnual > 0
+      ? rawAnnual
+      : Math.round(quarterlyPrice * 4 * 0.85)
 
   const features =
     Array.isArray(catalogPlan.features) && catalogPlan.features.length > 0
       ? catalogPlan.features
-      : staticCopy?.features || []
+      : master.features
 
-  const displayTitle = catalogPlan.title || PLAN_TITLES[catalogPlan.id] || catalogPlan.id
+  const differences =
+    Array.isArray(catalogPlan.differences) && catalogPlan.differences.length > 0
+      ? catalogPlan.differences
+      : master.differences
+
+  const displayTitle = catalogPlan.title || master.title
 
   return {
     id: catalogPlan.id,
-    category: catalogPlan.category || PLAN_CATEGORY[catalogPlan.id] || "chatbot",
+    category: catalogPlan.category || master.category,
     title: displayTitle,
     price: {
       quarterly: quarterlyPrice,
       annual: annualPrice,
     },
     period: "trimestre",
-    description: staticCopy?.description || catalogPlan.description || "",
+    description: catalogPlan.description || master.description,
     features,
-    differences: staticCopy?.differences || (Array.isArray(catalogPlan.differences) ? catalogPlan.differences : []),
-    buttonText: catalogPlan.buttonText || `Elegir ${displayTitle}`,
-    cheap: Boolean(catalogPlan.flags?.cheap),
-    popular: Boolean(catalogPlan.flags?.popular),
-    recommended: Boolean(catalogPlan.flags?.recommended),
-    highQuality: Boolean(catalogPlan.flags?.highQuality),
+    differences,
+    buttonText: catalogPlan.buttonText || master.buttonText,
+    cheap: catalogPlan.flags?.cheap ?? master.flags.cheap,
+    popular: catalogPlan.flags?.popular ?? master.flags.popular,
+    recommended: catalogPlan.flags?.recommended ?? master.flags.recommended,
+    highQuality: catalogPlan.flags?.highQuality ?? master.flags.highQuality,
   }
 }
 
-export const mapCatalogPlansToPlans = (catalogPlans: CatalogPlan[] | undefined): Plan[] => {
-  const sortByPrice = (items: Plan[]) =>
-    [...items].sort((a, b) => {
-      const quarterlyDiff = (a.price?.quarterly ?? 0) - (b.price?.quarterly ?? 0)
-      if (quarterlyDiff !== 0) return quarterlyDiff
-
-      const annualDiff = (a.price?.annual ?? 0) - (b.price?.annual ?? 0)
-      if (annualDiff !== 0) return annualDiff
-
-      return a.title.localeCompare(b.title)
-    })
-
-  if (!Array.isArray(catalogPlans) || catalogPlans.length === 0) {
-    return []
+/**
+ * Mapea la lista de planes del catálogo mostrando ÚNICAMENTE los planes activos recibidos.
+ */
+export const mapCatalogPlansToPlans = (catalogPlans?: CatalogPlan[]): Plan[] => {
+  if (Array.isArray(catalogPlans) && catalogPlans.length > 0) {
+    return catalogPlans
+      .filter((cp) => Boolean(cp && cp.id))
+      .map((cp) => mapCatalogPlanToPlan(cp))
   }
 
-  const mapped = catalogPlans
-    .map(mapCatalogPlanToPlan)
-    .filter((plan): plan is Plan => plan !== null)
-
-  return mapped.length > 0 ? sortByPrice(mapped) : []
+  // Fallback seguro: únicamente el plan activo oficial (Plan Asistente)
+  const master = MASTER_PLANS.asistente
+  return [
+    {
+      id: master.id,
+      category: master.category,
+      title: master.title,
+      price: {
+        quarterly: master.defaultPrices.quarterly.amount,
+        annual: master.defaultPrices.annual.amount,
+      },
+      period: "trimestre",
+      description: master.description,
+      features: master.features,
+      differences: master.differences,
+      buttonText: master.buttonText,
+      cheap: master.flags.cheap,
+      popular: master.flags.popular,
+      recommended: master.flags.recommended,
+      highQuality: master.flags.highQuality,
+    },
+  ]
 }

@@ -20,6 +20,7 @@ import {
   Globe,
   Inbox,
   Layers,
+  Menu,
   MessageSquare,
   Send,
   ServerIcon,
@@ -38,6 +39,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import PricingCard from "@/components/pricing-card"
 import FaqAccordion from "@/components/faq-accordion"
 import Squares from '@/components/ui/reactbites/Backgrounds/Squares/Squares';
@@ -98,6 +100,7 @@ export default function Home() {
   const [planType, setPlanType] = useState<"chatbot" | "all">("all")
   const [plans, setPlans] = useState<Plan[]>([])
   const [isPricingLoading, setIsPricingLoading] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isMobile = useIsMobile()
 
@@ -109,7 +112,7 @@ export default function Home() {
         const response = await fetch("/api/prices", { cache: "no-store" })
         if (!response.ok) {
           if (isMounted) {
-            setPlans([])
+            setPlans(mapCatalogPlansToPlans([]))
           }
           return
         }
@@ -122,7 +125,7 @@ export default function Home() {
         setPlans(mapCatalogPlansToPlans(payload.plans))
       } catch {
         if (isMounted) {
-          setPlans([])
+          setPlans(mapCatalogPlansToPlans([]))
         }
       } finally {
         if (isMounted) {
@@ -187,15 +190,17 @@ export default function Home() {
     scrollToSection(pricingRef);
   };
 
-  // Variantes para animaciones
+  // Variantes para animaciones con curva exponencial fuerte (--ease-out)
+  const EASE_OUT_EXPO: [number, number, number, number] = [0.23, 1, 0.32, 1]
+
   const fadeInUpVariants = useMemo(() => ({
-    hidden: { opacity: 0, y: isMobile ? 15 : 30 },
+    hidden: { opacity: 0, y: isMobile ? 12 : 24 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: isMobile ? 0.4 : 0.6,
-        ease: "easeOut" as const,
+        duration: isMobile ? 0.35 : 0.5,
+        ease: EASE_OUT_EXPO,
       },
     },
   }), [isMobile])
@@ -203,12 +208,12 @@ export default function Home() {
   const getServiceCardMotion = (index: number, count: number, mobile: boolean) => {
     if (mobile) {
       return {
-        initial: { opacity: 0 },
-        whileInView: { opacity: 1 },
+        initial: { opacity: 0, y: 12 },
+        whileInView: { opacity: 1, y: 0 },
         transition: {
-          duration: 0.35,
-          ease: "easeOut" as const,
-          delay: index * 0.08,
+          duration: 0.32,
+          ease: EASE_OUT_EXPO,
+          delay: index * 0.06,
         },
         viewport: { once: true, amount: 0.1 },
       }
@@ -220,27 +225,27 @@ export default function Home() {
 
     return {
       initial: isMiddleCard
-        ? { opacity: 0, y: 32 }
-        : { opacity: 0, x: slideFromLeft ? -72 : 72 },
+        ? { opacity: 0, y: 24 }
+        : { opacity: 0, x: slideFromLeft ? -48 : 48 },
       whileInView: { opacity: 1, x: 0, y: 0 },
       transition: {
-        duration: 0.55,
-        ease: "easeOut" as const,
-        delay: index * 0.12,
+        duration: 0.48,
+        ease: EASE_OUT_EXPO,
+        delay: index * 0.08,
       },
-      viewport: { once: true, amount: 0.35 },
+      viewport: { once: true, amount: 0.3 },
     }
   }
 
   const getFooterSideMotion = (side: "left" | "right", delay = 0, mobile: boolean) => ({
-    initial: { opacity: 0, x: mobile ? 0 : (side === "left" ? -48 : 48) },
+    initial: { opacity: 0, x: mobile ? 0 : (side === "left" ? -32 : 32) },
     whileInView: { opacity: 1, x: 0 },
     transition: {
-      duration: mobile ? 0.35 : 0.55,
-      ease: "easeOut" as const,
+      duration: mobile ? 0.32 : 0.48,
+      ease: EASE_OUT_EXPO,
       delay,
     },
-    viewport: { once: true, amount: mobile ? 0.1 : 0.35 },
+    viewport: { once: true, amount: mobile ? 0.1 : 0.3 },
   })
 
   const comparisonPlans = ["Plan Esencial (Nivel 1)", "Plan Omnicanal (Nivel 2)", "Solución Enterprise"] as const
@@ -343,11 +348,11 @@ export default function Home() {
   }
 
   return (
-    <div className={`flex min-h-screen flex-col ${isMobile ? 'overflow-x-hidden' : ''}`}>
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 elev-1">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2">
+        <div className="container flex h-16 items-center justify-between gap-2">
+          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2 shrink-0">
             {isMobile ? (
               <>
                 <Image
@@ -366,14 +371,9 @@ export default function Home() {
                   className="h-7 w-auto hidden dark:block"
                   priority
                 />
-                <motion.span
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-xl font-bold"
-                >
+                <span className="text-lg sm:text-xl font-bold tracking-tight">
                   {COMPANY_NAME}
-                </motion.span>
+                </span>
               </>
             ) : (
               <>
@@ -398,9 +398,9 @@ export default function Home() {
           </Link>
           <nav className="hidden md:flex gap-6">
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
+              transition={{ duration: 0.25, delay: 0.15, ease: EASE_OUT_EXPO }}
             >
               <Link
                 href="#services"
@@ -414,9 +414,9 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
+              transition={{ duration: 0.25, delay: 0.2, ease: EASE_OUT_EXPO }}
             >
               <Link
                 href="#crm"
@@ -430,9 +430,9 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ duration: 0.25, delay: 0.25, ease: EASE_OUT_EXPO }}
             >
               <Link
                 href="#pricing"
@@ -446,9 +446,9 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
+              transition={{ duration: 0.25, delay: 0.3, ease: EASE_OUT_EXPO }}
             >
               <Link
                 href="#comparison"
@@ -462,9 +462,9 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.7 }}
+              transition={{ duration: 0.25, delay: 0.35, ease: EASE_OUT_EXPO }}
             >
               <Link
                 href="#faq"
@@ -478,50 +478,107 @@ export default function Home() {
               </Link>
             </motion.div>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.85 }}
+            <Link
+              href="#contact"
+              className="hidden md:block"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection(contactRef)
+              }}
             >
-              <Link
-                href="#contact"
-                className="hidden md:block"
-                onClick={(e) => {
-                  e.preventDefault()
-                  scrollToSection(contactRef)
-                }}
-              >
-                <Button variant="outline">Contacto</Button>
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link href="/checkout">
-                <Button className="bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400">
-                  Comenzar
-                </Button>
-              </Link>
-            </motion.div>
-            {/* PENDIENTE: Acceso a clientes actuales
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.75 }}
-            >
-              <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-                <Link href={clientsAccessUrl} target="_blank" rel="noreferrer">
-                  Clientes
-                </Link>
+              <Button variant="outline">Contacto</Button>
+            </Link>
+            <Link href="/checkout">
+              <Button className="h-10 px-3.5 sm:px-4 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold active:scale-[0.97] transition-transform duration-150">
+                Comenzar
               </Button>
-            </motion.div>
-            */}
+            </Link>
+
+            {/* Menú Móvil (Drawer) */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Abrir menú de navegación"
+                  className="md:hidden h-10 w-10 shrink-0 active:scale-95 transition-transform duration-150"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[min(85vw,320px)] flex flex-col justify-between p-6">
+                <div>
+                  <SheetHeader className="text-left border-b border-border/60 pb-4">
+                    <SheetTitle className="flex items-center gap-2 text-lg font-bold">
+                      <Image
+                        src="/logos/minimalBlack.png"
+                        alt={COMPANY_NAME}
+                        width={24}
+                        height={24}
+                        className="h-6 w-auto block dark:hidden"
+                      />
+                      <Image
+                        src="/logos/minimalWhite.png"
+                        alt={COMPANY_NAME}
+                        width={24}
+                        height={24}
+                        className="h-6 w-auto hidden dark:block"
+                      />
+                      <span>{COMPANY_NAME}</span>
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <nav className="mt-6 flex flex-col gap-1" aria-label="Navegación móvil">
+                    {[
+                      { label: "Beneficios", ref: servicesRef, href: "#services" },
+                      { label: "CRM Todo-en-Uno", ref: crmRef, href: "#crm" },
+                      { label: "Planes y Precios", ref: pricingRef, href: "#pricing" },
+                      { label: "Comparación de Niveles", ref: comparisonRef, href: "#comparison" },
+                      { label: "Preguntas Frecuentes", ref: faqRef, href: "#faq" },
+                      { label: "Contacto", ref: contactRef, href: "#contact" },
+                    ].map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setMobileMenuOpen(false)
+                          setTimeout(() => scrollToSection(item.ref), 150)
+                        }}
+                        className="flex min-h-[44px] items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted active:bg-muted/80"
+                      >
+                        <span>{item.label}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    ))}
+                    <Link
+                      href="/sobre-nosotros"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex min-h-[44px] items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <span>Sobre nosotros</span>
+                      <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                  </nav>
+                </div>
+
+                <div className="space-y-3 border-t border-border/60 pt-4 pb-safe">
+                  <Link href="/checkout" onClick={() => setMobileMenuOpen(false)} className="block w-full">
+                    <Button className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-semibold">
+                      Contratar Ahora
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/configurar-plan" onClick={() => setMobileMenuOpen(false)} className="block w-full">
+                    <Button variant="outline" className="w-full h-11 font-medium">
+                      Personalizar Plan
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -529,154 +586,152 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <motion.section
-          //className="relative overflow-hidden py-24 md:py-32"
-          className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-24 md:py-32 dark:from-slate-950 dark:via-slate-900 dark:to-[#0b1222]"
+          className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 py-12 sm:py-20 md:py-28 lg:py-32 dark:from-slate-950 dark:via-slate-900 dark:to-[#0b1222]"
         >
           {/* Squares Background */}
           <div className="absolute inset-0">
             <Squares 
               speed={0.15} 
               squareSize={60}
-              direction='diagonal' // up, down, left, right, diagonal
+              direction='diagonal'
               borderColor='#fff'
               hoverFillColor='transparent'
             />
           </div>
           <div className="container relative">
             <div className="grid gap-8 md:grid-cols-2 md:gap-12 items-center">
-              <div className="space-y-6" ref={heroRef}>
+              <div className="space-y-5 sm:space-y-6" ref={heroRef}>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.45, delay: 0.05, ease: EASE_OUT_EXPO }}
                 >
-                  <Badge className="bg-white/10 text-white hover:bg-white/20 border-none">
+                  <Badge className="bg-white/10 text-white hover:bg-white/20 border-none text-xs sm:text-sm py-1 px-3">
                     Automatización con IA + Sistema CRM
                   </Badge>
                 </motion.div>
                 <motion.h1
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-4xl font-bold tracking-tighter text-white sm:text-5xl xl:text-6xl/none"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.12, ease: EASE_OUT_EXPO }}
+                  className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl xl:text-6xl/none text-balance leading-[1.12]"
                 >
-                  Llena tu agenda y controla tu negocio con
-                  <br />
-                  <span className="text-cyan-300 [text-shadow:0_2px_10px_rgba(34,211,238,0.45)]"> IA y CRM Todo-en-Uno</span>
+                  Llena tu agenda y controla tu negocio con{" "}
+                  <span className="text-cyan-300 [text-shadow:0_2px_10px_rgba(34,211,238,0.45)]">
+                    IA y CRM Todo-en-Uno
+                  </span>
                 </motion.h1>
                 <motion.p
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  className="max-w-[600px] text-white/90 md:text-xl"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.2, ease: EASE_OUT_EXPO }}
+                  className="max-w-[600px] text-sm sm:text-base text-white/90 md:text-xl leading-relaxed"
                 >
                   Automatiza tu atención en WhatsApp y Redes Sociales con Inteligencia Artificial. Centraliza citas, catálogo, empleados, analíticas y metas en una plataforma diseñada para hacer crecer tu facturación.
                 </motion.p>
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="flex flex-row flex-wrap gap-3 sm:gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.28, ease: EASE_OUT_EXPO }}
+                  className="flex flex-col xs:flex-row sm:flex-row flex-wrap gap-3 sm:gap-4 pt-1"
                 >
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link
-                      href="#pricing"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        scrollToSection(pricingRef)
-                      }}
-                    >
-                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold">
-                        Ver Planes
-                      </Button>
-                    </Link>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link
-                      href="#crm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        scrollToSection(crmRef)
-                      }}
-                    >
-                      <Button size="lg" className="border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">
-                        Explorar CRM
-                      </Button>
-                    </Link>
-                  </motion.div>
+                  <Link
+                    href="#pricing"
+                    className="w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection(pricingRef)
+                    }}
+                  >
+                    <Button size="lg" className="w-full sm:w-auto h-12 sm:h-11 border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold active:scale-[0.98] transition-transform duration-150">
+                      Ver Planes
+                    </Button>
+                  </Link>
+                  <Link
+                    href="#crm"
+                    className="w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection(crmRef)
+                    }}
+                  >
+                    <Button size="lg" className="w-full sm:w-auto h-12 sm:h-11 border border-cyan-200/40 bg-sky-400 font-semibold text-slate-950 shadow-[0_8px_24px_rgba(34,211,238,0.4)] hover:bg-sky-300 hover:shadow-[0_12px_30px_rgba(34,211,238,0.5)] dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 active:scale-[0.98] transition-transform duration-150">
+                      Explorar CRM
+                    </Button>
+                  </Link>
                 </motion.div>
               </div>
               <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={isHeroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="relative mx-auto max-w-[500px]"
+                initial={{ opacity: 0, x: isMobile ? 0 : 40, y: isMobile ? 16 : 0 }}
+                animate={isHeroInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x: isMobile ? 0 : 40, y: isMobile ? 16 : 0 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: EASE_OUT_EXPO }}
+                className="relative mx-auto w-full max-w-[500px]"
               >
                 <div className="relative rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur elev-3">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <div className="h-3 w-3 rounded-full bg-red-500" />
-                        <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                        <div className="h-3 w-3 rounded-full bg-green-500" />
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex gap-1 shrink-0">
+                        <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-500" />
+                        <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-yellow-500" />
+                        <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-500" />
                       </div>
-                      <span className="text-[11px] font-medium text-white/70">Atención Multicanal con IA</span>
+                      <span className="truncate text-[11px] font-medium text-white/70">Atención Multicanal con IA</span>
                     </div>
-                    <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    <span className="shrink-0 rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                       WhatsApp + Redes
                     </span>
                   </div>
 
-                  <div className="mt-3 space-y-1.5 text-xs text-white/90 sm:space-y-2 sm:text-sm">
+                  <div className="mt-3 space-y-2 text-xs text-white/90 sm:text-sm">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.35, duration: 0.2 }}
-                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                      transition={{ delay: 0.3, duration: 0.2 }}
+                      className="flex max-w-full items-start gap-2 sm:max-w-[95%]"
                     >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7 mt-0.5">
                         <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                      <div className="w-fit max-w-[85%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
                         Hola, ¿tienen disponibilidad mañana en la tarde y qué costo tiene?
                       </div>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5, duration: 0.2 }}
-                      className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                      transition={{ delay: 0.45, duration: 0.2 }}
+                      className="ml-auto flex max-w-full flex-row-reverse items-start gap-2 sm:max-w-[95%]"
                     >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7 mt-0.5">
                         <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                      <div className="inline-block w-auto max-w-[85%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-3 sm:py-2">
                         ¡Hola! Claro, el servicio tiene un costo de <strong>$450 MXN</strong>. Tenemos espacio disponible a las <strong>4:00 PM</strong> o <strong>5:30 PM</strong>. ¿Cuál te acomoda mejor?
                       </div>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.65, duration: 0.2 }}
-                      className="flex max-w-full items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                      transition={{ delay: 0.6, duration: 0.2 }}
+                      className="flex max-w-full items-start gap-2 sm:max-w-[95%]"
                     >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-white sm:h-7 sm:w-7 mt-0.5">
                         <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="w-fit max-w-[82%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
+                      <div className="w-fit max-w-[85%] rounded-xl bg-white/10 px-2.5 py-1.5 leading-snug sm:max-w-[90%] sm:px-3 sm:py-2">
                         A las 4:00 PM por favor.
                       </div>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 0.2 }}
-                      className="ml-auto flex max-w-full flex-row-reverse items-center gap-1.5 sm:max-w-[95%] sm:gap-2"
+                      transition={{ delay: 0.75, duration: 0.2 }}
+                      className="ml-auto flex max-w-full flex-row-reverse items-start gap-2 sm:max-w-[95%]"
                     >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-300/25 text-cyan-100 sm:h-7 sm:w-7 mt-0.5">
                         <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
-                      <div className="inline-block w-auto max-w-[82%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-2.5">
+                      <div className="inline-block w-auto max-w-[85%] rounded-xl bg-cyan-400/20 px-2.5 py-1.5 text-right leading-snug text-cyan-100 sm:max-w-[90%] sm:px-3 sm:py-2">
                         ✓ ¡Listo! Tu cita quedó confirmada para mañana a las 4:00 PM. Te enviamos recordatorio 2 horas antes.
                       </div>
                     </motion.div>
@@ -686,53 +741,31 @@ export default function Home() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 1.0, duration: 0.25 }}
-                    className="mt-3 rounded-xl border border-cyan-200/50 bg-slate-950/70 p-3 text-xs text-white shadow-lg backdrop-blur-sm"
+                    transition={{ delay: 0.9, duration: 0.25 }}
+                    className="mt-3 rounded-xl border border-cyan-200/50 bg-slate-950/70 p-2.5 sm:p-3 text-xs text-white shadow-lg backdrop-blur-sm"
                   >
-                    <div className="flex items-center justify-between border-b border-white/10 pb-1.5 text-[11px]">
+                    <div className="flex flex-wrap items-center justify-between gap-1 border-b border-white/10 pb-1.5 text-[11px]">
                       <span className="flex items-center gap-1.5 font-bold text-cyan-300">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Sincronizado con CRM Kinexting
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                        <span>Sincronizado con CRM Kinexting</span>
                       </span>
                       <span className="text-[10px] text-white/60">Tiempo real</span>
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
-                      <div className="rounded-lg bg-white/5 p-2">
+                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div className="rounded-lg bg-white/5 p-2 flex sm:block items-center justify-between">
                         <span className="text-[10px] text-white/60 block">Cita en Calendario</span>
                         <strong className="text-white">Mañana · 4:00 PM</strong>
                       </div>
-                      <div className="rounded-lg bg-white/5 p-2">
+                      <div className="rounded-lg bg-white/5 p-2 flex sm:block items-center justify-between">
                         <span className="text-[10px] text-white/60 block">Meta Semanal Negocio</span>
-                        <strong className="text-emerald-400">85% completado (34/40)</strong>
+                        <strong className="text-emerald-400">85% (34/40)</strong>
                       </div>
                     </div>
                   </motion.div>
                 </div>
-                <motion.div
-                  animate={!isMobile ? {
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.6, 0.3],
-                  } : { opacity: 0.3 }}
-                  transition={!isMobile ? {
-                    duration: 4,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatType: "reverse",
-                  } : {}}
-                  className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-purple-600/30 blur-2xl"
-                />
-                <motion.div
-                  animate={!isMobile ? {
-                    scale: [1, 1.2, 1],
-                    opacity: [0.3, 0.5, 0.3],
-                  } : { opacity: 0.3 }}
-                  transition={!isMobile ? {
-                    duration: 5,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatType: "reverse",
-                  } : {}}
-                  className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-indigo-600/30 blur-2xl"
-                />
+                <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-purple-600/25 blur-2xl" />
+                <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full bg-indigo-600/25 blur-2xl" />
               </motion.div>
             </div>
           </div>
@@ -742,18 +775,18 @@ export default function Home() {
         <section
           id="services"
           ref={servicesRef}
-          className="relative overflow-hidden py-20 md:py-32 bg-slate-50/70 dark:bg-[#060c18] border-t border-slate-200/80 dark:border-slate-800/80"
+          className="relative overflow-hidden py-14 sm:py-20 md:py-32 bg-slate-50/70 dark:bg-[#060c18] border-t border-slate-200/80 dark:border-slate-800/80"
         >
           {/* Luces ambientales tenues */}
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
           <div className="absolute bottom-10 right-10 w-[400px] h-[300px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-          <div className="container relative z-10 mx-auto max-w-6xl px-4">
-            <div className="mb-14 text-center max-w-3xl mx-auto" ref={servicesHeaderRef}>
+          <div className="container relative z-10 mx-auto max-w-6xl">
+            <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto" ref={servicesHeaderRef}>
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={isServicesHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
                 className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300 mb-4"
               >
                 <Sparkles className="h-3.5 w-3.5" />
@@ -773,7 +806,7 @@ export default function Home() {
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isServicesHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.15 }}
+                transition={{ delay: 0.12 }}
                 className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300"
               >
                 Automatiza la atención y convierte cada mensaje en una cita confirmada, sin saturar a tu equipo ni perder clientes por demoras.
@@ -781,20 +814,20 @@ export default function Home() {
             </div>
 
             {/* Bento Grid Asimétrico */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12">
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-12">
               {/* CARD 1: 7 cols - Atención 24/7 y Conversión en Vivo */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-5 sm:p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
               >
                 <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-br from-cyan-500/15 to-indigo-500/10 blur-3xl pointer-events-none" />
 
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300">
                       <Zap className="h-3.5 w-3.5" />
                       Disponibilidad Total
@@ -804,7 +837,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  <h3 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                     Atención que nunca duerme: Convierte mensajes en ventas
                   </h3>
                   <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
@@ -813,10 +846,10 @@ export default function Home() {
                 </div>
 
                 {/* Widget Gráfico: Simulación interactiva de WhatsApp */}
-                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 shadow-inner dark:border-slate-800/80 dark:bg-slate-950/70">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5 dark:border-slate-800/60">
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 sm:p-4 shadow-inner dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5 dark:border-slate-800/60">
                     <div className="flex items-center gap-2">
-                      <span className="relative flex h-2.5 w-2.5">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
                       </span>
@@ -832,7 +865,7 @@ export default function Home() {
                   <div className="mt-3 space-y-2.5 text-xs">
                     {/* Mensaje del cliente */}
                     <div className="flex justify-end">
-                      <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-slate-200 px-3.5 py-2 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+                      <div className="max-w-[88%] rounded-2xl rounded-tr-xs bg-slate-200 px-3.5 py-2 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
                         <p>Hola, ¿tienen espacio para mañana en la tarde? Quiero agendar un servicio.</p>
                         <span className="mt-1 block text-right text-[9px] text-slate-400">10:42 PM</span>
                       </div>
@@ -840,11 +873,11 @@ export default function Home() {
 
                     {/* Mensaje del agente */}
                     <div className="flex justify-start">
-                      <div className="max-w-[90%] rounded-2xl rounded-tl-xs bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 px-3.5 py-2 text-slate-900 dark:text-slate-100">
+                      <div className="max-w-[92%] rounded-2xl rounded-tl-xs bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 px-3.5 py-2 text-slate-900 dark:text-slate-100">
                         <p>
                           ¡Hola! Claro que sí. Tenemos espacios a las <strong>4:00 PM</strong> y <strong>5:30 PM</strong>. ¿Te reservo a las 4:00 PM?
                         </p>
-                        <div className="mt-2 flex items-center justify-between gap-2 border-t border-cyan-500/15 pt-1.5">
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-cyan-500/15 pt-1.5">
                           <span className="rounded-md bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-700 dark:text-cyan-300">
                             ✓ Confirmar 4:00 PM
                           </span>
@@ -854,9 +887,9 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-200/50 pt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-200/50 pt-2 text-[11px] text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
-                      <TrendingUp className="h-3.5 w-3.5" />
+                      <TrendingUp className="h-3.5 w-3.5 shrink-0" />
                       +45% citas captadas fuera de horario
                     </span>
                     <span>WhatsApp API Oficial</span>
@@ -866,17 +899,17 @@ export default function Home() {
 
               {/* CARD 2: 5 cols - Agenda Automatizada & Cero Inasistencias */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.08, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-5 sm:p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
               >
                 <div className="absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-500/15 to-purple-500/10 blur-3xl pointer-events-none" />
 
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                       <Calendar className="h-3.5 w-3.5" />
                       Agenda Blindada
@@ -895,13 +928,13 @@ export default function Home() {
                 </div>
 
                 {/* Widget Gráfico: Tarjeta de Cita y Calendario */}
-                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300">
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 sm:p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300">
                         <Calendar className="h-5 w-5" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs font-bold text-slate-900 dark:text-white">
                           Cita Confirmada
                         </p>
@@ -910,17 +943,17 @@ export default function Home() {
                         </p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                       Sincronizada
                     </span>
                   </div>
 
                   <div className="mt-4 space-y-2 border-t border-slate-200/60 pt-3 text-xs dark:border-slate-800/60">
-                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                    <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-300">
                       <span>Recordatorio programado:</span>
                       <span className="font-semibold text-slate-900 dark:text-slate-100">2 horas antes</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                    <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-300">
                       <span>Tasa de asistencia:</span>
                       <span className="font-semibold text-emerald-600 dark:text-emerald-400">+80% cumplimiento</span>
                     </div>
@@ -930,17 +963,17 @@ export default function Home() {
 
               {/* CARD 3: 5 cols - Ahorro de Tiempo y Foco Operativo */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.14, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-5 sm:p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-5"
               >
                 <div className="absolute -top-20 -left-20 h-52 w-52 rounded-full bg-gradient-to-br from-emerald-500/15 to-cyan-500/10 blur-3xl pointer-events-none" />
 
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                       <Clock className="h-3.5 w-3.5" />
                       Eficiencia Operativa
@@ -959,10 +992,10 @@ export default function Home() {
                 </div>
 
                 {/* Widget Gráfico: Métricas de Ahorro de Tiempo */}
-                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
-                  <div className="flex items-baseline justify-between">
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 sm:p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <div>
-                      <span className="text-3xl font-black text-slate-900 dark:text-white">
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                         ~20 hrs
                       </span>
                       <span className="text-xs text-slate-500 dark:text-slate-400"> / semana liberadas</span>
@@ -993,17 +1026,17 @@ export default function Home() {
 
               {/* CARD 4: 7 cols - Precisión Empresarial y Tono de Marca */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.18, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white/80 p-5 sm:p-7 shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-cyan-950/10 lg:col-span-7"
               >
                 <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-bl from-cyan-500/15 to-blue-500/10 blur-3xl pointer-events-none" />
 
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300">
                       <ShieldCheck className="h-3.5 w-3.5" />
                       Cero Alucinaciones
@@ -1013,7 +1046,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  <h3 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                     Entrenado con tu negocio: Respuestas exactas y tono profesional
                   </h3>
                   <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
@@ -1022,7 +1055,7 @@ export default function Home() {
                 </div>
 
                 {/* Widget Gráfico: Matriz de Conocimiento y Confiabilidad */}
-                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
+                <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 sm:p-4 dark:border-slate-800/80 dark:bg-slate-950/70">
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white p-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
                       <CheckCircle2 className="h-4 w-4 text-cyan-500 shrink-0" />
@@ -1073,9 +1106,9 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-200/50 pt-2 text-xs">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/50 pt-2 text-xs">
                     <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-cyan-500" />
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
                       Índice de precisión conversacional
                     </span>
                     <span className="font-black text-cyan-600 dark:text-cyan-400">
@@ -1092,18 +1125,18 @@ export default function Home() {
         <section
           id="crm"
           ref={crmRef}
-          className="relative overflow-hidden py-20 md:py-32 bg-slate-900 text-white dark:bg-[#070d1a] border-t border-slate-800"
+          className="relative overflow-hidden py-14 sm:py-20 md:py-32 bg-slate-900 text-white dark:bg-[#070d1a] border-t border-slate-800"
         >
           {/* Luces de fondo */}
           <div className="absolute top-1/3 left-1/4 w-[500px] h-[300px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
           <div className="absolute bottom-10 right-1/4 w-[450px] h-[300px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-          <div className="container relative z-10 mx-auto max-w-6xl px-4">
-            <div className="mb-14 text-center max-w-3xl mx-auto" ref={crmHeaderRef}>
+          <div className="container relative z-10 mx-auto max-w-6xl">
+            <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto" ref={crmHeaderRef}>
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={isCrmHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
                 className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4"
               >
                 <Layers className="h-3.5 w-3.5" />
@@ -1123,7 +1156,7 @@ export default function Home() {
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isCrmHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.15 }}
+                transition={{ delay: 0.12 }}
                 className="mt-4 text-base sm:text-lg text-slate-300"
               >
                 Sin costos adicionales por usuario. Controla citas, catálogo, empleados, promociones y objetivos desde una sola plataforma conectada en tiempo real a tus conversaciones.
@@ -1131,18 +1164,18 @@ export default function Home() {
             </div>
 
             {/* Grid Bento de Módulos CRM */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12">
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-12">
               {/* MODULO 1: Bandeja Unificada (7 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-7"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-7"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
                       <Inbox className="h-3.5 w-3.5" />
                       Bandeja Unificada
@@ -1152,7 +1185,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-white">
+                  <h3 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-white">
                     Todos tus chats en una sola bandeja
                   </h3>
                   <p className="mt-2 text-sm text-slate-300">
@@ -1161,7 +1194,7 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Selector de Canales y Chat Activo */}
-                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4">
                   <div className="flex flex-wrap gap-1.5 border-b border-slate-800 pb-3 text-xs">
                     <span className="rounded-lg bg-cyan-500/20 px-2.5 py-1 font-bold text-cyan-300 border border-cyan-500/30">
                       Todos (29)
@@ -1180,19 +1213,19 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/5 p-3 text-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
                         IG
                       </div>
-                      <div>
-                        <p className="font-bold text-white">@andrea.castillo</p>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
-                          "¿Tienen cita para mañana a las 5?"
+                      <div className="min-w-0">
+                        <p className="font-bold text-white truncate">@andrea.castillo</p>
+                        <p className="text-[11px] text-slate-400 truncate">
+                          &ldquo;¿Tienen cita para mañana a las 5?&rdquo;
                         </p>
                       </div>
                     </div>
-                    <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    <span className="shrink-0 rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                       ✓ Atendido por IA
                     </span>
                   </div>
@@ -1201,15 +1234,15 @@ export default function Home() {
 
               {/* MODULO 2: Agenda y Citas 24/7 (5 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.08, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 lg:col-span-5"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 lg:col-span-5"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
                       <Calendar className="h-3.5 w-3.5" />
                       Agenda Inteligente
@@ -1228,16 +1261,16 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Citas */}
-                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4 space-y-2.5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
                     <span className="font-semibold text-white">Recordatorios automáticos</span>
                     <span className="text-emerald-400 font-bold">Activo 24/7</span>
                   </div>
-                  <div className="flex items-center justify-between text-slate-300">
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-slate-300">
                     <span>Aviso 24 horas antes:</span>
                     <span className="text-white font-medium">WhatsApp automatizado</span>
                   </div>
-                  <div className="flex items-center justify-between text-slate-300">
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-slate-300">
                     <span>Aviso 2 horas antes:</span>
                     <span className="text-white font-medium">Confirmación en 1 clic</span>
                   </div>
@@ -1246,15 +1279,15 @@ export default function Home() {
 
               {/* MODULO 3: Catálogo de Servicios y Productos (5 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.15 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.12, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-5"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-5"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
                       <Tag className="h-3.5 w-3.5" />
                       Catálogo Digital
@@ -1273,15 +1306,15 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Servicio Card */}
-                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-white">Corte & Tratamiento VIP</p>
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">Corte & Tratamiento VIP</p>
                       <p className="text-[11px] text-slate-400">Duración: 50 min</p>
                     </div>
-                    <span className="text-sm font-extrabold text-cyan-400">$650 MXN</span>
+                    <span className="shrink-0 text-sm font-extrabold text-cyan-400">$650 MXN</span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[11px] text-slate-400">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2 text-[11px] text-slate-400">
                     <span>Link Stripe / Transferencia</span>
                     <span className="text-emerald-400 font-semibold">✓ Listo para enviar</span>
                   </div>
@@ -1290,15 +1323,15 @@ export default function Home() {
 
               {/* MODULO 4: Promociones y Campañas (7 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.16, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-purple-500/40 lg:col-span-7"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-purple-500/40 lg:col-span-7"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300">
                       <Sparkles className="h-3.5 w-3.5" />
                       Marketing & Fidelización
@@ -1308,7 +1341,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-2xl font-bold tracking-tight text-white">
+                  <h3 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-white">
                     Promociones y campañas segmentadas
                   </h3>
                   <p className="mt-2 text-sm text-slate-300">
@@ -1317,9 +1350,9 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Campaña Activa */}
-                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                    <div className="flex items-center gap-2">
+                <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-md bg-purple-500/20 px-2 py-0.5 text-xs font-bold text-purple-300">
                         CUPÓN: PROMO20
                       </span>
@@ -1327,7 +1360,7 @@ export default function Home() {
                     </div>
                     <span className="text-[10px] text-emerald-400 font-bold">Activo</span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-300">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
                     <span>Clientes reactivados: <strong>38 citas</strong></span>
                     <span className="text-cyan-400 font-semibold">+18.5% tasa de retorno</span>
                   </div>
@@ -1336,15 +1369,15 @@ export default function Home() {
 
               {/* MODULO 5: Gestión de Empleados y Turnos (6 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.2, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-6"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/40 lg:col-span-6"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
                       <Users className="h-3.5 w-3.5" />
                       Equipo de Trabajo
@@ -1363,39 +1396,39 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Lista de colaboradores */}
-                <div className="mt-6 space-y-2 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
+                <div className="mt-6 space-y-2 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-6 w-6 shrink-0 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
                         DR
                       </div>
-                      <span className="font-semibold text-white">Dr. Daniel Ramos (Especialista)</span>
+                      <span className="font-semibold text-white truncate">Dr. Daniel Ramos (Especialista)</span>
                     </div>
-                    <span className="text-[10px] text-emerald-400 font-bold">En turno</span>
+                    <span className="shrink-0 text-[10px] text-emerald-400 font-bold">En turno</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-[10px]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-6 w-6 shrink-0 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-[10px]">
                         CR
                       </div>
-                      <span className="font-semibold text-white">Carlos Rivera (Atención)</span>
+                      <span className="font-semibold text-white truncate">Carlos Rivera (Atención)</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">3 chats activos</span>
+                    <span className="shrink-0 text-[10px] text-slate-400">3 chats activos</span>
                   </div>
                 </div>
               </motion.div>
 
               {/* MODULO 6: Analíticas y Metas (Semanales, Mensuales, Anuales) (6 cols) */}
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.4, delay: 0.24, ease: EASE_OUT_EXPO }}
                 whileHover={isMobile ? undefined : { y: -4 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-6"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 p-5 sm:p-7 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/40 lg:col-span-6"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
                       <Target className="h-3.5 w-3.5" />
                       Metas y Analíticas
@@ -1414,9 +1447,9 @@ export default function Home() {
                 </div>
 
                 {/* Micro-UI: Metas */}
-                <div className="mt-6 space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+                <div className="mt-6 space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 sm:p-4 text-xs">
                   <div>
-                    <div className="flex items-center justify-between text-slate-300 mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1 text-slate-300 mb-1">
                       <span>Meta Semanal: 40 Citas</span>
                       <strong className="text-cyan-400">34 / 40 (85%)</strong>
                     </div>
@@ -1426,7 +1459,7 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between text-slate-300 mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1 text-slate-300 mb-1">
                       <span>Meta Mensual: $120,000 MXN</span>
                       <strong className="text-emerald-400">$104,500 MXN (87%)</strong>
                     </div>
@@ -1543,26 +1576,31 @@ export default function Home() {
 
                     {/* Tarjeta Requerimientos Especiales / Enterprise */}
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 16 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.4 }}
-                      className="mx-auto max-w-4xl rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50"
+                      transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
+                      className="mx-auto max-w-4xl rounded-2xl border border-slate-200/80 bg-slate-50 p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900/50"
                     >
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-left">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                        <div className="space-y-1">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400">
                             Requerimientos Especiales
                           </span>
-                          <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                          <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                             ¿Necesitas arquitectura personalizada, múltiples sucursales o integración a ERP dedicado?
                           </h4>
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             Diseñamos soluciones personalizadas con SLA corporativo y gerente de cuenta técnico.
                           </p>
                         </div>
-                        <a href="https://wa.me/521234567890?text=Hola%2C%20quiero%20cotizar%20un%20plan%20a%20medida" target="_blank" rel="noopener noreferrer" className="shrink-0">
-                          <Button variant="outline" className="border-indigo-600/40 hover:bg-indigo-50 dark:hover:bg-slate-800">
+                        <a
+                          href="https://wa.me/521234567890?text=Hola%2C%20quiero%20cotizar%20un%20plan%20a%20medida"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0"
+                        >
+                          <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 border-indigo-600/40 hover:bg-indigo-50 dark:hover:bg-slate-800">
                             Cotizar por WhatsApp
                             <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                           </Button>
@@ -1577,9 +1615,9 @@ export default function Home() {
         </section>
 
         {/* Comparison Section */}
-        <section id="comparison" ref={comparisonRef} className="bg-[#080d18] py-16 md:py-24">
+        <section id="comparison" ref={comparisonRef} className="bg-[#080d18] py-14 sm:py-16 md:py-24">
           <div className="container">
-            <div className="text-center mb-12" ref={comparisonHeaderRef}>
+            <div className="text-center mb-10 sm:mb-12" ref={comparisonHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
@@ -1592,18 +1630,58 @@ export default function Home() {
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isComparisonHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-slate-300"
+                transition={{ delay: 0.12 }}
+                className="mx-auto mt-3 sm:mt-4 max-w-[700px] text-sm sm:text-base text-slate-300"
               >
                 Compara las capacidades de cada nivel para elegir la solución perfecta para tu negocio.
               </motion.p>
             </div>
+
+            {/* Mobile Card Comparison View (md:hidden) — zero horizontal scroll */}
+            <div className="space-y-6 md:hidden" ref={comparisonTableRef}>
+              {comparisonRows.map((category) => (
+                <div
+                  key={category.category}
+                  className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#11182b] shadow-lg"
+                >
+                  <div className="border-b border-slate-700/60 bg-slate-900/80 px-4 py-3 text-xs font-bold tracking-wider text-cyan-400 uppercase">
+                    {category.category}
+                  </div>
+                  <div className="divide-y divide-slate-800/80">
+                    {category.rows.map((row) => (
+                      <div key={row.label} className="p-4 space-y-2.5">
+                        <p className="text-sm font-semibold text-white">{row.label}</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {row.values.map((value, idx) => (
+                            <div
+                              key={`${row.label}-${comparisonPlans[idx]}`}
+                              className={`flex flex-col items-center justify-center rounded-xl border px-2 py-2 text-center ${
+                                idx === 1
+                                  ? "border-cyan-500/35 bg-cyan-500/10"
+                                  : "border-slate-800 bg-slate-900/70"
+                              }`}
+                            >
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                {idx === 0 ? "Esencial" : idx === 1 ? "Omnicanal" : "Enterprise"}
+                              </span>
+                              <div className="text-xs">{renderComparisonCell(value)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Full Comparison Table (hidden md:block) */}
             <motion.div
-              ref={comparisonTableRef}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-              className={`overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)] ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.45, ease: EASE_OUT_EXPO }}
+              className="hidden md:block overflow-x-auto rounded-[22px] border border-slate-600/40 bg-[#11182b] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
             >
               <table className="min-w-[760px] w-full border-collapse">
                 <thead>
@@ -1620,25 +1698,17 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {comparisonRows.flatMap((category) => [
-                    <motion.tr
-                      key={category.category}
-                      initial={{ opacity: 0, y: isMobile ? 8 : 20 }}
-                      animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 8 : 20 }}
-                      transition={{ duration: isMobile ? 0.3 : 0.45, ease: "easeOut" }}
-                    >
+                    <tr key={category.category}>
                       <td
-                        colSpan={5}
-                        className="border-b border-slate-500/20 px-5 py-4 text-[13px] font-bold tracking-wider text-indigo-400 uppercase"
+                        colSpan={4}
+                        className="border-b border-slate-500/20 px-5 py-4 text-[13px] font-bold tracking-wider text-cyan-400 uppercase"
                       >
                         {category.category}
                       </td>
-                    </motion.tr>,
-                    ...category.rows.map((row, rowIndex, rows) => (
-                      <motion.tr
+                    </tr>,
+                    ...category.rows.map((row, rowIndex) => (
+                      <tr
                         key={row.label}
-                        initial={{ opacity: 0, y: isMobile ? 8 : 20 }}
-                        animate={isComparisonTableInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 8 : 20 }}
-                        transition={{ duration: isMobile ? 0.25 : 0.45, ease: "easeOut", delay: (rowIndex + 1) * (isMobile ? 0.02 : 0.05) }}
                         className={rowIndex % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"}
                       >
                         <td className="border-b border-slate-500/20 px-5 py-5 text-[15px] font-medium text-slate-100">
@@ -1652,7 +1722,7 @@ export default function Home() {
                             {renderComparisonCell(value)}
                           </td>
                         ))}
-                      </motion.tr>
+                      </tr>
                     )),
                   ])}
                 </tbody>
@@ -1662,32 +1732,32 @@ export default function Home() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq" ref={faqRef} className="py-16 md:py-24 bg-slate-50">
+        <section id="faq" ref={faqRef} className="py-14 sm:py-16 md:py-24 bg-slate-50 dark:bg-[#060c18]">
           <div className="container">
-            <div className="text-center mb-12" ref={faqHeaderRef}>
+            <div className="text-center mb-10 sm:mb-12" ref={faqHeaderRef}>
               <motion.h2
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isFaqHeaderInView ? "visible" : "hidden"}
-                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+                className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-slate-900 dark:text-white"
               >
-                Preguntas <span className="text-indigo-600">Frecuentes</span>
+                Preguntas <span className="text-indigo-600 dark:text-cyan-400">Frecuentes</span>
               </motion.h2>
               <motion.p
                 variants={fadeInUpVariants}
                 initial="hidden"
                 animate={isFaqHeaderInView ? "visible" : "hidden"}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-4 max-w-[700px] text-muted-foreground"
+                transition={{ delay: 0.12 }}
+                className="mx-auto mt-3 sm:mt-4 max-w-[700px] text-sm sm:text-base text-muted-foreground"
               >
-                Dudas comunes de barberias, salones, spas, consultorios y consultoras antes de empezar.
+                Dudas comunes de barberías, salones, spas, consultorios y consultoras antes de empezar.
               </motion.p>
             </div>
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isFaqHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className={`mx-auto max-w-3xl ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isFaqHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.45, delay: 0.18, ease: EASE_OUT_EXPO }}
+              className="mx-auto max-w-3xl"
             >
               <FaqAccordion
                 items={[
@@ -1723,150 +1793,90 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24">
+        <section className="py-12 sm:py-16 md:py-24 dark:bg-[#060c18]">
           <div className="container">
             <motion.div
               ref={ctaRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={isCtaInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.6 }}
-              className={`rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-8 md:p-12 lg:p-16 relative overflow-hidden elev-3 ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={isCtaInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.45, ease: EASE_OUT_EXPO }}
+              className="rounded-2xl bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-900 p-6 sm:p-10 md:p-12 lg:p-16 relative overflow-hidden elev-3"
             >
               <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
-              <motion.div
-                animate={!isMobile ? {
-                  scale: [1, 1.1, 1],
-                  opacity: [0.3, 0.6, 0.3],
-                } : { opacity: 0.3 }}
-                transition={!isMobile ? {
-                  duration: 8,
-                  repeat: Number.POSITIVE_INFINITY,
-                  repeatType: "reverse",
-                } : {}}
-                className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-purple-600/30 blur-3xl"
-              />
-              <motion.div
-                animate={!isMobile ? {
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.5, 0.3],
-                } : { opacity: 0.3 }}
-                transition={!isMobile ? {
-                  duration: 10,
-                  repeat: Number.POSITIVE_INFINITY,
-                  repeatType: "reverse",
-                } : {}}
-                className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-600/30 blur-3xl"
-              />
+              <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-purple-600/30 blur-3xl" />
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-600/30 blur-3xl" />
               <div className="relative z-10 max-w-3xl mx-auto text-center">
                 <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.4, delay: 0.1, ease: EASE_OUT_EXPO }}
+                  className="text-2xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
                 >
                   Comienza hoy mismo con {COMPANY_NAME}
                 </motion.h2>
                 <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  className="mt-4 text-white/90 md:text-xl"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.4, delay: 0.18, ease: EASE_OUT_EXPO }}
+                  className="mt-3 sm:mt-4 text-sm sm:text-base text-white/90 md:text-xl"
                 >
                   Únete a los negocios y empresas que confían en nuestra tecnología para automatizar su atención, captar más clientes y potenciar sus resultados digitales.
                 </motion.p>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={isCtaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.4, delay: 0.25, ease: EASE_OUT_EXPO }}
+                  className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center"
                 >
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link
-                      href="#pricing"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        scrollToSection(pricingRef)
-                      }}
-                    >
-                      <Button size="lg" className="border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold">
-                        Ver Planes
-                      </Button>
-                    </Link>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link
-                      href="#contact"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        scrollToSection(contactRef)
-                      }}
-                    >
-                      <Button size="lg"  className="bg-sky-400 text-slate-950 hover:bg-sky-300 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-semibold">
-                        Contactar con ventas
-                      </Button>
-                    </Link>
-                  </motion.div>
+                  <Link
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection(pricingRef)
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <Button size="lg" className="w-full sm:w-auto h-12 sm:h-11 border border-white/20 bg-slate-950/80 text-white hover:bg-slate-900/90 dark:bg-slate-900/90 dark:text-white font-semibold active:scale-[0.98]">
+                      Ver Planes
+                    </Button>
+                  </Link>
+                  <Link
+                    href="#contact"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection(contactRef)
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <Button size="lg" className="w-full sm:w-auto h-12 sm:h-11 bg-sky-400 text-slate-950 hover:bg-sky-300 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-semibold active:scale-[0.98]">
+                      Contactar con ventas
+                    </Button>
+                  </Link>
                 </motion.div>
               </div>
             </motion.div>
           </div>
         </section>
 
-        {/* PENDIENTE: Seccion de acceso a clientes actuales */}
-        {/* Clients Access Section
-        <section className="border-y border-slate-200/80 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950">
-          <div className="container">
-            <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_10px_30px_rgba(2,6,23,0.35)] md:p-10">
-              <div className="grid gap-6 md:grid-cols-[1.2fr_auto] md:items-center">
-                <div className="space-y-3">
-                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-200">Clientes actuales</Badge>
-                  <h2 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white sm:text-4xl">
-                    Acceso para tu panel y soporte
-                  </h2>
-                  <p className="max-w-2xl text-slate-600 dark:text-slate-300">
-                    Si ya eres cliente, entra a tu espacio privado para administrar tu servicio, revisar avances y recibir soporte.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:justify-self-end">
-                  <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
-                    <a href={clientsAccessUrl} target="_blank" rel="noreferrer">
-                      Acceder a clientes
-                    </a>
-                  </Button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{clientsAccessUrl}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        */}
-
         {/* Contact Section */}
-        <section id="contact" ref={contactRef} className="py-16 md:py-24 bg-slate-50">
+        <section id="contact" ref={contactRef} className="py-14 sm:py-16 md:py-24 bg-slate-50 dark:bg-slate-950 border-t border-slate-200/70 dark:border-slate-800/80">
           <div className="container">
             <div className="grid gap-8 lg:grid-cols-2">
               <motion.div
-                initial={{ opacity: 0, x: isMobile ? 0 : -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: isMobile ? 0.35 : 0.6 }}
-                viewport={{ once: true, margin: "-100px" }}
-                className={isMobile ? 'will-change-[opacity,transform]' : ''}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
+                viewport={{ once: true, margin: "-60px" }}
               >
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  Ponte en <span className="text-indigo-600">Contacto</span>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-slate-900 dark:text-white">
+                  Ponte en <span className="text-indigo-600 dark:text-cyan-400">Contacto</span>
                 </h2>
-                <p className="mt-4 text-muted-foreground">
+                <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">
                   ¿Tienes alguna pregunta o necesitas ayuda? Nuestro equipo está aquí para ayudarte.
                 </p>
-                <div className="mt-8 space-y-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    viewport={{ once: true }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="rounded-full bg-indigo-100 p-2 text-indigo-600">
+                <div className="mt-6 sm:mt-8 space-y-5 sm:space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-indigo-100 dark:bg-cyan-500/15 p-2.5 text-indigo-600 dark:text-cyan-400 shrink-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -1883,18 +1893,14 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-bold">Teléfono</h3>
-                      <p className="text-muted-foreground">+52 998 686 0637</p>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Teléfono</h3>
+                      <a href="tel:+529986860637" className="text-muted-foreground hover:text-foreground transition-colors">
+                        +52 998 686 0637
+                      </a>
                     </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    viewport={{ once: true }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="rounded-full bg-indigo-100 p-2 text-indigo-600">
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-indigo-100 dark:bg-cyan-500/15 p-2.5 text-indigo-600 dark:text-cyan-400 shrink-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -1912,18 +1918,14 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-bold">Soporte</h3>
-                      <p className="text-muted-foreground">soporte@kinexting.com</p>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Soporte</h3>
+                      <a href="mailto:soporte@kinexting.com" className="text-muted-foreground hover:text-foreground transition-colors break-all">
+                        soporte@kinexting.com
+                      </a>
                     </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    viewport={{ once: true }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="rounded-full bg-indigo-100 p-2 text-indigo-600">
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-indigo-100 dark:bg-cyan-500/15 p-2.5 text-indigo-600 dark:text-cyan-400 shrink-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -1941,29 +1943,25 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-bold">Contacto</h3>
-                      <p className="text-muted-foreground">contacto@kinexting.com</p>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Contacto</h3>
+                      <a href="mailto:contacto@kinexting.com" className="text-muted-foreground hover:text-foreground transition-colors break-all">
+                        contacto@kinexting.com
+                      </a>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, x: isMobile ? 0 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: isMobile ? 0.35 : 0.6, delay: isMobile ? 0 : 0.2 }}
-                viewport={{ once: true, margin: "-100px" }}
-                className={`rounded-xl border bg-card p-6 elev-2 ${isMobile ? 'will-change-[opacity,transform]' : ''}`}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: EASE_OUT_EXPO }}
+                viewport={{ once: true, margin: "-60px" }}
+                className="rounded-2xl border bg-card p-5 sm:p-6 elev-2"
               >
                 <h3 className="text-xl font-bold">Envíanos un mensaje</h3>
-                <form className="mt-6 space-y-4">
+                <form className="mt-5 sm:mt-6 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.3 }}
-                      viewport={{ once: true }}
-                      className="space-y-2"
-                    >
+                    <div className="space-y-2">
                       <label
                         htmlFor="name"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -1972,17 +1970,12 @@ export default function Home() {
                       </label>
                       <input
                         id="name"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
+                        autoComplete="name"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                         placeholder="Tu nombre"
                       />
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.4 }}
-                      viewport={{ once: true }}
-                      className="space-y-2"
-                    >
+                    </div>
+                    <div className="space-y-2">
                       <label
                         htmlFor="email"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -1992,18 +1985,14 @@ export default function Home() {
                       <input
                         id="email"
                         type="email"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
+                        inputMode="email"
+                        autoComplete="email"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                         placeholder="tu@email.com"
                       />
-                    </motion.div>
+                    </div>
                   </div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.5 }}
-                    viewport={{ once: true }}
-                    className="space-y-2"
-                  >
+                  <div className="space-y-2">
                     <label
                       htmlFor="subject"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -2012,17 +2001,11 @@ export default function Home() {
                     </label>
                     <input
                       id="subject"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
+                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                       placeholder="Asunto de tu mensaje"
                     />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.6 }}
-                    viewport={{ once: true }}
-                    className="space-y-2"
-                  >
+                  </div>
+                  <div className="space-y-2">
                     <label
                       htmlFor="message"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -2031,20 +2014,13 @@ export default function Home() {
                     </label>
                     <textarea
                       id="message"
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
+                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 elev-1"
                       placeholder="Tu mensaje"
                     />
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.7 }}
-                    viewport={{ once: true }}
-                  >
-                    <Button className="w-full bg-indigo-600 hover:bg-indigo-700">Enviar mensaje</Button>
-                  </motion.div>
+                  </div>
+                  <Button className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]">
+                    Enviar mensaje
+                  </Button>
                 </form>
               </motion.div>
             </div>
@@ -2053,18 +2029,17 @@ export default function Home() {
       </main>
 
       {/* Componente Footer */}
-      <footer className="relative mt-16 border-t border-slate-800 bg-slate-900 text-white dark:border-cyan-900/40 dark:bg-gradient-to-b dark:from-[#050b17] dark:via-[#071128] dark:to-[#030712] dark:text-white dark:shadow-[0_-20px_50px_rgba(2,6,23,0.7)]">
+      <footer className="relative border-t border-slate-800 bg-slate-900 text-white dark:border-cyan-900/40 dark:bg-gradient-to-b dark:from-[#050b17] dark:via-[#071128] dark:to-[#030712] dark:text-white dark:shadow-[0_-20px_50px_rgba(2,6,23,0.7)] pb-safe">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/45 to-transparent dark:via-cyan-300/55" />
-        <div className="container py-12 md:py-16 overflow-hidden"> {/* overflow-hidden evita scrollbars horizontales durante la animación */}
-          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
-            
-            {/* BLOQUE IZQUIERDO: Descripción y Redes Sociales (Animación desde la izquierda) */}
+        <div className="container py-10 sm:py-12 md:py-16 overflow-hidden">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {/* BLOQUE IZQUIERDO: Descripción y Redes Sociales */}
             <motion.div
               initial={getFooterSideMotion("left", 0, isMobile).initial}
               whileInView={getFooterSideMotion("left", 0, isMobile).whileInView}
               transition={getFooterSideMotion("left", 0, isMobile).transition}
               viewport={getFooterSideMotion("left", 0, isMobile).viewport}
-              className="col-span-1 lg:col-span-2"
+              className="sm:col-span-2"
             >
               <div className="flex items-center gap-2 mb-4">
                 <Image
@@ -2072,190 +2047,180 @@ export default function Home() {
                   alt={COMPANY_NAME}
                   width={28}
                   height={28}
-                  className="h-7 w-auto dark:block"
+                  className="h-7 w-auto"
                 />
                 <span className="text-xl font-bold">{COMPANY_NAME}</span>
               </div>
-              <p className="text-slate-400 mb-4 max-w-xs">
+              <p className="text-sm text-slate-400 mb-5 max-w-sm">
                 Soluciones digitales y automatización para negocios locales, profesionales y empresas. Optimiza tu operación, escala tus ventas y cuenta con soporte técnico especializado siempre que lo necesites.
               </p>
-              <div className="flex gap-4">
-                <motion.a
-                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
+              <div className="flex gap-2">
+                <a
                   href="#"
-                  className="text-slate-400 hover:text-white transition-colors"
+                  aria-label="Facebook de Kinexting"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400 hover:border-cyan-500/40 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                   >
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                   </svg>
-                </motion.a>
-                <motion.a
-                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
+                </a>
+                <a
                   href="#"
-                  className="text-slate-400 hover:text-white transition-colors"
+                  aria-label="X / Twitter de Kinexting"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400 hover:border-cyan-500/40 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                   >
                     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                   </svg>
-                </motion.a>
-                <motion.a
-                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
+                </a>
+                <a
                   href="#"
-                  className="text-slate-400 hover:text-white transition-colors"
+                  aria-label="Instagram de Kinexting"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400 hover:border-cyan-500/40 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                   >
                     <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
                   </svg>
-                </motion.a>
-                <motion.a
-                  whileHover={isMobile ? undefined : { scale: 1.1, color: "#ffffff" }}
+                </a>
+                <a
                   href="#"
-                  className="text-slate-400 hover:text-white transition-colors"
+                  aria-label="LinkedIn de Kinexting"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400 hover:border-cyan-500/40 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                   >
                     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
                     <rect width="4" height="12" x="2" y="9" />
                     <circle cx="4" cy="4" r="2" />
                   </svg>
-                </motion.a>
+                </a>
               </div>
             </motion.div>
 
-            {/* BLOQUE DERECHO - COLUMNA 1: Servicios (Animación desde la derecha) */}
+            {/* BLOQUE DERECHO - COLUMNA 1: Servicios */}
             <motion.div
               initial={getFooterSideMotion("right", 0.1, isMobile).initial}
               whileInView={getFooterSideMotion("right", 0.1, isMobile).whileInView}
               transition={getFooterSideMotion("right", 0.1, isMobile).transition}
               viewport={getFooterSideMotion("right", 0.1, isMobile).viewport}
             >
-              <h3 className="font-bold mb-4">Servicios</h3>
-              <ul className="space-y-2">
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+              <h3 className="font-bold mb-3 sm:mb-4">Servicios</h3>
+              <ul className="space-y-1.5 text-sm">
+                <li>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all")}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="inline-block py-1 text-slate-400 hover:text-white transition-colors"
                   >
                     Todos nuestros servicios
                   </a>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <a
-                    href="#pricing"
-                    onClick={(e) => handleServiceClick(e, "all")}
-                    className="text-slate-400 hover:text-white transition-colors"
-                  >
-                    Todos los servicios
-                  </a>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                </li>
+                <li>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "chatbot")}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="inline-block py-1 text-slate-400 hover:text-white transition-colors"
                   >
                     Chatbots Inteligentes
                   </a>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                </li>
+                <li>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all", "quarterly")}
-                    className="text-slate-400 hover:text-white transition-colors"
-                >
+                    className="inline-block py-1 text-slate-400 hover:text-white transition-colors"
+                  >
                     Plan Trimestral
                   </a>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                </li>
+                <li>
                   <a
                     href="#pricing"
                     onClick={(e) => handleServiceClick(e, "all", "annual")}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="inline-block py-1 text-slate-400 hover:text-white transition-colors"
                   >
                     Plan Anual
                   </a>
-                </motion.li>
+                </li>
               </ul>
             </motion.div>
 
-            {/* BLOQUE DERECHO - COLUMNA 2: Empresa (Animación desde la derecha con un retraso extra para escalonar) */}
+            {/* BLOQUE DERECHO - COLUMNA 2: Empresa */}
             <motion.div
               initial={getFooterSideMotion("right", 0.2, isMobile).initial}
               whileInView={getFooterSideMotion("right", 0.2, isMobile).whileInView}
               transition={getFooterSideMotion("right", 0.2, isMobile).transition}
               viewport={getFooterSideMotion("right", 0.2, isMobile).viewport}
             >
-              <h3 className="font-bold mb-4">Empresa</h3>
-              <ul className="space-y-2">
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/sobre-nosotros" className="text-slate-400 hover:text-white transition-colors">
+              <h3 className="font-bold mb-3 sm:mb-4">Empresa</h3>
+              <ul className="space-y-1.5 text-sm">
+                <li>
+                  <Link href="/sobre-nosotros" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">
                     Sobre nosotros
                   </Link>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/terminos-de-servicio" className="text-slate-400 hover:text-white transition-colors">
+                </li>
+                <li>
+                  <Link href="/legal/terminos-de-servicio" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">
                     Términos de servicio
                   </Link>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/privacidad" className="text-slate-400 hover:text-white transition-colors">
+                </li>
+                <li>
+                  <Link href="/legal/privacidad" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">
                     Política de privacidad
                   </Link>
-                </motion.li>
-                <motion.li whileHover={isMobile ? undefined : { x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link href="/legal/cancelacion-y-facturacion" className="text-slate-400 hover:text-white transition-colors">
+                </li>
+                <li>
+                  <Link href="/legal/cancelacion-y-facturacion" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">
                     Política de cancelación y facturación
                   </Link>
-                </motion.li>
+                </li>
               </ul>
             </motion.div>
-
           </div>
         </div>
       </footer>
