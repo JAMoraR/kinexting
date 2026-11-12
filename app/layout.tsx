@@ -11,7 +11,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://kinexting.com'),
-  title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
+  title: 'WhatsApp con IA, CRM y páginas web | Kinexting',
   alternates: {
     canonical: '/',
   },
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
   },
   // Open Graph
   openGraph: {
-    title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
-    description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento.',
+    title: 'WhatsApp con IA, CRM y páginas web | Kinexting',
+    description: 'WhatsApp con IA, CRM y soluciones web para tu negocio. Conoce los planes de Kinexting y el próximo Plan gestor.',
     url: 'https://kinexting.com',
     siteName: 'Kinexting',
     images: [
@@ -58,14 +58,14 @@ export const metadata: Metadata = {
         alt: 'Kinexting',
       },
     ],
-    locale: 'es-ES',
+    locale: 'es_MX',
     type: 'website',
   },
   // Twitter Card
   twitter: {
     card: 'summary_large_image',
-    title: 'Kinexting | Digitaliza tu negocio e impulsa tu crecimiento',
-    description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento.',
+    title: 'WhatsApp con IA, CRM y páginas web | Kinexting',
+    description: 'WhatsApp con IA, CRM y soluciones web para tu negocio. Conoce los planes de Kinexting y el próximo Plan gestor.',
     images: [
       {
         url: 'https://kinexting.com/og-social.png',
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.png',
   },
-  description: 'Kinexting es una plataforma que te ayuda a digitalizar tu negocio y a impulsar tu crecimiento a través de la tecnología y la innovación digital.',
+  description: 'Automatiza la atención de tu negocio con WhatsApp e IA, CRM y soluciones web. Conoce los planes de Kinexting y la lista de espera del Plan gestor.',
 }
 
 export default function RootLayout({
