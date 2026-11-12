@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El correo electrónico es requerido" }, { status: 400 })
     }
 
-    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "https://kinexting.com"
+    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "https://www.kinexting.com"
     const redirectTo = `${origin}/admin/reset-password`
 
     const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email.trim().toLowerCase(), {

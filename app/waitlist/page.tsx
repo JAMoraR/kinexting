@@ -35,7 +35,7 @@ export default function WaitlistPage() {
         <div className="flex items-center gap-3 sm:gap-6"><a href="#beneficios" className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block">Conoce el plan</a><ThemeToggle /><a href="#registro" className="rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300">Reservar mi lugar</a></div>
       </div>
     </header>
-    <StructuredData data={{ "@context": "https://schema.org", "@type": "WebPage", "@id": "https://kinexting.com/waitlist#page", url: "https://kinexting.com/waitlist", name: title, description, inLanguage: "es-MX", about: { "@type": "Service", name: "Plan gestor", description, provider: { "@id": "https://kinexting.com/#organization" } } }} />
+    <StructuredData data={{ "@context": "https://schema.org", "@type": "WebPage", "@id": "https://www.kinexting.com/waitlist#page", url: "https://www.kinexting.com/waitlist", name: title, description, inLanguage: "es-MX", about: { "@type": "Service", name: "Plan gestor", description, provider: { "@id": "https://www.kinexting.com/#organization" } } }} />
     <main>
       <section className="relative isolate overflow-hidden border-b">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.12),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_top_left,rgba(34,211,238,0.10),transparent_60%)]" />

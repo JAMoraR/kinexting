@@ -10,7 +10,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kinexting.com'),
+  metadataBase: new URL('https://www.kinexting.com'),
   title: 'WhatsApp con IA, CRM y páginas web | Kinexting',
   alternates: {
     canonical: '/',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: 'Kinexting',
-      url: 'https://kinexting.com',
+      url: 'https://www.kinexting.com',
     },
   ],
   creator: 'Kinexting',
@@ -42,17 +42,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'WhatsApp con IA, CRM y páginas web | Kinexting',
     description: 'WhatsApp con IA, CRM y soluciones web para tu negocio. Conoce los planes de Kinexting y el próximo Plan gestor.',
-    url: 'https://kinexting.com',
+    url: 'https://www.kinexting.com',
     siteName: 'Kinexting',
     images: [
       {
-        url: 'https://kinexting.com/og-social.png',
+        url: 'https://www.kinexting.com/og-social.png',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
       },
       {
-        url: 'https://kinexting.com/og-social.jpg',
+        url: 'https://www.kinexting.com/og-social.jpg',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
@@ -68,13 +68,13 @@ export const metadata: Metadata = {
     description: 'WhatsApp con IA, CRM y soluciones web para tu negocio. Conoce los planes de Kinexting y el próximo Plan gestor.',
     images: [
       {
-        url: 'https://kinexting.com/og-social.png',
+        url: 'https://www.kinexting.com/og-social.png',
         width: 1200,
         height: 630,
         alt: 'Kinexting',
       },
       {
-        url: 'https://kinexting.com/og-social.jpg',
+        url: 'https://www.kinexting.com/og-social.jpg',
         width: 1200,
         height: 630,
         alt: 'Kinexting',

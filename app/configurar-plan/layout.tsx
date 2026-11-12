@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'Configura tu plan | Kinexting',
     description:
       'Personaliza tu plan de hosting, web o chatbot y calcula el costo final en segundos.',
-    url: 'https://kinexting.com/configurar-plan',
+    url: 'https://www.kinexting.com/configurar-plan',
     siteName: 'Kinexting',
     locale: 'es-ES',
     type: 'website',
