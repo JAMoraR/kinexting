@@ -140,7 +140,7 @@ export const getSiteOrigin = (request?: Request): string => {
     }
   }
 
-  return "https://kinexting.com"
+  return "https://www.kinexting.com"
 }
 
 export const isStripeProduct = (product: unknown): product is Stripe.Product => {

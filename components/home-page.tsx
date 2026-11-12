@@ -2159,6 +2159,9 @@ export default function Home() {
             >
               <h3 className="font-bold mb-3 sm:mb-4">Servicios</h3>
               <ul className="space-y-1.5 text-sm">
+                <li><Link href="/chatbot-whatsapp-ia" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">Chatbot de WhatsApp con IA</Link></li>
+                <li><Link href="/desarrollo-web" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">Desarrollo web</Link></li>
+                <li><Link href="/automatizacion-negocios" className="inline-block py-1 text-slate-400 hover:text-white transition-colors">Automatización de negocios</Link></li>
                 <li>
                   <a
                     href="#pricing"
