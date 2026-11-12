@@ -34,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.4,
     },
     {
-      url: `${SITE_URL}/configurar-plan`,
+      url: `${SITE_URL}/checkout`,
       changeFrequency: 'monthly',
       priority: 0.8,
     },

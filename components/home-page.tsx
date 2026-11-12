@@ -571,11 +571,6 @@ export default function Home() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href="/configurar-plan" onClick={() => setMobileMenuOpen(false)} className="block w-full">
-                    <Button variant="outline" className="w-full h-11 font-medium">
-                      Personalizar Plan
-                    </Button>
-                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

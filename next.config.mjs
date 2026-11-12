@@ -19,6 +19,15 @@ const nextConfig = {
   experimental: {
     webpackBuildWorker: false,
   },
+  async redirects() {
+    return [
+      {
+        source: '/configurar-plan',
+        destination: '/checkout',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 mergeConfig(nextConfig, userConfig)

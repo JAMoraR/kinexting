@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js"
 import { AnimatePresence, motion } from "framer-motion"
@@ -482,12 +483,33 @@ function CheckoutContent() {
         {/* Barra superior de navegación */}
         <header className="mb-6 sm:mb-8 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4 sm:pb-5 dark:border-slate-800/80">
           <div className="flex items-center gap-3">
+            <Link href="/" aria-label="Kinexting, inicio" className="inline-flex items-center">
+              <Image
+                src="/logos/fullBlack.png"
+                alt="Kinexting"
+                width={130}
+                height={32}
+                priority
+                className="h-8 w-auto dark:hidden"
+              />
+              <Image
+                src="/logos/fullWhite.png"
+                alt="Kinexting"
+                width={130}
+                height={32}
+                priority
+                className="hidden h-8 w-auto dark:block"
+              />
+            </Link>
+
+            <div className="hidden sm:block h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
+
             <Link
-              href="/configurar-plan"
+              href="/"
               className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Configurar planes
+              Volver al inicio
             </Link>
 
             <div className="hidden sm:block h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />

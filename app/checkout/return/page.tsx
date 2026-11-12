@@ -136,7 +136,7 @@ function CheckoutReturnContent() {
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Button asChild variant="outline">
-            <Link href="/configurar-plan">Volver a configurar</Link>
+            <Link href="/checkout">Volver al checkout</Link>
           </Button>
           <Button asChild>
             <Link href="/">Ir al inicio</Link>
